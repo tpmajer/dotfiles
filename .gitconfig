@@ -1,3 +1,7 @@
 [user]
 	email = 17414256+tpmajer@users.noreply.github.com
-	name = tpmajer
+	name = Tomasz Majer
+[init]
+	defaultBranch = main
+[core]
+	editor = micro
