@@ -1,0 +1,92 @@
+* {
+    font-family: "JetBrains Mono NF";
+    font-size: 20px;
+    font-weight: bold;
+    color: #1e1e2e;
+    box-shadow: none;
+    text-shadow: none;
+}
+
+window {
+    background-color: rgba(30, 30, 46, 0.8);
+    padding: 15px;
+}
+
+button {
+    background-color: #313244;
+    border-radius: 14px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 30%;
+    min-width: 100px;
+    transition: all 0.25s ease-in-out;
+    padding: 25px;
+    margin: 10px;
+    border: 2px solid transparent;
+}
+
+button:active,
+button:hover {
+    background-size: 37%;
+/*    text-shadow: 0 0 1px #1e1e2e; */
+}
+
+#lock {
+    background-image: image(url("assets/lock.png"));
+    background-color: #89b4fa;
+    color: #1e1e2e;
+}
+
+#lock:hover {
+    background-color: #74c7ec;
+}
+
+#logout {
+    background-image: image(url("assets/logout.png"));
+    background-color: #cba6f7;
+    color: #1e1e2e;
+}
+
+#logout:hover {
+    background-color: #f5c2e7;
+}
+
+#suspend {
+    background-image: image(url("assets/suspend.png"));
+    background-color: #89dceb;
+    color: #1e1e2e;
+}
+
+#suspend:hover {
+    background-color: #74c7ec;
+}
+
+#hibernate {
+    background-image: image(url("assets/hibernate.png"));
+    background-color: #94e2d5;
+    color: #1e1e2e;
+}
+
+#hibernate:hover {
+    background-color: #a6e3a1;
+}
+
+#shutdown {
+    background-image: image(url("assets/shutdown.png"));
+    background-color: #f38ba8;
+    color: #1e1e2e;
+}
+
+#shutdown:hover {
+    background-color: #f7768e;
+}
+
+#reboot {
+    background-image: image(url("assets/reboot.png"));
+    background-color: #fab387;
+    color: #1e1e2e;
+}
+
+#reboot:hover {
+    background-color: #f9e2af;
+}

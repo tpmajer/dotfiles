@@ -1,0 +1,204 @@
+{
+    "layer": "top",
+    "position": "top",
+    "spacing": 0,
+    "height": 48,
+    "margin-top": 10,
+    "margin-left": 10,
+    "margin-right": 10,
+    "modules-left": [
+		"custom/logo",
+        "niri/workspaces",
+        "niri/window"
+    //  "wlr/taskbar"
+    ],
+    "modules-center": [
+        "clock"
+    ],
+    "modules-right": [
+	//	"tray",
+		"idle_inhibitor",
+        "cpu",
+        "memory",
+        "network",
+		"bluetooth",
+		"wireplumber#sink",
+        "battery",
+        "custom/power"
+    ],
+    "niri/window": {
+        "format": "{title}",
+        "format-alt": "{app_id}",
+        "icon": true,
+        "icon-size": 22
+    },
+    "wlr/taskbar": {
+        "format": "{icon}",
+        "on-click": "activate",
+        "on-click-right": "close", // "fullscreen",
+        "icon-theme": "Papirus",
+        "icon-size": 22,
+        "tooltip-format": "{title} | {app_id}"
+    },
+    "niri/workspaces": {
+        "on-click": "activate",
+        "format": "{icon}",
+        "format-icons": {
+			"1": "1",
+            "2": "2",
+            "3": "3",
+            "4": "4",
+            "5": "5",
+            "6": "6",
+            "7": "7",
+            "8": "8",
+            "9": "9"
+        },
+    },
+    "idle_inhibitor": {
+    	"format": "{icon}",
+    	"format-icons": {
+    		"activated": "󰒳",
+    		"deactivated": "󰒲"
+    	},
+    	"tooltip-format-activated": "Idle inhibitor on",
+    	"tooltip-format-deactivated": "Idle inhibitor off",
+    	"timeout": 30,
+    },
+    "cpu": {
+		"interval": 1,
+		"format": "CPU {usage}%",
+		"tooltip": true,
+		"on-click": "ghostty -e btop",
+		"on-click-right": "ghostty -e btop"
+    },
+    "memory": {
+        "interval": 5,
+        "format": "RAM {}%",
+        "max-length": 10,
+        "on-click": "ghostty -e btop",
+		"on-click-right": "ghostty -e btop"
+    },
+    "tray": {
+        "spacing": 10
+    },
+    "clock": {
+    	"interval": 1,
+        "tooltip-format": "{calendar}",
+        // "format-alt": "󰃭 {:%a, %d %b %Y}",
+        "format-alt": "󰃭 {:%d.%m.%Y}",
+        "format": " {:%H:%M:%S}",
+        //"format": "󰃭 {:%d.%m.%Y  %H:%M}",
+		"on-click-right": "ghostty -e calcure",
+		"calendar": {
+			"format": {
+				"months": "<span color='#cdd6f4'>{}</span>",
+				"days": "<span color='#ffffff'>{}</span>",
+				"weekdays": "<span color='#ea76cb'><b>{}</b></span>",
+				"today": "<span color='#ea76cb'><u><b>{}</b></u></span>"
+			}
+		},
+		"locale": "en_US.UTF-8"
+    },
+    "network": {
+        "format-wifi": "{icon} {essid}",
+        "format-icons": ["󰤯","󰤟","󰤢","󰤥","󰤨"],
+        "format-ethernet": "󰀂",
+        "format-disconnected": "󰤮",
+		"tooltip-format-wifi": "{frequency}GHz  ⇣ {bandwidthDownBytes} ⇡ {bandwidthUpBytes}",
+        "tooltip-format-ethernet": "󰀂  {ifname}: ⇣ {bandwidthDownBytes} ⇡ {bandwidthUpBytes}",
+		"tooltip-format-disconnected": "Disconnected",
+	//	"on-click": "ghostty -e impala",
+		"on-click": "networkmanager_dmenu",
+	//	"on-click-right": "nmcli device wifi list --rescan yes",
+		"on-click-right": "nmcli device wifi rescan",
+		"interval": 1,
+		"nospacing": 1
+    },
+    "bluetooth": {
+    	"format": "󰂯",
+    	"format-connected": "󰂯",
+    	"format-disabled": "",
+    	"format-off": "󰂲",
+		"tooltip-format": "Bluetooth on",
+		"tooltip-format-connected": "{device_enumerate}",
+		"tooltip-format-enumerate-connected": "{device_alias}",
+		"tooltip-format-enumerate-connected-battery": "{device_alias} {device_battery_percentage}%",
+		"tooltip-format-no-controller": "No bluetooth controller found",
+		"tooltip-format-off": "Bluetooth off",
+		"on-click": "ghostty -e bluetui",
+		"on-click-right": "ghostty -e bluetui"
+    },
+    "wireplumber#sink": {
+    	"max-volume": 100,
+        "format": "{icon} {volume}%",
+        "format-bluetooth": "󰂰",
+        "nospacing": 1,
+        "tooltip-format": "Volume: {volume}%",
+        "format-muted": "󰝟",
+        "format-icons": {
+            "headphone": "",
+            "default": ["󰕿","󰖀","󰕾"]
+        },
+        "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
+		"on-click-right": "ghostty -e wiremix",
+        "scroll-step": 1
+    },
+    "custom/logo": {
+        "format": "",
+        "tooltip": false,
+		"on-click": "fuzzel"
+    },
+    "battery": {
+    	"full-at": 80,
+        "format": "{icon} {capacity}%",
+		"format-alt": "{icon} {time}",
+        "format-icons": {
+            "charging": [
+                "󰢜",
+                "󰂆",
+                "󰂇",
+                "󰂈",
+                "󰢝",
+                "󰂉",
+                "󰢞",
+                "󰂊",
+                "󰂋",
+                "󰂅"
+            ],
+            "default": [
+                "󰁺",
+                "󰁻",
+                "󰁼",
+                "󰁽",
+                "󰁾",
+                "󰁿",
+                "󰂀",
+                "󰂁",
+                "󰂂",
+                "󰁹"
+            ]
+        },
+        // "format-full": "Charged ",
+        "interval": 5,
+        "states": {
+        	"good": 100,
+        	"normal": 94,
+            "warning": 25,
+            "critical": 15
+        },
+        "events": {
+        		"on-discharging-warning": "notify-send -u normal 'Low Battery'",
+        		"on-discharging-critical": "notify-send -u critical 'Very Low Battery!'",
+        		"on-charging-100": "notify-send -u normal 'Battery Full'"
+		},
+        "tooltip": true,
+        "tooltip-format": "Battery: {capacity}%"
+    },
+    "custom/power": {
+        "format": "󰤆",
+        "tooltip": true,
+        "tooltip-format": "Logout",
+        "on-click": "wlogout"
+    }
+}

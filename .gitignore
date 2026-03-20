@@ -1,0 +1,15 @@
+history
+buffers/
+block-screen-capture.kdl
+
+.env
+.env.local
+*.pem
+*.key
+secrets.yml
+
+*.log
+*.tmp
+*.cache
+
+*~
