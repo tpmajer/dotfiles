@@ -15,91 +15,78 @@ from collections import defaultdict
 from pathlib import Path
 
 
-# ── helpers ──────────────────────────────────────────────────────────────────
+# ── normalisation ─────────────────────────────────────────────────────────────
 
 MODIFIER_ALIASES = {
     "super": "mod", "win": "mod", "meta": "mod",
     "control": "ctrl",
-    "alt": "alt", "option": "alt",
-    "shift": "shift",
-}
-KEY_ALIASES = {
-    "minus": "-", "dash": "-",
+    "option": "alt",
+    "enter": "return",
+    "esc": "escape",
+    "del": "delete",
+    "page_up": "pageup",
+    "page_down": "pagedown",
     "equal": "=", "equals": "=",
+    "minus": "-", "dash": "-",
     "slash": "/",
     "backslash": "\\",
     "underscore": "_",
-    "space": "space",
-    "tab": "tab",
-    "return": "return", "enter": "return",
-    "escape": "escape", "esc": "escape",
-    "delete": "delete", "del": "delete",
-    "backspace": "backspace",
-    "page_up": "pageup", "pageup": "pageup",
-    "page_down": "pagedown", "pagedown": "pagedown",
     "bracketleft": "[", "bracketright": "]",
     "comma": ",", "period": ".", "semicolon": ";",
     "apostrophe": "'", "grave": "`",
 }
+
 MODIFIER_ORDER = ["ctrl", "alt", "shift", "mod"]
 
 
 def normalize(key: str) -> str:
     """Return a canonical lower-case key combo string."""
     key = key.strip()
-    # split on + or - (but keep single - as a key)
+
     if "+" in key:
-        parts = [p.strip() for p in key.split("+") if p.strip()]
-    elif key.startswith("Alt-") or key.startswith("Ctrl-"):
-        parts = [p.strip() for p in key.split("-", 1) if p.strip()]
+        parts = [p.strip().lower() for p in key.split("+") if p.strip()]
+    elif re.match(r"^(Alt|Ctrl)-", key):
+        parts = [p.strip().lower() for p in key.split("-", 1)]
     else:
-        parts = [key]
+        parts = [key.lower()]
 
-    parts = [p.lower() for p in parts]
     parts = [MODIFIER_ALIASES.get(p, p) for p in parts]
-
-    mods = [p for p in parts if p in MODIFIER_ORDER]
-    rest = [p for p in parts if p not in MODIFIER_ORDER]
-
-    if rest:
-        k = rest[0]
-        k = KEY_ALIASES.get(k, k)
-        rest = [k] + rest[1:]
-
-    mods.sort(key=lambda m: MODIFIER_ORDER.index(m))
-    return "+".join(mods + rest)
+    mods = sorted((p for p in parts if p in MODIFIER_ORDER), key=MODIFIER_ORDER.index)
+    keys = [MODIFIER_ALIASES.get(p, p) for p in parts if p not in MODIFIER_ORDER]
+    return "+".join(mods + keys)
 
 
 # ── parsers ───────────────────────────────────────────────────────────────────
 
 def parse_niri(path: Path):
-    """Yield (normalized_key, raw_key, action, lineno) from niri config.kdl binds block."""
+    results = []
     in_binds = False
     depth = 0
-    results = []
+
     for lineno, line in enumerate(path.read_text(errors="replace").splitlines(), 1):
         stripped = line.strip()
-        # skip comments
         if stripped.startswith("//") or stripped.startswith("/-"):
             continue
         if stripped == "binds {":
-            in_binds = True
-            depth = 1
+            in_binds, depth = True, 1
             continue
-        if in_binds:
-            depth += stripped.count("{") - stripped.count("}")
-            if depth <= 0:
-                in_binds = False
-                continue
-            # a binding line looks like:  Key+Combo { action; }
-            m = re.match(r'^([\w+\-]+(?:\s+[\w\-=".]+)*?)\s*\{(.+?)\}', stripped)
-            if not m:
-                continue
-            raw_key_part = m.group(1).strip()
-            action_part = m.group(2).strip().rstrip(";").strip()
-            # strip flags like allow-when-locked=true, repeat=false, hotkey-overlay-title="..."
-            raw_key = re.split(r'\s+(?:allow-when-locked|repeat|hotkey-overlay-title)', raw_key_part)[0].strip()
-            results.append((normalize(raw_key), raw_key, action_part, lineno))
+        if not in_binds:
+            continue
+
+        depth += stripped.count("{") - stripped.count("}")
+        if depth <= 0:
+            in_binds = False
+            continue
+
+        m = re.match(r'^([\w+\-]+(?:\s+[\w\-=".]+)*?)\s*\{(.+?)\}', stripped)
+        if not m:
+            continue
+
+        raw_key_part = m.group(1).strip()
+        action = m.group(2).strip().rstrip(";")
+        raw_key = re.split(r'\s+(?:allow-when-locked|repeat|hotkey-overlay-title)', raw_key_part)[0].strip()
+        results.append((normalize(raw_key), raw_key, action, lineno))
+
     return results
 
 
@@ -107,37 +94,27 @@ def parse_mpv(path: Path):
     results = []
     for lineno, line in enumerate(path.read_text(errors="replace").splitlines(), 1):
         stripped = line.strip()
-        if not stripped or stripped.startswith("#"):
-            continue
-        # commented-out example: " # something" or " #something"
-        if line.startswith(" #") or line.startswith("\t#"):
+        if not stripped or stripped.startswith("#") or line.startswith((" #", "\t#")):
             continue
         parts = stripped.split()
         if len(parts) < 2:
             continue
         raw_key = parts[0]
-        # strip uosc menu label (#! ...)
         action_parts = []
         for p in parts[1:]:
-            if p.startswith("#!"):
-                break
             if p.startswith("#"):
                 break
             action_parts.append(p)
-        action = " ".join(action_parts)
-        results.append((normalize(raw_key), raw_key, action, lineno))
+        results.append((normalize(raw_key), raw_key, " ".join(action_parts), lineno))
     return results
 
 
 def parse_micro(path: Path):
-    results = []
     try:
         data = json.loads(path.read_text(errors="replace"))
     except json.JSONDecodeError:
-        return results
-    for raw_key, action in data.items():
-        results.append((normalize(raw_key), raw_key, str(action), None))
-    return results
+        return []
+    return [(normalize(k), k, str(v), None) for k, v in data.items()]
 
 
 def parse_fuzzel(path: Path):
@@ -148,12 +125,10 @@ def parse_fuzzel(path: Path):
         if stripped == "[key-bindings]":
             in_section = True
             continue
-        if stripped.startswith("[") and in_section:
+        if stripped.startswith("["):
             in_section = False
             continue
-        if not in_section:
-            continue
-        if not stripped or stripped.startswith("#") or stripped.startswith(";"):
+        if not in_section or not stripped or stripped.startswith(("#", ";")):
             continue
         if "=" not in stripped:
             continue
@@ -187,47 +162,39 @@ def parse_helix(path: Path):
 
 
 def parse_wlogout(path: Path):
-    results = []
     try:
-        # wlogout layout is newline-separated JSON objects
         text = "[" + path.read_text(errors="replace").replace("}\n{", "},\n{") + "]"
         data = json.loads(text)
     except Exception:
-        return results
-    for obj in data:
-        if "keybind" in obj:
-            raw_key = obj["keybind"]
-            label = obj.get("label", "?")
-            results.append((normalize(raw_key), raw_key, label, None))
-    return results
+        return []
+    return [
+        (normalize(obj["keybind"]), obj["keybind"], obj.get("label", "?"), None)
+        for obj in data if "keybind" in obj
+    ]
 
 
 # ── conflict detection ────────────────────────────────────────────────────────
 
-# scope groups: keys in the same group can conflict with each other
-SCOPE_GLOBAL = "global"      # niri — intercepted before apps
-SCOPE_MPV = "mpv"
-SCOPE_TERMINAL = "terminal"  # micro, helix
-SCOPE_LOGOUT = "logout"      # wlogout — separate session
-
+SCOPE_GLOBAL   = "global"
+SCOPE_MPV      = "mpv"
+SCOPE_TERMINAL = "terminal"
+SCOPE_LOGOUT   = "logout"
 
 FILE_META = {
-    ".config/niri/config.kdl":     (parse_niri,   SCOPE_GLOBAL,   "niri"),
-    ".config/mpv/input.conf":      (parse_mpv,    SCOPE_MPV,      "mpv"),
-    ".config/micro/bindings.json": (parse_micro,  SCOPE_TERMINAL, "micro"),
-    ".config/fuzzel/fuzzel.ini":   (parse_fuzzel, SCOPE_GLOBAL,   "fuzzel"),
-    ".config/helix/config.toml":   (parse_helix,  SCOPE_TERMINAL, "helix"),
-    ".config/wlogout/layout":      (parse_wlogout, SCOPE_LOGOUT,  "wlogout"),
+    ".config/niri/config.kdl":     (parse_niri,    SCOPE_GLOBAL,   "niri"),
+    ".config/mpv/input.conf":      (parse_mpv,     SCOPE_MPV,      "mpv"),
+    ".config/micro/bindings.json": (parse_micro,   SCOPE_TERMINAL, "micro"),
+    ".config/fuzzel/fuzzel.ini":   (parse_fuzzel,  SCOPE_GLOBAL,   "fuzzel"),
+    ".config/helix/config.toml":   (parse_helix,   SCOPE_TERMINAL, "helix"),
+    ".config/wlogout/layout":      (parse_wlogout, SCOPE_LOGOUT,   "wlogout"),
 }
 
 
 def check(dotfiles_dir: Path):
-    # binds[scope][norm_key] = list of (file_label, raw_key, action, lineno)
     binds = defaultdict(lambda: defaultdict(list))
-    scanned = []
-    missing = []
+    scanned, missing = [], []
 
-    for rel, (parser, scope, label) in FILE_META.items():
+    for rel, (parser, scope, _label) in FILE_META.items():
         path = dotfiles_dir / rel
         if not path.exists():
             missing.append(rel)
@@ -238,37 +205,26 @@ def check(dotfiles_dir: Path):
 
     high, medium, info = [], [], []
 
-    # within-scope duplicates
     for scope, keys in binds.items():
         for norm_key, entries in keys.items():
             if len(entries) < 2:
                 continue
-            # check if all entries point to the same action
-            actions = set(e[2] for e in entries)
-            files = set(e[0] for e in entries)
-
+            actions = {e[2] for e in entries}
+            files   = {e[0] for e in entries}
             if len(actions) == 1:
-                # same action, different aliases — INFO
                 info.append((norm_key, entries, "Duplicate aliases → same action"))
             elif len(files) == 1:
-                # same file, different actions — HIGH
                 high.append((norm_key, entries, f"Same key, different actions in {entries[0][0]}"))
             else:
                 high.append((norm_key, entries, "Same key, different actions across files in same scope"))
 
-    # cross-scope: global (niri) keys that start with Mod+ don't shadow bare app keys
-    # Flag only if a global bind is a bare key (no Mod) that an app also uses
     niri_binds = binds.get(SCOPE_GLOBAL, {})
-    for scope in [SCOPE_MPV, SCOPE_TERMINAL]:
+    for scope in (SCOPE_MPV, SCOPE_TERMINAL):
         for norm_key, app_entries in binds.get(scope, {}).items():
             if norm_key in niri_binds:
-                global_entries = niri_binds[norm_key]
-                # only flag if both sides have the exact same norm_key (not just substring)
-                all_entries = global_entries + app_entries
-                actions = set(e[2] for e in all_entries)
-                if len(actions) > 1:
-                    medium.append((norm_key, all_entries,
-                        "Global shortcut may shadow app binding"))
+                all_entries = niri_binds[norm_key] + app_entries
+                if len({e[2] for e in all_entries}) > 1:
+                    medium.append((norm_key, all_entries, "Global shortcut may shadow app binding"))
 
     return high, medium, info, scanned, missing
 
@@ -289,49 +245,38 @@ def fmt_entry(file_rel, raw_key, action, lineno):
 
 
 def print_report(high, medium, info, scanned, missing):
-    print()
-    print(f"{BOLD}Keybinding Conflict Report{RESET}")
+    print(f"\n{BOLD}Keybinding Conflict Report{RESET}")
     print("=" * 44)
 
-    if not high and not medium and not info:
+    sections = [
+        (high,   RED,    "✗ HIGH"),
+        (medium, YELLOW, "⚠ MEDIUM"),
+        (info,   CYAN,   "ℹ INFO"),
+    ]
+
+    if not any(s[0] for s in sections):
         print(f"\n✓  No conflicts found.\n")
     else:
-        if high:
+        for entries_list, color, label in sections:
+            if not entries_list:
+                continue
             print()
-            for norm_key, entries, reason in high:
-                print(f"{RED}{BOLD}✗ HIGH{RESET}  —  {BOLD}{norm_key}{RESET}:  {reason}")
-                for e in entries:
-                    print(fmt_entry(*e))
-                print()
-
-        if medium:
-            print()
-            for norm_key, entries, reason in medium:
-                print(f"{YELLOW}{BOLD}⚠ MEDIUM{RESET}  —  {BOLD}{norm_key}{RESET}:  {reason}")
-                for e in entries:
-                    print(fmt_entry(*e))
-                print()
-
-        if info:
-            print()
-            for norm_key, entries, reason in info:
-                print(f"{CYAN}ℹ INFO{RESET}  —  {BOLD}{norm_key}{RESET}:  {reason}")
+            for norm_key, entries, reason in entries_list:
+                print(f"{color}{BOLD}{label}{RESET}  —  {BOLD}{norm_key}{RESET}:  {reason}")
                 for e in entries:
                     print(fmt_entry(*e))
                 print()
 
     print("─" * 44)
-    counts = []
-    if high:   counts.append(f"{RED}{BOLD}{len(high)} high{RESET}")
-    if medium: counts.append(f"{YELLOW}{BOLD}{len(medium)} medium{RESET}")
-    if info:   counts.append(f"{CYAN}{len(info)} info{RESET}")
-    if counts:
-        print("  " + ",  ".join(counts))
-    else:
-        print(f"  {BOLD}All clean.{RESET}")
+    counts = [
+        f"{RED}{BOLD}{len(high)} high{RESET}"     if high   else None,
+        f"{YELLOW}{BOLD}{len(medium)} medium{RESET}" if medium else None,
+        f"{CYAN}{len(info)} info{RESET}"           if info   else None,
+    ]
+    summary = ",  ".join(c for c in counts if c)
+    print(f"  {summary}" if summary else f"  {BOLD}All clean.{RESET}")
 
-    print()
-    print(f"{DIM}Scanned:{RESET}")
+    print(f"\n{DIM}Scanned:{RESET}")
     for f in scanned:
         print(f"  ✓  {f}")
     if missing:
@@ -344,8 +289,7 @@ def print_report(high, medium, info, scanned, missing):
 # ── main ──────────────────────────────────────────────────────────────────────
 
 def main():
-    dotfiles_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else Path.home()
-    dotfiles_dir = dotfiles_dir.expanduser().resolve()
+    dotfiles_dir = Path(sys.argv[1] if len(sys.argv) > 1 else "~").expanduser().resolve()
     high, medium, info, scanned, missing = check(dotfiles_dir)
     print_report(high, medium, info, scanned, missing)
     sys.exit(1 if high else 0)
