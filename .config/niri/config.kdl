@@ -534,6 +534,7 @@ window-rule {
     match app-id="Godot"
 	match app-id="REAPER"
 	match app-id="RapidRAW"
+	match app-id="electron"
 	open-maximized true
 //  default-column-width { proportion 1.0; }
 }
