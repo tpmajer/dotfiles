@@ -8,6 +8,7 @@
 // https://yalter.github.io/niri/Configuration:-Input
 
 include "block-screen-capture.kdl"
+include "animations/glide.kdl"
 
 input {
     
@@ -347,7 +348,7 @@ hotkey-overlay {
 }
 
 // Animation settings.
-animations {
+/-animations {
     // Uncomment to turn off all animations.
     // off
 
