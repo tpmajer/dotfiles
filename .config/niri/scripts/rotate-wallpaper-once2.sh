@@ -4,7 +4,7 @@
 WALLPAPER_DIR="$HOME/Pictures/.Wallpapers2"
 
 # Transition settings (optional)
-TRANSITION_TYPE="wipe" # none, simple, fade, left, right, top, bottom, wipe, wave, grow, center, any, outer, random
+TRANSITION_TYPE="random" # none, simple, fade, left, right, top, bottom, wipe, wave, grow, center, any, outer, random
 TRANSITION_ANGLE="30"
 TRANSITION_DURATION="1" # in seconds
 
