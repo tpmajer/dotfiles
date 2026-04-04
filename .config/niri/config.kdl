@@ -483,7 +483,7 @@ window-rule {
     geometry-corner-radius 6
     clip-to-geometry true
     draw-border-with-background false
-	opacity 0.99
+	opacity 1.0
 }
 
 // Open the Firefox Picture-in-Picture window at the bottom-left corner of the screen
@@ -551,12 +551,6 @@ window-rule {
     default-column-width { proportion 0.6; }
 }
 
-// Opacity 1.0
-window-rule {
-    match app-id="firefox" is-active=true
-	match app-id="org.gnome.Loupe" is-active=true
-	opacity 1.0
-}
 window-rule {
 	match app-id="firefox" is-active=true
 	draw-border-with-background true
