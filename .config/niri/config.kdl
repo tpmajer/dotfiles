@@ -311,7 +311,7 @@ recent-windows {
 
 // spawn-at-startup "signal-desktop"
 spawn-at-startup "~/.config/niri/scripts/flatpak-gtk-theme.sh"
-spawn-sh-at-startup "sleep 1 && fuzzel"
+spawn-sh-at-startup "sleep 3 && fuzzel"
 
 // You can override environment variables for processes spawned by niri.
 environment {
