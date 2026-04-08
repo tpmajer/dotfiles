@@ -537,6 +537,7 @@ window-rule {
 	match app-id="REAPER"
 	match app-id="RapidRAW"
 	match app-id="electron"
+	match app-id="art.graphite.Graphite"
 	open-maximized true
 //  default-column-width { proportion 1.0; }
 }
