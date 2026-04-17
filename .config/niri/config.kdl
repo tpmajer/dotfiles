@@ -10,6 +10,14 @@
 include "block-screen-capture.kdl"
 include "animations/glide.kdl"
 
+blur {
+    // off
+    passes 2
+    offset 3
+    noise 0.02
+    saturation 1.5
+}
+
 input {
     
     keyboard {
@@ -482,7 +490,7 @@ window-rule {
     geometry-corner-radius 6
     clip-to-geometry true
     draw-border-with-background false
-	opacity 1.0
+	opacity 1.0	
 }
 
 // Open the Firefox Picture-in-Picture window at the bottom-left corner of the screen
@@ -496,6 +504,10 @@ window-rule {
         on
         color "#1792998c"
     }
+    background-effect {
+        blur true
+        xray false
+    }
     default-floating-position x=0 y=600 relative-to="top"
 	// geometry-corner-radius 18
 }
@@ -508,15 +520,31 @@ window-rule {
        on
        color "#000000"
     }
+    background-effect {
+        blur true
+        xray true
+    }
 }
 window-rule {
     match app-id="ghostty" is-active=true
 	match app-id="org.gnome.Nautilus" is-active=true
+	match app-id="de.haeckerfelix.Fragments" is-active=true
+	match app-id="org.gnome.Logs" is-active=true
+	match app-id="org.gnome.baobab" is-active=true
+	match app-id="org.gnome.font-viewer" is-active=true
     opacity 0.95
+    background-effect {
+        blur true
+        xray true
+    }
 }
 window-rule {
     match app-id="ghostty" is-active=false
 	match app-id="org.gnome.Nautilus" is-active=false
+	match app-id="de.haeckerfelix.Fragments" is-active=false
+	match app-id="org.gnome.Logs" is-active=false
+    match app-id="org.gnome.baobab" is-active=false
+	match app-id="org.gnome.font-viewer" is-active=false
     opacity 0.90
 }
 
@@ -616,11 +644,21 @@ layer-rule {
     // Fuzzel defaults to 10 px rounded corners.
     geometry-corner-radius 10
 	baba-is-float false
+	background-effect {
+	    blur true
+	    xray false
+	}
 }
 
 layer-rule {
     match namespace="^notifications$"
     opacity 1.0
+    background-effect {
+        blur true
+        xray false
+    }
+    geometry-corner-radius 10
+	baba-is-float false
 }
 
 layer-rule {
@@ -629,8 +667,20 @@ layer-rule {
         on
         color "#0007"
     }
-    opacity 0.95
+    opacity 0.9
     geometry-corner-radius 6
+	background-effect {
+	    blur true
+	    xray false
+	}
+	popups {
+	    // Match the default GTK 3 popup corner radius.
+	    geometry-corner-radius 6
+	    opacity 0.85
+	    background-effect {
+	        blur true
+	    }
+	}
 }
 
 // Indicate screencasted windows with red colors.
