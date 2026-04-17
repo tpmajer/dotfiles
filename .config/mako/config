@@ -14,7 +14,7 @@ font=jetbrainsmononfextralight 12
 text-color=#cdd6f4ff
 padding=20
 outer-margin=10,10,10,10
-margin=0,0,10,0
+margin=10,10,10,10
 
 [urgency=low]
 border-color=#11111bb3
