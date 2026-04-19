@@ -142,22 +142,26 @@ def parse_fuzzel(path: Path):
 def parse_helix(path: Path):
     results = []
     current_mode = None
+    current_prefix = ""
     for lineno, line in enumerate(path.read_text(errors="replace").splitlines(), 1):
         stripped = line.strip()
         if not stripped or stripped.startswith("#"):
             continue
-        m = re.match(r'^\[keys\.(normal|insert|select)\]', stripped)
+        m = re.match(r'^\[keys\.(normal|insert|select)(\.(.+))?\]', stripped)
         if m:
             current_mode = m.group(1)
+            current_prefix = (m.group(3) + "+") if m.group(3) else ""
             continue
         if stripped.startswith("["):
             current_mode = None
+            current_prefix = ""
             continue
         if current_mode and "=" in stripped:
             raw_key, _, action = stripped.partition("=")
             raw_key = raw_key.strip()
             action = action.strip().strip('"')
-            results.append((normalize(raw_key) + f"[{current_mode}]", raw_key, action, lineno))
+            full_key = current_prefix + raw_key
+            results.append((normalize(full_key) + f"[{current_mode}]", full_key, action, lineno))
     return results
 
 
