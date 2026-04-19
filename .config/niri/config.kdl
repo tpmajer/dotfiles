@@ -739,7 +739,7 @@ binds {
     // Suggested binds for running programs: terminal, app launcher, screen locker.
     // Use spawn-sh to run a shell command. Do this if you need pipes, multiple commands, etc.
     // Note: the entire command goes as a single argument. It's passed verbatim to `sh -c`.
-    Mod+T hotkey-overlay-title="Open terminal" { spawn-sh "ghostty +new-window"; }
+    Mod+T hotkey-overlay-title="Open terminal" { spawn-sh "ghostty +new-window || ghostty"; }
     Mod+Space hotkey-overlay-title="Open fuzzel" { spawn "fuzzel"; }
     Mod+B hotkey-overlay-title="Open Firefox" { spawn "firefox"; }
 	Mod+N hotkey-overlay-title="Open Firefox in Private Mode" { spawn-sh "firefox --private-window"; }
