@@ -11,10 +11,10 @@ TRANSITION_DURATION="1" # seconds
 INTERVAL=$((30 * 60))
 
 # Start awww daemon if not already running
-if ! pgrep -x "awww-daemon-wr" > /dev/null; then
+if ! systemctl --user is-active --quiet awww-daemon; then
     echo "Starting awww-daemon..."
-    awww init
-    sleep 1 # Give the daemon a moment to start
+    systemctl --user start awww-daemon
+    sleep 1
 fi
 
 change_wallpaper() {

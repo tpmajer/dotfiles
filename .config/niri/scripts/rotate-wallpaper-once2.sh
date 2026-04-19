@@ -9,9 +9,10 @@ TRANSITION_ANGLE="30"
 TRANSITION_DURATION="1" # in seconds
 
 # Start awww daemon if not running
-if ! pgrep -x "awww-daemon-wr" > /dev/null; then
+if ! systemctl --user is-active --quiet awww-daemon; then
     echo "Starting awww-daemon..."
-    awww-daemon &
+    systemctl --user start awww-daemon
+    sleep 1
 fi
 
 # Get a list of image files
