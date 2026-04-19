@@ -11,7 +11,7 @@ TRANSITION_DURATION="1" # seconds
 INTERVAL=$((30 * 60))
 
 # Start awww daemon if not already running
-if ! pgrep -x "awww-daemon" > /dev/null; then
+if ! pgrep -x "awww-daemon-wr" > /dev/null; then
     echo "Starting awww-daemon..."
     awww init
     sleep 1 # Give the daemon a moment to start

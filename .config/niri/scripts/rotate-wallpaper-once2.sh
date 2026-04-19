@@ -9,9 +9,9 @@ TRANSITION_ANGLE="30"
 TRANSITION_DURATION="1" # in seconds
 
 # Start awww daemon if not running
-if ! pgrep -x "awww-daemon" > /dev/null; then
+if ! pgrep -x "awww-daemon-wr" > /dev/null; then
     echo "Starting awww-daemon..."
-    awww-daemon
+    awww-daemon &
 fi
 
 # Get a list of image files
