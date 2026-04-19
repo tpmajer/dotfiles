@@ -14,7 +14,7 @@ INTERVAL=$((30 * 60))
 if ! systemctl --user is-active --quiet awww-daemon; then
     echo "Starting awww-daemon..."
     systemctl --user start awww-daemon
-    sleep 1
+    sleep 2
 fi
 
 change_wallpaper() {
@@ -29,9 +29,6 @@ change_wallpaper() {
     awww img "$RANDOM_IMAGE" --transition-step 255 --transition-fps 120 --transition-type "$TRANSITION_TYPE" --transition-duration "$TRANSITION_DURATION"
     echo "Wallpaper changed to: $RANDOM_IMAGE"
 }
-
-# Wait a few seconds if just started awww
-sleep 2
 
 # Main loop
 while true; do
