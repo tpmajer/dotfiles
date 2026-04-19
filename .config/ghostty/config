@@ -19,7 +19,7 @@
 # ==========================
 # # The config file consists of simple key-value pairs,
 # # separated by equals signs.
-#background = 
+#background =
 command = fish --login --interactive
 #command = nu --login --interactive
 working-directory = home
@@ -43,6 +43,7 @@ adjust-underline-position = 5
 adjust-underline-thickness = 1
 adjust-cell-height = 0%
 clipboard-write = allow
+copy-on-select = clipboard
 gtk-single-instance = true
 quit-after-last-window-closed = false
 #link-url = true
