@@ -15,9 +15,15 @@ function gitstat --description 'show git status of ~/.nixos and ~/.dotfiles'
         echo $last_commit
 
         if test -n "$changes"
-            echo $changes
+            set_color red
+            for line in $changes
+                echo $line
+            end
+            set_color normal
         else
+            set_color green
             echo "(clean)"
+            set_color normal
         end
 
         echo ""
