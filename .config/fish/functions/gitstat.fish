@@ -5,19 +5,19 @@ function gitstat --description 'show git status of ~/.nixos and ~/.dotfiles'
         set changes (git -C $repo status --short)
 
         set_color --bold cyan
-        printf "%-16s" (basename $repo)
+        printf "%s" (basename $repo)
         set_color normal
+        printf "  ·  "
         set_color yellow
-        printf "%-10s" $branch
+        echo $branch
         set_color normal
+
         echo $last_commit
 
         if test -n "$changes"
-            echo $changes | while read line
-                printf "%-26s%s\n" "" $line
-            end
+            echo $changes
         else
-            printf "%-26s%s\n" "" "(clean)"
+            echo "(clean)"
         end
 
         echo ""
