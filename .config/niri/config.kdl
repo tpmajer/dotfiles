@@ -8,7 +8,7 @@
 // https://yalter.github.io/niri/Configuration:-Input
 
 include "block-screen-capture.kdl"
-include "animations/glide.kdl"
+include "animations/prism-glide.kdl"
 
 blur {
     // off
