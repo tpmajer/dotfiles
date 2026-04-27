@@ -662,6 +662,15 @@ layer-rule {
 }
 
 layer-rule {
+    match namespace="logout_dialog"
+    opacity 0.8
+    background-effect {
+        blur true
+        xray false
+    }
+}
+
+layer-rule {
     match namespace="waybar"
     shadow {
         on
