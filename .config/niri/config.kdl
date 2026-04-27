@@ -663,7 +663,7 @@ layer-rule {
 
 layer-rule {
     match namespace="logout_dialog"
-    opacity 0.8
+    opacity 0.9
     background-effect {
         blur true
         xray false
