@@ -63,7 +63,7 @@ window#waybar #window {
 #battery,
 #backlight,
 #wireplumber,
-#network,
+#custom-network,
 #bluetooth,
 #clock,
 #tray {
@@ -144,7 +144,7 @@ window#waybar #window {
   padding-left: 12px;
 }
 
-#network {
+#custom-network {
   background-color: #94e2d5;
   padding-right: 12px;
   padding-left: 12px;
