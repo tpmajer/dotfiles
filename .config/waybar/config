@@ -20,7 +20,7 @@
 		"idle_inhibitor",
         "cpu",
         "memory",
-        "network",
+        "custom/network",
 		"bluetooth",
 		"wireplumber#sink",
         "battery",
@@ -100,20 +100,12 @@
 		},
 		"locale": "en_US.UTF-8"
     },
-    "network": {
-        "format-wifi": "{icon} {essid}",
-        "format-icons": ["󰤯","󰤟","󰤢","󰤥","󰤨"],
-        "format-ethernet": "󰀂",
-        "format-disconnected": "󰤮",
-		"tooltip-format-wifi": "{frequency}GHz  ⇣ {bandwidthDownBytes} ⇡ {bandwidthUpBytes}",
-        "tooltip-format-ethernet": "󰀂  {ifname}: ⇣ {bandwidthDownBytes} ⇡ {bandwidthUpBytes}",
-		"tooltip-format-disconnected": "Disconnected",
-	//	"on-click": "ghostty -e impala",
-		"on-click": "networkmanager_dmenu",
-	//	"on-click-right": "nmcli device wifi list --rescan yes",
-		"on-click-right": "nmcli device wifi rescan",
-		"interval": 1,
-		"nospacing": 1
+    "custom/network": {
+        "exec": "~/.config/waybar/scripts/network.sh",
+        "return-type": "json",
+        "interval": 2,
+        "on-click": "networkmanager_dmenu",
+        "on-click-right": "nmcli device wifi rescan"
     },
     "bluetooth": {
     	"format": "󰂯",
