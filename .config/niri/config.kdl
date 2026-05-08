@@ -551,6 +551,7 @@ window-rule {
 // Open maximized
 window-rule {
     match app-id="firefox"
+    match app-id="firefox-nightly"
     match app-id="thunderbird"
     match title="ONLYOFFICE"
     match app-id="spotify"
@@ -581,6 +582,7 @@ window-rule {
 
 window-rule {
 	match app-id="firefox" is-active=true
+	match app-id="firefox-nightly" is-active=true
 	draw-border-with-background true
 }
 //Picture-in-Picture
@@ -591,6 +593,7 @@ window-rule {
 }
 window-rule {
     match app-id="firefox$" title="^Picture-in-Picture$"
+    match app-id="firefox-nightly$" title="^Picture-in-Picture$"
     open-floating true
     default-floating-position x=32 y=32 relative-to="bottom-left"
 }
@@ -629,6 +632,8 @@ window-rule {
     match app-id="resolve" title="Create New Project"
 	match app-id="firefox" title="About Mozilla Firefox"
 	match app-id="firefox" title="Library"
+	match app-id="firefox-nightly" title="About Mozilla Firefox"
+	match app-id="firefox-nightly" title="Library"
     match app-id="thunderbird" title="About Mozilla Thunderbird"
 	match app-id="com.network.manager"
     open-floating true
@@ -750,8 +755,8 @@ binds {
     // Note: the entire command goes as a single argument. It's passed verbatim to `sh -c`.
     Mod+T hotkey-overlay-title="Open terminal" { spawn-sh "ghostty +new-window || ghostty"; }
     Mod+Space hotkey-overlay-title="Open fuzzel" { spawn "fuzzel"; }
-    Mod+B hotkey-overlay-title="Open Firefox" { spawn "firefox"; }
-	Mod+N hotkey-overlay-title="Open Firefox in Private Mode" { spawn-sh "firefox --private-window"; }
+    Mod+B hotkey-overlay-title="Open Firefox" { spawn "firefox-nightly"; }
+	Mod+N hotkey-overlay-title="Open Firefox in Private Mode" { spawn-sh "firefox-nightly --private-window"; }
 	Mod+P hotkey-overlay-title="Open Nautilus" { spawn-sh "nautilus -w"; }
     // Mod+Alt+L hotkey-overlay-title="Lock screen" { spawn "swaylock" "--screenshots" "--key-hl-color" "FF8941" "--indicator" "--indicator-radius" "150" "--clock" "--fade-in" "0.2" "--effect-vignette" "0.7:0.7" "--ring-color" "FFC041" "--effect-blur" "10x6"; }
 	Mod+L hotkey-overlay-title="Lock screen" allow-when-locked=false { spawn-sh "loginctl lock-session"; }
