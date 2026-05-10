@@ -60,6 +60,7 @@ COPYING
 \.env
 \.env\..*
 \.cursor
+\.claude
 ^/AGENTS.md
 ^/CLAUDE.md
 ^/GEMINI.md
