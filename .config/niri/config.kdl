@@ -632,7 +632,7 @@ window-rule {
     match app-id="resolve" title="Create New Project"
 	match app-id="firefox" title="About Mozilla Firefox"
 	match app-id="firefox" title="Library"
-	match app-id="firefox-nightly" title="About Mozilla Firefox"
+	match app-id="firefox-nightly" title="About Firefox Nightly"
 	match app-id="firefox-nightly" title="Library"
     match app-id="thunderbird" title="About Mozilla Thunderbird"
 	match app-id="com.network.manager"
