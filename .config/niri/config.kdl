@@ -755,8 +755,8 @@ binds {
     // Note: the entire command goes as a single argument. It's passed verbatim to `sh -c`.
     Mod+T hotkey-overlay-title="Open terminal" { spawn-sh "ghostty +new-window || ghostty"; }
     Mod+Space hotkey-overlay-title="Open fuzzel" { spawn "fuzzel"; }
-    Mod+B hotkey-overlay-title="Open Firefox" { spawn "firefox-nightly"; }
-	Mod+N hotkey-overlay-title="Open Firefox in Private Mode" { spawn-sh "firefox-nightly --private-window"; }
+    Mod+B hotkey-overlay-title="Open Firefox" { spawn "firefox"; }
+	Mod+N hotkey-overlay-title="Open Firefox in Private Mode" { spawn-sh "firefox --private-window"; }
 	Mod+P hotkey-overlay-title="Open Nautilus" { spawn-sh "nautilus -w"; }
     // Mod+Alt+L hotkey-overlay-title="Lock screen" { spawn "swaylock" "--screenshots" "--key-hl-color" "FF8941" "--indicator" "--indicator-radius" "150" "--clock" "--fade-in" "0.2" "--effect-vignette" "0.7:0.7" "--ring-color" "FFC041" "--effect-blur" "10x6"; }
 	Mod+L hotkey-overlay-title="Lock screen" allow-when-locked=false { spawn-sh "loginctl lock-session"; }
