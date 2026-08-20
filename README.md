@@ -35,13 +35,16 @@ reports any key bound to more than one action within the same scope:
 python3 check_keybinds.py ~/.dotfiles
 ```
 
-Without an argument it scans `~`. It covers niri, mpv, micro, fuzzel, helix and
-wlogout.
+Without an argument it scans `~`. It covers niri, ghostty, fish, mpv, micro,
+fuzzel, helix and wlogout, and flags keys claimed by a layer that sees them
+first: the compositor above everything, the terminal above the shell.
 
-Shell keybindings are out of its scope. Fish keys set by plugins can shadow one
-another silently — `fzf.fish` and the `fzf --fish` integration both bind keys,
-and the winner depends on load order. Check those with `bind` inside an
-*interactive* fish; `fish -c 'bind'` only lists a small preset subset.
+Most fish bindings are installed at runtime by plugins rather than written into
+a config file, so they are collected by running `bind` in an interactive fish.
+That session runs in private mode and adds nothing to the shell history. Pass
+`--no-live` to scan files only.
+
+The exit status is 1 when a HIGH conflict is found, 0 otherwise.
 
 #
 
