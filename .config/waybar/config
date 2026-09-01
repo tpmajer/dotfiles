@@ -142,6 +142,7 @@
 		"on-click": "fuzzel"
     },
     "battery": {
+        "bat": "BAT1",
     	"full-at": 80,
         "format": "{icon} {capacity}%",
 		"format-alt": "{icon} {time}",
