@@ -17,7 +17,7 @@
     ],
     "modules-right": [
 	//	"tray",
-		"idle_inhibitor",
+		"custom/idle-inhibit",
         "cpu",
         "memory",
         "custom/network",
@@ -55,15 +55,13 @@
             "9": "9"
         },
     },
-    "idle_inhibitor": {
-    	"format": "{icon}",
-    	"format-icons": {
-    		"activated": "󰒳",
-    		"deactivated": "󰒲"
-    	},
-    	"tooltip-format-activated": "Idle inhibitor on",
-    	"tooltip-format-deactivated": "Idle inhibitor off",
-    	"timeout": 30,
+    // Built-in idle_inhibitor stops working when a fullscreen window covers the bar,
+    // so the inhibitor is held through logind instead (see the script).
+    "custom/idle-inhibit": {
+        "exec": "~/.config/waybar/scripts/idle-inhibit.sh",
+        "return-type": "json",
+        "signal": 8,
+        "on-click": "~/.config/waybar/scripts/idle-inhibit.sh toggle"
     },
     "cpu": {
 		"interval": 1,
