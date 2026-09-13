@@ -56,7 +56,7 @@ window#waybar #window {
   background-color: #f38ba8;
 }
 
-#idle_inhibitor,
+#custom-idle-inhibit,
 #cpu,
 #memory,
 #custom-power,
@@ -87,12 +87,12 @@ window#waybar #window {
   color: #89b4fa;
 }
 
-#idle_inhibitor {
+#custom-idle-inhibit {
   background-color: #45475a;
   padding-right: 12px;
-  padding-left: 12px;	
+  padding-left: 12px;
 }
-#idle_inhibitor.activated {
+#custom-idle-inhibit.activated {
   background-color: #89dceb;
 }
 
