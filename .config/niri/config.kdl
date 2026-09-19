@@ -645,7 +645,7 @@ layer-rule {
         on
         color "#1792998c" // "#0007"
     }
-    opacity 0.9
+    opacity 0.85
     // Fuzzel defaults to 10 px rounded corners.
     geometry-corner-radius 10
 	baba-is-float false
