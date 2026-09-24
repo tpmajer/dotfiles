@@ -16,9 +16,9 @@ fi
 if nmcli -t -f DEVICE,TYPE,STATE dev 2>/dev/null | grep -q ":wifi:connected$"; then
     dev=$(nmcli -t -f DEVICE,TYPE,STATE dev 2>/dev/null | grep ":wifi:connected$" | cut -d: -f1 | head -1)
     ssid=$(nmcli -t -f NAME,TYPE connection show --active 2>/dev/null | grep ":802-11-wireless$" | cut -d: -f1 | head -1)
-    signal=$(nmcli -t -f IN-USE,SIGNAL dev wifi 2>/dev/null | grep "^\*:" | cut -d: -f2 | head -1)
+    signal=$(nmcli -t -f IN-USE,SIGNAL dev wifi list --rescan no 2>/dev/null | grep "^\*:" | cut -d: -f2 | head -1)
     signal=${signal:-0}
-    freq_mhz=$(nmcli -t -f IN-USE,FREQ dev wifi 2>/dev/null | grep "^\*:" | grep -o '[0-9]\+' | head -1)
+    freq_mhz=$(nmcli -t -f IN-USE,FREQ dev wifi list --rescan no 2>/dev/null | grep "^\*:" | grep -o '[0-9]\+' | head -1)
     freq=$(awk "BEGIN{printf \"%.1f GHz\", ${freq_mhz:-0}/1000}")
 
     rx_now=$(awk -v d="$dev:" '$1==d{print $2}' /proc/net/dev)
