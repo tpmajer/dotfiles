@@ -36,6 +36,7 @@
 | `f` | `f` | Alias for `fzf` |
 | `fp` | `fp` | fzf with file preview via `bat` (syntax highlighting) |
 | `fi` | `fi` | fzf with image preview via `timg` |
+| `wp` | `wp [dir]` | Pick a wallpaper via fzf (`timg` preview) and set it with `awww` |
 | `fcd` | `fcd` | fzf directory navigation (see above) |
 | `fkill` | `fkill` | fzf process killer (see above) |
 | `gco` | `gco` | fzf git branch switcher (see above) |
