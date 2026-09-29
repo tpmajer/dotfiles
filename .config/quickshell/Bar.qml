@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Effects
+import QtQuick.Layouts
 import QtQuick.Shapes
 import Quickshell
 import Quickshell.Wayland
@@ -428,9 +429,11 @@ PanelWindow {
             // custom/network
             Module {
                 host: bar
+                prefix: Network.wiredText
+                prefixColor: Network.slowUsb ? Theme.maroon : Theme.teal
                 text: Network.text
                 color: Theme.teal
-                popup: Network.tooltip ? networkPopup : null
+                popup: Network.rows.length ? networkPopup : null
                 onClicked: m => Quickshell.execDetached(m.button === Qt.RightButton ? ["nmcli", "device", "wifi", "rescan"] : ["networkmanager_dmenu"])
             }
 
@@ -563,7 +566,7 @@ PanelWindow {
         Column {
             spacing: 8
 
-            PopupText { text: "Load: " + SysStats.loadAvg }
+            PopupText { text: "Load " + SysStats.loadAvg }
 
             Grid {
                 columns: 4
@@ -617,19 +620,66 @@ PanelWindow {
     Component {
         id: memoryPopup
 
-        Column {
-            spacing: 4
-            PopupText { text: `RAM:  ${SysStats.memUsedGiB.toFixed(1)} / ${SysStats.memTotalGiB.toFixed(1)} GiB` }
-            PopupText {
-                visible: SysStats.swapTotalGiB > 0
-                text: `Swap: ${SysStats.swapUsedGiB.toFixed(1)} / ${SysStats.swapTotalGiB.toFixed(1)} GiB`
+        // Like the network popup: the label left, used and total right-aligned.
+        GridLayout {
+            columns: 3
+            columnSpacing: 16
+            rowSpacing: 4
+
+            Repeater {
+                model: [
+                    {label: "RAM", used: SysStats.memUsedGiB, total: SysStats.memTotalGiB},
+                    {label: "Swap", used: SysStats.swapUsedGiB, total: SysStats.swapTotalGiB}
+                ].filter(r => r.total > 0)
+
+                delegate: Repeater {
+                    required property var modelData
+                    model: [modelData.label, modelData.used.toFixed(1) + " GiB", "/ " + modelData.total.toFixed(1) + " GiB"]
+
+                    PopupText {
+                        required property var modelData
+                        required property int index
+                        text: modelData
+                        Layout.alignment: index === 0 ? Qt.AlignLeft : Qt.AlignRight
+                    }
+                }
             }
         }
     }
 
     Component {
         id: networkPopup
-        PopupText { text: Network.tooltip }
+
+        Column {
+            spacing: 4
+            GridLayout {
+                columns: 3
+                columnSpacing: 16
+                rowSpacing: 4
+
+                Repeater {
+                    model: Network.rows
+
+                    delegate: Repeater {
+                        required property var modelData
+                        model: [modelData.label, modelData.down, modelData.up]
+
+                        PopupText {
+                            required property var modelData
+                            required property int index
+                            text: modelData
+                            // The label left, the two rates right-aligned in their columns.
+                            Layout.alignment: index === 0 ? Qt.AlignLeft : Qt.AlignRight
+                        }
+                    }
+                }
+            }
+            PopupText {
+                visible: Network.wired && Network.slowUsb
+                text: Network.usbName
+                color: Theme.maroon
+            }
+        }
     }
 
     Component {
@@ -767,7 +817,7 @@ PanelWindow {
 
         Column {
             spacing: 4
-            PopupText { text: "Battery: " + Battery.capacity + "%" }
+            PopupText { text: "Battery " + Battery.capacity + "%" }
             PopupText {
                 visible: Battery.timeText !== ""
                 text: (Battery.charging ? "Full in " : "Empty in ") + Battery.timeText
