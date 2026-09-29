@@ -697,6 +697,18 @@ layer-rule {
 	}
 }
 
+// Quickshell bar (test, see ~/.config/quickshell). The surface is taller than the
+// bar so popups can grow out of it; the shape, shadow and blur region are drawn by
+// the bar itself, so no shadow or corner radius here.
+layer-rule {
+    match namespace="^quickshell-bar$"
+    opacity 0.9
+    // Blur what is really under the popup, like waybar, not just the wallpaper.
+    background-effect {
+        xray false
+    }
+}
+
 // Indicate screencasted windows with red colors.
 window-rule {
     match is-window-cast-target=true
