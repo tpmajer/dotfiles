@@ -123,12 +123,10 @@
     "wireplumber#sink": {
     	"max-volume": 100,
         "format": "{icon} {volume}%",
-        "format-bluetooth": "󰂰",
         "nospacing": 1,
         "tooltip-format": "Volume: {volume}%",
         "format-muted": "󰝟",
         "format-icons": {
-            "headphone": "",
             "default": ["󰕿","󰖀","󰕾"]
         },
         "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
