@@ -4,15 +4,14 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// The two script-backed modules: idle inhibitor and network.
-// Both scripts print JSON: {"text", "tooltip", "class"}.
+// The idle inhibitor module, backed by scripts/idle-inhibit.sh, which prints
+// JSON: {"text", "tooltip", "class"}.
 Singleton {
     id: root
 
     readonly property string scripts: Quickshell.shellDir + "/scripts/"
 
     property var idle: ({})
-    property var network: ({})
 
     function parse(text) {
         try {
@@ -40,22 +39,11 @@ Singleton {
         onExited: idleStatus.running = true
     }
 
-    Process {
-        id: networkStatus
-        command: [root.scripts + "network.sh"]
-        stdout: StdioCollector {
-            onStreamFinished: root.network = root.parse(text)
-        }
-    }
-
     Timer {
         interval: 2000
         running: true
         repeat: true
         triggeredOnStart: true
-        onTriggered: {
-            idleStatus.running = true;
-            networkStatus.running = true;
-        }
+        onTriggered: idleStatus.running = true
     }
 }

@@ -428,9 +428,9 @@ PanelWindow {
             // custom/network
             Module {
                 host: bar
-                text: Custom.network.text || ""
+                text: Network.text
                 color: Theme.teal
-                popup: Custom.network.tooltip ? networkPopup : null
+                popup: Network.tooltip ? networkPopup : null
                 onClicked: m => Quickshell.execDetached(m.button === Qt.RightButton ? ["nmcli", "device", "wifi", "rescan"] : ["networkmanager_dmenu"])
             }
 
@@ -629,7 +629,7 @@ PanelWindow {
 
     Component {
         id: networkPopup
-        PopupText { text: Custom.network.tooltip || "" }
+        PopupText { text: Network.tooltip }
     }
 
     Component {
