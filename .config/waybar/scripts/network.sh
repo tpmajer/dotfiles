@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+# Escape a string for use inside a JSON string (SSIDs may contain " or \).
+json_escape() {
+    local s=${1//\\/\\\\}
+    printf '%s' "${s//\"/\\\"}"
+}
+
 format_bytes() {
     local b=$1
     if   [ "$b" -ge 1048576 ]; then awk "BEGIN{printf \"%.1f MiB/s\",$b/1048576}"
@@ -44,7 +50,7 @@ if nmcli -t -f DEVICE,TYPE,STATE dev 2>/dev/null | grep -q ":wifi:connected$"; t
     fi
 
     printf '{"text":"%s %s%s","tooltip":"%s %s%%  ⇣ %s ⇡ %s"}\n' \
-        "$icon" "$ssid" "$vpn" "$freq" "$signal" "$down" "$up"
+        "$icon" "$(json_escape "$ssid")" "$vpn" "$freq" "$signal" "$down" "$up"
 
 elif nmcli -t -f DEVICE,TYPE,STATE dev 2>/dev/null | grep -q ":ethernet:connected$"; then
     printf '{"text":"󰀂%s"}\n' "$vpn"
