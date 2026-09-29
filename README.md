@@ -2,7 +2,7 @@
 
 Personal dotfiles for my daily Linux setup. Currently built around the [Catppuccin Mocha](https://catppuccin.com) color scheme, the [Niri](https://github.com/niri-wm/niri) scrolling compositor, and [Ghostty](https://ghostty.org) terminal.
 
-Includes configuration for: [Niri](https://github.com/niri-wm/niri) · [Ghostty](https://ghostty.org) · [Fish](https://fishshell.com) · [Nushell](https://www.nushell.sh) · [Waybar](https://github.com/Alexays/Waybar) · [Fuzzel](https://codeberg.org/dnkl/fuzzel) · [Mako](https://github.com/emersion/mako) · [MPV](https://mpv.io) · [uosc](https://github.com/tomasklaen/uosc) · [micro](https://github.com/zyedidia/micro) · [Helix](https://helix-editor.com) · [lazygit](https://github.com/jesseduffield/lazygit) · [Git](https://git-scm.com) · [btop](https://github.com/aristocratos/btop) · [bat](https://github.com/sharkdp/bat) · [cava](https://github.com/karlstav/cava) · [fastfetch](https://github.com/fastfetch-cli/fastfetch) · [starship](https://starship.rs) · [wlogout](https://github.com/ArtsyMacaw/wlogout) · [hyprlock](https://github.com/hyprwm/hyprlock/) · [hypridle](https://github.com/hyprwm/hypridle) · [networkmanager-dmenu](https://github.com/firecat53/networkmanager-dmenu) · GTK 3/4
+Includes configuration for: [Niri](https://github.com/niri-wm/niri) · [Ghostty](https://ghostty.org) · [Fish](https://fishshell.com) · [Nushell](https://www.nushell.sh) · [Quickshell](https://quickshell.org) · [Fuzzel](https://codeberg.org/dnkl/fuzzel) · [Mako](https://github.com/emersion/mako) · [MPV](https://mpv.io) · [uosc](https://github.com/tomasklaen/uosc) · [micro](https://github.com/zyedidia/micro) · [Helix](https://helix-editor.com) · [lazygit](https://github.com/jesseduffield/lazygit) · [Git](https://git-scm.com) · [btop](https://github.com/aristocratos/btop) · [bat](https://github.com/sharkdp/bat) · [cava](https://github.com/karlstav/cava) · [fastfetch](https://github.com/fastfetch-cli/fastfetch) · [starship](https://starship.rs) · [hyprlock](https://github.com/hyprwm/hyprlock/) · [hypridle](https://github.com/hyprwm/hypridle) · [networkmanager-dmenu](https://github.com/firecat53/networkmanager-dmenu) · GTK 3/4
 
 #
 
@@ -36,7 +36,7 @@ python3 check_keybinds.py ~/.dotfiles
 ```
 
 Without an argument it scans `~`. It covers niri, ghostty, fish, mpv, micro,
-fuzzel, helix and wlogout, and flags keys claimed by a layer that sees them
+fuzzel and helix, and flags keys claimed by a layer that sees them
 first: the compositor above everything, the terminal above the shell.
 
 Most fish bindings are installed at runtime by plugins rather than written into

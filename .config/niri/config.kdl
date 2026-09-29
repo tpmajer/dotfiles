@@ -675,35 +675,13 @@ layer-rule {
     }
 }
 
-layer-rule {
-    match namespace="waybar"
-    shadow {
-        on
-        color "#0007"
-    }
-    opacity 0.9
-    geometry-corner-radius 6
-	background-effect {
-	    blur true
-	    xray false
-	}
-	popups {
-	    // Match the default GTK 3 popup corner radius.
-	    geometry-corner-radius 6
-	    opacity 0.85
-	    background-effect {
-	        blur true
-	    }
-	}
-}
-
-// Quickshell bar (test, see ~/.config/quickshell). The surface is taller than the
+// Quickshell bar (~/.config/quickshell). The surface is taller than the
 // bar so popups can grow out of it; the shape, shadow and blur region are drawn by
 // the bar itself, so no shadow or corner radius here.
 layer-rule {
     match namespace="^quickshell-bar$"
     opacity 0.9
-    // Blur what is really under the popup, like waybar, not just the wallpaper.
+    // Blur what is really under the popups, not just the wallpaper.
     background-effect {
         xray false
     }

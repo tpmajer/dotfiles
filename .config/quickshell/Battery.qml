@@ -4,9 +4,9 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// BAT1 read from sysfs every 5 s and on power_supply udev events. Mirrors
-// waybar's battery module: capacity is scaled so the 80% charge threshold reads
-// as 100% ("full-at": 80), same states and the same notify-send events.
+// BAT1 read from sysfs every 5 s and on power_supply udev events. Capacity is
+// scaled so the 80% charge threshold reads as 100%, with notify-send on low
+// battery and when charging reaches full.
 Singleton {
     id: root
 
@@ -19,7 +19,7 @@ Singleton {
     readonly property bool discharging: status === "Discharging"
     property real hoursLeft: -1
 
-    // waybar "states": good 100, normal 94, warning 25, critical 15
+    // States by capacity: good up to 100, normal 94, warning 25, critical 15
     readonly property string state: capacity <= 15 ? "critical" : capacity <= 25 ? "warning" : capacity <= 94 ? "normal" : "good"
 
     readonly property color color: charging || state === "good" ? Theme.green : (state === "warning" || state === "critical") ? Theme.maroon : Theme.red
@@ -79,7 +79,7 @@ Singleton {
     FileView { id: chargeFullFile; path: root.sysfs + "charge_full"; blockLoading: true }
     FileView { id: currentFile; path: root.sysfs + "current_now"; blockLoading: true }
 
-    // Plug/unplug shows up immediately, like in waybar, instead of on the next poll.
+    // Plug/unplug shows up immediately instead of on the next poll.
     Process {
         id: udev
         running: true

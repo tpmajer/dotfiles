@@ -3,7 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 
-// Catppuccin Mocha colors and the bar geometry, mirroring waybar/style.css.
+// Catppuccin Mocha colors and the bar geometry.
 Singleton {
     readonly property color base: "#1e1e2e"
     readonly property color surface0: "#313244"
