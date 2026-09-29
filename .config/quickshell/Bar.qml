@@ -55,7 +55,9 @@ PanelWindow {
     property Item pendingOwner: null
     property bool popupOpen: false
     property real openness: popupOpen ? 1 : 0
+    property bool instantClose: false
     Behavior on openness {
+        enabled: !bar.instantClose
         NumberAnimation {
             duration: Theme.popupDuration
             easing.type: Easing.OutCubic
@@ -122,9 +124,24 @@ PanelWindow {
         }
     }
 
+    // Hide the popup at once and run the command only after a frame without it
+    // has been drawn: hyprlock (Lock, and Suspend via hypridle) screenshots the
+    // screen right away and would otherwise capture the closing popup.
     function runAction(command) {
+        instantClose = true;
         popupOpen = false;
-        Quickshell.execDetached(["sh", "-c", command]);
+        actionTimer.command = command;
+        actionTimer.restart();
+    }
+
+    Timer {
+        id: actionTimer
+        property string command
+        interval: 100
+        onTriggered: {
+            bar.instantClose = false;
+            Quickshell.execDetached(["sh", "-c", command]);
+        }
     }
 
     function showPopup(module) {
