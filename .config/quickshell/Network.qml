@@ -5,38 +5,80 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Networking
 
-// The network module. Connection, SSID and signal come from NetworkManager
-// through Quickshell.Networking (events, nothing polled); traffic and the VPN
-// (wg0 exists only while it is up) from /proc/net/dev every 2 s. Only the Wi-Fi
-// frequency still needs nmcli, run on a network change and every 30 s (roaming
-// between bands keeps the SSID). The Wi-Fi scanner is never enabled: this reads
-// what NetworkManager already knows, without triggering rescans.
+// The network module: cable and/or Wi-Fi. Connection, SSID, signal and link
+// speed come from NetworkManager through Quickshell.Networking (events, nothing
+// polled); traffic and the VPN (wg0 exists only while it is up) from
+// /proc/net/dev every 2 s. Only the Wi-Fi frequency still needs nmcli, run on a
+// network change and every 30 s (roaming between bands keeps the SSID). The
+// Wi-Fi scanner is never enabled: this reads what NetworkManager already knows,
+// without triggering rescans.
 Singleton {
     id: root
 
     readonly property var devices: Networking.devices.values
     readonly property var wifiDevice: devices.find(d => d.type === DeviceType.Wifi && d.connected) ?? null
     readonly property var wifiNetwork: wifiDevice ? (wifiDevice.networks.values.find(n => n.connected) ?? null) : null
-    readonly property bool wired: devices.some(d => d.type === DeviceType.Wired && d.connected)
+    readonly property var wiredDevice: devices.find(d => d.type === DeviceType.Wired && d.connected) ?? null
+    readonly property bool wired: wiredDevice !== null
 
     readonly property string ssid: wifiNetwork ? wifiNetwork.name : ""
     readonly property int signal: wifiNetwork ? Math.round(wifiNetwork.signalStrength * 100) : 0
     property bool vpn: false
     property string frequency: ""
-    property string down: "?"
-    property string up: "?"
+    property var rates: ({})      // interface -> {down, up}
 
-    readonly property string vpnSuffix: vpn ? " " + Theme.glyph(0xf0306) : ""
+    // USB speed of the cable adapter in Mb/s (5000 = USB 3, 480 = USB 2.0), 0 if
+    // it is not on USB. The RTL8156 sometimes comes up on USB 2.0 and then tops
+    // out around 350 Mb/s although the link still reads 2500 Mb/s.
+    property int usbSpeed: 0
+    readonly property bool slowUsb: usbSpeed > 0 && usbSpeed < 5000
+    readonly property string usbName: usbSpeed >= 5000 ? "USB 3" : usbSpeed >= 480 ? "USB 2.0" : usbSpeed >= 12 ? "USB 1.1" : "USB 1.0"
+
+    onWiredDeviceChanged: {
+        usbSpeed = 0;
+        if (wiredDevice) {
+            usbQuery.command = ["cat", `/sys/class/net/${wiredDevice.name}/device/../speed`];
+            usbQuery.running = true;
+        }
+    }
+
+    Process {
+        id: usbQuery
+        stdout: StdioCollector {
+            onStreamFinished: root.usbSpeed = parseInt(text) || 0
+        }
+    }
+
+    // The bar shows the cable icon (red on slow USB) apart from the rest:
+    // cable first, then Wi-Fi if it is connected too (it usually stays up).
+    readonly property string wiredText: wired ? Theme.glyph(0xf0002) : ""
     readonly property string text: {
+        const parts = [];
         if (wifiNetwork) {
             const icon = signal >= 80 ? 0xf0928 : signal >= 60 ? 0xf0925 : signal >= 40 ? 0xf0922 : signal >= 20 ? 0xf091f : 0xf092f;
-            return Theme.glyph(icon) + " " + ssid + vpnSuffix;
+            parts.push(Theme.glyph(icon) + " " + ssid);
         }
-        if (wired)
-            return Theme.glyph(0xf0002) + vpnSuffix;
-        return Theme.glyph(0xf092e);
+        if (vpn)
+            parts.push(Theme.glyph(0xf0306));
+        if (!wired && !wifiNetwork)
+            return Theme.glyph(0xf092e);
+        return parts.join(" ");
     }
-    readonly property string tooltip: wifiNetwork ? `${frequency} ${signal}%  ⇣ ${down} ⇡ ${up}` : ""
+
+    // Popup rows: a label and the traffic, which the popup right-aligns.
+    function row(label, device) {
+        const r = device ? rates[device.name] : null;
+        return {label, down: "⇣ " + (r ? r.down : "?"), up: "⇡ " + (r ? r.up : "?")};
+    }
+
+    readonly property var rows: {
+        const list = [];
+        if (wired)
+            list.push(row("Ethernet" + (wiredDevice.linkSpeed > 0 ? " " + wiredDevice.linkSpeed + " Mb/s" : ""), wiredDevice));
+        if (wifiNetwork)
+            list.push(row(`${frequency} ${signal}%`, wifiDevice));
+        return list;
+    }
 
     function formatRate(bytesPerSecond) {
         if (bytesPerSecond >= 1048576)
@@ -46,7 +88,7 @@ Singleton {
         return Math.round(bytesPerSecond) + " B/s";
     }
 
-    property var previous: null   // {device, rx, tx, time}
+    property var previous: ({})   // interface -> {rx, tx, time}
 
     function readTraffic() {
         netDev.reload();
@@ -60,18 +102,25 @@ Singleton {
         }
         vpn = "wg0" in counters;
 
-        const device = wifiDevice ? wifiDevice.name : "";
         const now = Date.now();
-        const current = counters[device];
-        if (current && previous && previous.device === device && now > previous.time && current.rx >= previous.rx && current.tx >= previous.tx) {
-            const seconds = (now - previous.time) / 1000;
-            down = formatRate((current.rx - previous.rx) / seconds);
-            up = formatRate((current.tx - previous.tx) / seconds);
-        } else {
-            down = "?";
-            up = "?";
+        const nextPrevious = {};
+        const nextRates = {};
+        for (const device of [wiredDevice, wifiDevice]) {
+            const current = device ? counters[device.name] : null;
+            if (!current)
+                continue;
+            const prev = previous[device.name];
+            if (prev && now > prev.time && current.rx >= prev.rx && current.tx >= prev.tx) {
+                const seconds = (now - prev.time) / 1000;
+                nextRates[device.name] = {
+                    down: formatRate((current.rx - prev.rx) / seconds),
+                    up: formatRate((current.tx - prev.tx) / seconds)
+                };
+            }
+            nextPrevious[device.name] = {rx: current.rx, tx: current.tx, time: now};
         }
-        previous = current ? {device, rx: current.rx, tx: current.tx, time: now} : null;
+        previous = nextPrevious;
+        rates = nextRates;
     }
 
     FileView {

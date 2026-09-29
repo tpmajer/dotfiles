@@ -8,6 +8,9 @@ Item {
 
     property string text
     property color color: Theme.text
+    // Optional text before the main one, in its own color (e.g. a warning icon).
+    property string prefix: ""
+    property color prefixColor: color
     property bool bold: false
     property int fontSize: Theme.fontSize
     property string iconSource: ""
@@ -29,7 +32,7 @@ Item {
     signal clicked(var mouse)
     signal scrolled(int steps)
 
-    visible: text !== "" || iconSource !== ""
+    visible: text !== "" || prefix !== "" || iconSource !== ""
     implicitWidth: visible ? bg.width + leftMargin + rightMargin : 0
     implicitHeight: Theme.barHeight
 
@@ -74,6 +77,16 @@ Item {
             }
 
             Text {
+                visible: root.prefix !== ""
+                text: root.prefix
+                color: root.prefixColor
+                font.family: Theme.font
+                font.pixelSize: root.fontSize
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
+            Text {
+                visible: root.text !== ""
                 text: root.text
                 color: root.color
                 font.family: Theme.font
