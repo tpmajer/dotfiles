@@ -13,7 +13,7 @@ Item {
     property string iconSource: ""
     property int iconSize: 22
 
-    // Geometry, as margin/padding in waybar's CSS.
+    // Geometry: margins around the hover rectangle, padding inside it.
     property int leftMargin: 3
     property int rightMargin: 3
     property int hPadding: 12

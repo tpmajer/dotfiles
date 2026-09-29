@@ -199,18 +199,6 @@ def parse_helix(path: Path):
     return results
 
 
-def parse_wlogout(path: Path):
-    try:
-        text = "[" + path.read_text(errors="replace").replace("}\n{", "},\n{") + "]"
-        data = json.loads(text)
-    except Exception:
-        return []
-    return [
-        (normalize(obj["keybind"]), obj["keybind"], obj.get("label", "?"), None)
-        for obj in data if "keybind" in obj
-    ]
-
-
 GHOSTTY_TRIGGER_PREFIXES = ("global:", "all:", "unconsumed:", "performable:")
 
 
@@ -354,7 +342,6 @@ def fish_live_bindings():
 SCOPE_GLOBAL   = "global"
 SCOPE_MPV      = "mpv"
 SCOPE_TERMINAL = "terminal"
-SCOPE_LOGOUT   = "logout"
 SCOPE_SHELL    = "shell"
 SCOPE_TERM_EMU = "terminal-emulator"
 
@@ -364,7 +351,6 @@ FILE_META = {
     ".config/micro/bindings.json": (parse_micro,   SCOPE_TERMINAL, "micro"),
     ".config/fuzzel/fuzzel.ini":   (parse_fuzzel,  SCOPE_GLOBAL,   "fuzzel"),
     ".config/helix/config.toml":   (parse_helix,   SCOPE_TERMINAL, "helix"),
-    ".config/wlogout/layout":      (parse_wlogout, SCOPE_LOGOUT,   "wlogout"),
     ".config/ghostty/config":      (parse_ghostty, SCOPE_TERM_EMU, "ghostty"),
 }
 

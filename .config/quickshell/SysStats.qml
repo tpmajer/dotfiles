@@ -4,7 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// CPU (every 1 s) and memory (every 5 s) usage read from /proc, like waybar's cpu/memory modules.
+// CPU (every 1 s) and memory (every 5 s) usage read from /proc.
 Singleton {
     id: root
 

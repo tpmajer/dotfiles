@@ -49,7 +49,7 @@ Singleton {
         return Theme.glyph([0xf057f, 0xf0580, 0xf057e][Math.min(2, Math.floor(volume(node) / (100 / 3)))]);
     }
 
-    // One scroll step = 1%, capped at 100% like waybar's max-volume.
+    // One scroll step = 1%, capped at 100%.
     function changeVolume(node, steps) {
         if (node && node.audio)
             node.audio.volume = Math.max(0, Math.min(1, (volume(node) + steps) / 100));

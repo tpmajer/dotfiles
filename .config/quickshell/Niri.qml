@@ -21,7 +21,7 @@ Singleton {
         return workspaces.filter(ws => ws.output === output).sort((a, b) => a.idx - b.idx);
     }
 
-    // Focus by id over the IPC socket, like waybar. `niri msg action focus-monitor`
+    // Focus by id over the IPC socket. `niri msg action focus-monitor`
     // would also warp the pointer to the middle of the screen.
     function focusWorkspace(ws) {
         send({Action: {FocusWorkspace: {reference: {Id: ws.id}}}});

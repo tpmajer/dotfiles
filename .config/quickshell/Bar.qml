@@ -5,7 +5,7 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Bluetooth
 
-// The bar, a port of ~/.config/waybar. The layer surface is taller than the bar
+// The bar. The layer surface is taller than the bar
 // so popups can grow out of it as one connected shape; only the bar and the open
 // popup take input and get blurred, the rest of the surface is transparent.
 PanelWindow {
@@ -759,7 +759,7 @@ PanelWindow {
         }
     }
 
-    // Replaces wlogout (~/.config/wlogout/layout), without hibernate.
+    // Power menu: lock, logout, shutdown, suspend, reboot.
     Component {
         id: powerPopup
 

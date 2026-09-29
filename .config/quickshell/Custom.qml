@@ -4,8 +4,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// The two custom/* script modules from waybar: idle inhibitor and network.
-// Both scripts print waybar-style JSON ({"text", "tooltip", "class"}).
+// The two script-backed modules: idle inhibitor and network.
+// Both scripts print JSON: {"text", "tooltip", "class"}.
 Singleton {
     id: root
 
