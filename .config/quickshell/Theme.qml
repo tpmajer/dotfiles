@@ -37,6 +37,9 @@ Singleton {
     readonly property int popupPadding: 14
     readonly property int popupRadius: barRadius
     readonly property int popupFillet: barRadius  // same as the bar corners
+    // false: popups float below the bar with a gap and all corners rounded.
+    readonly property bool popupAttached: false
+    readonly property int popupGap: 8
     readonly property int popupDuration: 180
 
     function glyph(codepoint) {
