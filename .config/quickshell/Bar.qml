@@ -30,7 +30,7 @@ PanelWindow {
 
     mask: Region {
         item: barRect
-        Region { item: popupBody }
+        Region { item: popupHitArea }
         Region { item: popupGapArea }
     }
 
@@ -43,9 +43,10 @@ PanelWindow {
 
         Region {
             x: popupBody.x
-            y: bar.popupTop
-            width: popupBody.visible ? popupBody.width : 0
-            height: popupBody.visible ? bar.popupVisibleHeight : 0
+            readonly property bool shown: popupBody.visible && (!bar.fadeAnimation || bar.openness > 0.5)
+            y: bar.popupTop + bar.animShift
+            width: shown ? popupBody.width : 0
+            height: shown ? bar.popupVisibleHeight : 0
             topLeftRadius: Theme.popupAttached ? 0 : Theme.popupRadius
             topRightRadius: Theme.popupAttached ? 0 : Theme.popupRadius
             bottomLeftRadius: Theme.popupRadius
@@ -60,13 +61,36 @@ PanelWindow {
     property bool popupOpen: false
     property real openness: popupOpen ? 1 : 0
     property bool instantClose: false
+    readonly property bool niriAnimation: Theme.popupAnimation === "niri"
+    readonly property bool popAnimation: Theme.popupAnimation === "pop"
+    // Both show the popup whole and fade it, instead of growing it.
+    readonly property bool fadeAnimation: niriAnimation || popAnimation
     Behavior on openness {
         enabled: !bar.instantClose
+        // The target is already set when this starts, so popupOpen tells open from close.
+        // "niri": prism-glide.kdl's window-open/close timings and curves, times its
+        // slowdown 1.3. "pop": quick with a slight overshoot in, quicker out.
         NumberAnimation {
-            duration: Theme.popupDuration
-            easing.type: Easing.OutCubic
+            duration: bar.niriAnimation ? (bar.popupOpen ? 260 * 1.3 : 120 * 1.3) : bar.popAnimation ? (bar.popupOpen ? 220 : 120) : Theme.popupDuration
+            easing.type: bar.niriAnimation ? Easing.BezierSpline : bar.popAnimation ? (bar.popupOpen ? Easing.OutBack : Easing.InQuad) : Easing.OutCubic
+            easing.bezierCurve: bar.popupOpen ? [0.22, 1.0, 0.36, 1.0, 1, 1] : [0.32, 0.0, 0.67, 0.0, 1, 1]
+            easing.overshoot: 1.2
         }
     }
+
+    // prism-glide: opening slides up 60 px-ish into place and scales from 0.985,
+    // closing slides 40 px-ish down and scales to 0.988. Its shader shifts by
+    // px / width in height units, hence the height / width factor.
+    // pop: scales from 0.9 at the top edge (towards the module) and back to 0.95.
+    readonly property real animShift: niriAnimation ? (1 - openness) * (popupOpen ? 60 : 40) * popupHeight / Math.max(popupWidth, 1) : 0
+    readonly property real animScale: {
+        if (niriAnimation)
+            return popupOpen ? 0.985 + 0.015 * openness : 1 - 0.012 * (1 - openness);
+        if (popAnimation)
+            return popupOpen ? 0.9 + 0.1 * openness : 0.95 + 0.05 * openness;
+        return 1;
+    }
+    readonly property bool scaleFromTop: popAnimation
 
     readonly property real popupContentWidth: popupLoader.item ? popupLoader.item.implicitWidth : 0
     readonly property real popupContentHeight: popupLoader.item ? popupLoader.item.implicitHeight : 0
@@ -79,7 +103,8 @@ PanelWindow {
             easing.type: Easing.OutCubic
         }
     }
-    readonly property real popupVisibleHeight: popupHeight * openness
+    // "grow" reveals the popup gradually; "niri" shows it whole and fades it.
+    readonly property real popupVisibleHeight: fadeAnimation ? (openness > 0.001 ? popupHeight : 0) : popupHeight * openness
     // Where the popup starts: right at the bar's bottom edge, or below a gap.
     readonly property real popupTop: barRect.y + barRect.height + (Theme.popupAttached ? 0 : Theme.popupGap)
 
@@ -216,6 +241,16 @@ PanelWindow {
             color: Theme.base
             topLeftRadius: topRadius
             topRightRadius: topRadius
+            opacity: bar.fadeAnimation ? bar.openness : 1
+            transform: [
+                Scale {
+                    origin.x: popupBody.width / 2
+                    origin.y: bar.scaleFromTop ? 0 : popupBody.height / 2
+                    xScale: bar.animScale
+                    yScale: bar.animScale
+                },
+                Translate { y: bar.animShift }
+            ]
             bottomLeftRadius: Math.min(Theme.popupRadius, bar.popupVisibleHeight / 2)
             bottomRightRadius: Math.min(Theme.popupRadius, bar.popupVisibleHeight / 2)
 
@@ -293,6 +328,17 @@ PanelWindow {
 
     // ---- popup content --------------------------------------------------------
 
+    // The popup's input area: popupBody's geometry without its animation
+    // transform, which the mask region doesn't follow (a transformed popupBody
+    // dropped out of the mask and the pointer fell through to the window below).
+    Item {
+        id: popupHitArea
+        x: popupBody.x
+        y: popupBody.y
+        width: popupBody.visible ? popupBody.width : 0
+        height: popupBody.height
+    }
+
     // The gap between the bar and a detached popup: part of the popup for input,
     // so moving the pointer slowly across it doesn't close the popup.
     Item {
@@ -311,6 +357,15 @@ PanelWindow {
         id: popupClip
         x: popupBody.x
         y: bar.popupTop
+        transform: [
+            Scale {
+                origin.x: popupClip.width / 2
+                origin.y: bar.scaleFromTop ? 0 : popupClip.height / 2
+                xScale: bar.animScale
+                yScale: bar.animScale
+            },
+            Translate { y: bar.animShift }
+        ]
         width: popupBody.width
         height: bar.popupVisibleHeight
         clip: true
