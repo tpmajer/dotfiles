@@ -17,6 +17,11 @@ Singleton {
         return null;
     }
 
+    readonly property string focusedOutput: {
+        const ws = workspaces.find(w => w.is_focused);
+        return ws ? ws.output : "";
+    }
+
     function workspacesOn(output) {
         return workspaces.filter(ws => ws.output === output).sort((a, b) => a.idx - b.idx);
     }

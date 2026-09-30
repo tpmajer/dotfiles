@@ -26,7 +26,8 @@ PanelWindow {
 
     WlrLayershell.namespace: "quickshell-bar"
     WlrLayershell.layer: WlrLayer.Top
-    WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+    // The keyboard only while the power menu is open from the keyboard.
+    WlrLayershell.keyboardFocus: keyboardMode ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
     mask: Region {
         item: barRect
@@ -121,6 +122,8 @@ PanelWindow {
     // or over the strip of bar right above the popup (the way between the two).
     // This is state, not enter/leave events, whose order Qt doesn't guarantee.
     readonly property bool popupHovered: {
+        if (keyboardMode)
+            return true;
         if (popupOwner && popupOwner.hovered)
             return true;
         if (popupHover.hovered || gapHover.hovered)
@@ -175,8 +178,68 @@ PanelWindow {
         }
     }
 
+    // ---- power menu from the keyboard (Super+Esc) ---------------------------------
+
+    readonly property var powerActions: [
+        {icon: 0xf033e, text: "Lock", command: "loginctl lock-session"},
+        {icon: 0xf0343, text: "Logout", command: "niri msg action quit -s"},
+        {icon: 0xf0425, text: "Shutdown", command: "systemctl poweroff", color: Theme.red},
+        {icon: 0xf0904, text: "Suspend", command: "systemctl suspend"},
+        {icon: 0xf0709, text: "Reboot", command: "systemctl reboot", color: Theme.peach}
+    ]
+    property bool keyboardMode: false
+    property int powerIndex: 0
+
+    function togglePowerMenu() {
+        if (keyboardMode && popupOpen) {
+            popupOpen = false;
+            return;
+        }
+        powerIndex = 0;
+        showPopup(powerModule);
+        keyboardMode = true;
+        keyHandler.forceActiveFocus();
+    }
+
+    onPopupOpenChanged: if (!popupOpen)
+        keyboardMode = false
+
+    Item {
+        id: keyHandler
+        focus: true
+        Keys.onPressed: event => {
+            if (!bar.keyboardMode)
+                return;
+            const count = bar.powerActions.length;
+            switch (event.key) {
+            case Qt.Key_Up:
+            case Qt.Key_K:
+                bar.powerIndex = (bar.powerIndex + count - 1) % count;
+                break;
+            case Qt.Key_Down:
+            case Qt.Key_J:
+            case Qt.Key_Tab:
+                bar.powerIndex = (bar.powerIndex + 1) % count;
+                break;
+            case Qt.Key_Return:
+            case Qt.Key_Enter:
+            case Qt.Key_Space:
+                bar.runAction(bar.powerActions[bar.powerIndex].command);
+                break;
+            case Qt.Key_Escape:
+                bar.popupOpen = false;
+                break;
+            default:
+                return;
+            }
+            event.accepted = true;
+        }
+    }
+
     function showPopup(module) {
         showTimer.stop();
+        if (module !== powerModule)
+            keyboardMode = false;
         popupOwner = module;
         popupLoader.sourceComponent = module.popup;
         popupOpen = true;
@@ -552,6 +615,7 @@ PanelWindow {
 
             // custom/power
             Module {
+                id: powerModule
                 host: bar
                 text: Theme.glyph(0xf0906)
                 color: Theme.subtext0
@@ -913,21 +977,20 @@ PanelWindow {
             spacing: 2
 
             Repeater {
-                model: [
-                    {icon: 0xf033e, text: "Lock", command: "loginctl lock-session"},
-                    {icon: 0xf0343, text: "Logout", command: "niri msg action quit -s"},
-                    {icon: 0xf0425, text: "Shutdown", command: "systemctl poweroff", color: Theme.red},
-                    {icon: 0xf0904, text: "Suspend", command: "systemctl suspend"},
-                    {icon: 0xf0709, text: "Reboot", command: "systemctl reboot", color: Theme.peach}
-                ]
+                model: bar.powerActions
 
                 PopupAction {
                     required property var modelData
+                    required property int index
                     width: actionList.rowWidth
                     Component.onCompleted: actionList.rowWidth = Math.max(actionList.rowWidth, implicitWidth)
                     icon: Theme.glyph(modelData.icon)
                     iconColor: modelData.color || Theme.text
                     text: modelData.text
+                    // With the keyboard, one row is selected; the mouse moves the selection.
+                    highlighted: bar.keyboardMode && index === bar.powerIndex
+                    onHoveredChanged: if (hovered)
+                        bar.powerIndex = index
                     onTriggered: bar.runAction(modelData.command)
                 }
             }
