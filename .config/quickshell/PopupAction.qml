@@ -1,19 +1,23 @@
 import QtQuick
 
-// A clickable row in a popup: icon + label, Surface 0 highlight on hover.
+// A clickable row in a popup: icon + label, Surface 0 highlight on hover or
+// when selected from the keyboard.
 Rectangle {
     id: root
 
     property string icon
     property string text
     property color iconColor: Theme.text
+    property bool highlighted: false
+    readonly property bool hovered: mouse.containsMouse
+    readonly property bool active: hovered || highlighted
 
     signal triggered
 
     implicitWidth: row.implicitWidth + 24
     implicitHeight: row.implicitHeight + 12
     radius: Theme.moduleRadius
-    color: mouse.containsMouse ? Theme.surface0 : Qt.rgba(Theme.surface0.r, Theme.surface0.g, Theme.surface0.b, 0)
+    color: active ? Theme.surface0 : Qt.rgba(Theme.surface0.r, Theme.surface0.g, Theme.surface0.b, 0)
     Behavior on color {
         ColorAnimation { duration: Theme.hoverDuration }
     }
@@ -31,7 +35,7 @@ Rectangle {
         }
         PopupText {
             text: root.text
-            color: mouse.containsMouse ? Theme.text : Theme.subtext0
+            color: root.active ? Theme.text : Theme.subtext0
         }
     }
 
