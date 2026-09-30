@@ -31,6 +31,7 @@ PanelWindow {
     mask: Region {
         item: barRect
         Region { item: popupBody }
+        Region { item: popupGapArea }
     }
 
     BackgroundEffect.blurRegion: Region {
@@ -42,9 +43,11 @@ PanelWindow {
 
         Region {
             x: popupBody.x
-            y: barRect.y + barRect.height
+            y: bar.popupTop
             width: popupBody.visible ? popupBody.width : 0
             height: popupBody.visible ? bar.popupVisibleHeight : 0
+            topLeftRadius: Theme.popupAttached ? 0 : Theme.popupRadius
+            topRightRadius: Theme.popupAttached ? 0 : Theme.popupRadius
             bottomLeftRadius: Theme.popupRadius
             bottomRightRadius: Theme.popupRadius
         }
@@ -77,6 +80,8 @@ PanelWindow {
         }
     }
     readonly property real popupVisibleHeight: popupHeight * openness
+    // Where the popup starts: right at the bar's bottom edge, or below a gap.
+    readonly property real popupTop: barRect.y + barRect.height + (Theme.popupAttached ? 0 : Theme.popupGap)
 
     readonly property real ownerCenter: {
         const o = popupOwner;
@@ -93,7 +98,7 @@ PanelWindow {
     readonly property bool popupHovered: {
         if (popupOwner && popupOwner.hovered)
             return true;
-        if (popupHover.hovered)
+        if (popupHover.hovered || gapHover.hovered)
             return true;
         if (!barHover.hovered)
             return false;
@@ -200,15 +205,17 @@ PanelWindow {
                 return barRect.x + Math.max(minX, Math.min(maxX, bar.ownerCenter - bar.popupWidth / 2));
             }
 
-            // Starts inside the bar so the join has no seam.
+            // Attached, it starts inside the bar so the join has no seam.
+            readonly property real overlap: Theme.popupAttached ? Theme.popupFillet : 0
+            readonly property real topRadius: Theme.popupAttached ? 0 : Math.min(Theme.popupRadius, bar.popupVisibleHeight / 2)
             x: targetX
-            y: barRect.y + barRect.height - Theme.popupFillet
+            y: bar.popupTop - overlap
             width: bar.popupWidth
-            height: bar.popupVisibleHeight + Theme.popupFillet
+            height: bar.popupVisibleHeight + overlap
             visible: bar.popupVisibleHeight > 0.5
             color: Theme.base
-            topLeftRadius: 0
-            topRightRadius: 0
+            topLeftRadius: topRadius
+            topRightRadius: topRadius
             bottomLeftRadius: Math.min(Theme.popupRadius, bar.popupVisibleHeight / 2)
             bottomRightRadius: Math.min(Theme.popupRadius, bar.popupVisibleHeight / 2)
 
@@ -232,7 +239,7 @@ PanelWindow {
         Shape {
             id: leftFillet
             readonly property real r: Math.min(Theme.popupFillet, bar.popupVisibleHeight)
-            visible: popupBody.visible
+            visible: popupBody.visible && Theme.popupAttached
             x: popupBody.x - r
             y: barRect.y + barRect.height
             width: r
@@ -259,7 +266,7 @@ PanelWindow {
         Shape {
             id: rightFillet
             readonly property real r: leftFillet.r
-            visible: popupBody.visible
+            visible: popupBody.visible && Theme.popupAttached
             x: popupBody.x + popupBody.width
             y: barRect.y + barRect.height
             width: r
@@ -286,10 +293,24 @@ PanelWindow {
 
     // ---- popup content --------------------------------------------------------
 
+    // The gap between the bar and a detached popup: part of the popup for input,
+    // so moving the pointer slowly across it doesn't close the popup.
+    Item {
+        id: popupGapArea
+        x: popupBody.x
+        y: barRect.y + barRect.height
+        width: popupBody.visible && !Theme.popupAttached ? popupBody.width : 0
+        height: Theme.popupAttached ? 0 : Theme.popupGap
+
+        HoverHandler {
+            id: gapHover
+        }
+    }
+
     Item {
         id: popupClip
         x: popupBody.x
-        y: barRect.y + barRect.height
+        y: bar.popupTop
         width: popupBody.width
         height: bar.popupVisibleHeight
         clip: true
