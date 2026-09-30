@@ -41,6 +41,10 @@ Singleton {
     readonly property bool popupAttached: false
     readonly property int popupGap: 8
     readonly property int popupDuration: 180
+    // "grow": the popup grows down out of the bar. "niri": like niri's window
+    // open/close in animations/prism-glide.kdl (fade, slight slide and scale).
+    // "pop": a popover scaling up from its module with a slight overshoot.
+    readonly property string popupAnimation: "pop"
 
     function glyph(codepoint) {
         return String.fromCodePoint(codepoint);
