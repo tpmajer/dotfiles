@@ -630,7 +630,9 @@ PanelWindow {
                 text: Theme.glyph(0xf0906)
                 color: Theme.subtext0
                 rightMargin: 6
-                popup: powerPopup
+                popup: PowerPopup {
+                    host: bar
+                }
                 onClicked: bar.showPopup(this)
             }
         }
@@ -641,42 +643,10 @@ PanelWindow {
         precision: SystemClock.Seconds
     }
 
-    // ---- popup contents: the rest live in popups/ ----------------------------------
+    // ---- popup contents live in popups/; this one is assigned conditionally --------
 
     Component {
         id: idlePopup
         IdlePopup {}
-    }
-
-    // Power menu: lock, logout, shutdown, suspend, reboot.
-    Component {
-        id: powerPopup
-
-        Column {
-            id: actionList
-            readonly property bool hasRows: true
-            // Rows share the width of the widest one.
-            property real rowWidth: 0
-            spacing: 2
-
-            Repeater {
-                model: bar.powerActions
-
-                PopupAction {
-                    required property var modelData
-                    required property int index
-                    width: actionList.rowWidth
-                    Component.onCompleted: actionList.rowWidth = Math.max(actionList.rowWidth, implicitWidth)
-                    icon: Theme.glyph(modelData.icon)
-                    iconColor: modelData.color || Theme.text
-                    text: modelData.text
-                    // With the keyboard, one row is selected; the mouse moves the selection.
-                    highlighted: bar.keyboardMode && index === bar.powerIndex
-                    onHoveredChanged: if (hovered)
-                        bar.powerIndex = index
-                    onTriggered: bar.runAction(modelData.command)
-                }
-            }
-        }
     }
 }
