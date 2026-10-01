@@ -576,7 +576,7 @@ PanelWindow {
                 prefixColor: Network.slowUsb ? Theme.maroon : Theme.teal
                 text: Network.text
                 color: Theme.teal
-                popup: Network.rows.length ? networkPopup : null
+                popup: networkPopup
                 onClicked: m => Quickshell.execDetached(m.button === Qt.RightButton ? ["nmcli", "device", "wifi", "rescan"] : ["networkmanager_dmenu"])
             }
 
@@ -807,7 +807,7 @@ PanelWindow {
             spacing: 4
             // The rows below the switches are inset like the switches' text, on
             // the sides and at the bottom.
-            bottomPadding: Theme.popupTextInsetV
+            bottomPadding: Network.rows.length ? Theme.popupTextInsetV : 0
 
             Component.onCompleted: Network.refreshWgAuto()
             Connections {
@@ -850,6 +850,7 @@ PanelWindow {
             }
             GridLayout {
                 id: trafficGrid
+                visible: Network.rows.length > 0
                 x: 12
                 columns: 3
                 columnSpacing: 16
