@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import Quickshell.Widgets
 import qs
 
@@ -52,11 +53,14 @@ Item {
 
         // Underline in the module's color, faded in with the rectangle.
         Rectangle {
-            anchors.bottom: parent.bottom
+            // At the bottom of the rectangle, on whole device pixels. The bar
+            // is Theme.barMargin below the top of its window.
+            readonly property real windowY: Theme.barMargin + bg.y + bg.height - height
+            y: bg.height - height + Theme.snap(windowY, QsWindow.window?.devicePixelRatio ?? 1) - windowY
             anchors.horizontalCenter: parent.horizontalCenter
             width: parent.width - 2 * Theme.moduleRadius
-            height: 2
-            radius: 1
+            height: Theme.lineWidth
+            radius: height / 2
             color: root.color
             visible: root.underline
             opacity: mouse.containsMouse ? 1 : 0

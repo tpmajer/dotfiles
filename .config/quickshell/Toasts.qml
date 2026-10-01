@@ -239,11 +239,13 @@ PanelWindow {
 
                 // The urgency, in the place of a module's underline.
                 Rectangle {
-                    x: Theme.popupPadding
+                    // On whole device pixels, like a module's underline.
+                    readonly property real windowX: stack.x + card.x + Theme.popupPadding
+                    x: Theme.popupPadding + Theme.snap(windowX, toasts.devicePixelRatio) - windowX
                     y: Theme.popupPaddingV + Theme.popupTextInsetV
-                    width: 3
+                    width: Theme.lineWidth
                     height: parent.height - 2 * y
-                    radius: 1.5
+                    radius: width / 2
                     color: card.accent
                 }
 

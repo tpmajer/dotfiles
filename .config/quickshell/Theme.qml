@@ -69,6 +69,17 @@ Singleton {
     // More than this many are folded into a "+N more" row; a click unfolds them.
     readonly property int notificationsVisible: 5
 
+    // Thin colored lines: a module's underline, a notification's urgency.
+    // 2.5 px is 4 whole device pixels at scale 1.6.
+    readonly property real lineWidth: 2.5
+
+    // The nearest position, in a window's coordinates, that falls on a whole
+    // device pixel. A line both placed and sized in whole device pixels has
+    // hard edges; otherwise its edges are smoothed over two.
+    function snap(position, devicePixelRatio) {
+        return Math.round(position * devicePixelRatio) / devicePixelRatio;
+    }
+
     function glyph(codepoint) {
         return String.fromCodePoint(codepoint);
     }
