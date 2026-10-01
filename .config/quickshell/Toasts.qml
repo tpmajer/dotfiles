@@ -85,211 +85,228 @@ PanelWindow {
             shadowVerticalOffset: 3
         }
 
-        Column {
-            id: stack
-            x: toasts.shadowRoom
-            // In a bottom corner the stack ends at the bottom edge and slides up
-            // as it grows: a new card comes from below the screen edge and
-            // pushes the older ones up. Until the window is on screen the stack
-            // waits below the edge, so the first card slides in too.
-            y: toasts.atTop ? Theme.barMargin + Theme.barHeight + Theme.popupGap : toasts.live ? parent.height - Theme.barMargin - height : parent.height
-            spacing: Theme.notificationGap
+        // Only the cards' backgrounds. Text drawn into the shadow's layer comes
+        // out soft, so the cards themselves sit on top of this, outside it.
+        Repeater {
+            model: toasts.cards.filter(c => c.visible)
 
-            Behavior on y {
-                enabled: !toasts.atTop
-                NumberAnimation {
-                    duration: Theme.notificationSlide
-                    easing.type: Easing.OutCubic
-                }
-            }
-            // Same timing as the stack: when a card goes, the ones below it
-            // stay where they are and the ones above come down.
-            move: Transition {
-                NumberAnimation {
-                    property: "y"
-                    duration: Theme.notificationSlide
-                    easing.type: Easing.OutCubic
-                }
-            }
-
-            // The folded notifications: "+N more", or "Show less" once unfolded.
             Rectangle {
-                id: fold
-
-                // Explicit geometry: the cards move with the stack.
-                readonly property Region inputRegion: Region {
-                    x: stack.x + fold.x
-                    y: stack.y + fold.y
-                    width: fold.width
-                    height: fold.height
-                }
-                readonly property Region blurRegion: Region {
-                    x: stack.x + fold.x
-                    y: stack.y + fold.y
-                    width: fold.width
-                    height: fold.height
-                    radius: Theme.barRadius
-                }
-
-                visible: toasts.hiddenCount > 0
-                width: Theme.notificationWidth
-                height: foldLabel.implicitHeight + 2 * Theme.popupPaddingV
+                required property var modelData
+                x: stack.x + modelData.x
+                y: stack.y + modelData.y
+                width: modelData.width
+                height: modelData.height
                 radius: Theme.barRadius
                 color: Theme.base
+                opacity: modelData.opacity
+            }
+        }
+    }
 
-                Component.onCompleted: toasts.cards = toasts.cards.concat([fold])
+    Column {
+        id: stack
+        x: toasts.shadowRoom
+        // In a bottom corner the stack ends at the bottom edge and slides up
+        // as it grows: a new card comes from below the screen edge and
+        // pushes the older ones up. Until the window is on screen the stack
+        // waits below the edge, so the first card slides in too.
+        y: toasts.atTop ? Theme.barMargin + Theme.barHeight + Theme.popupGap : toasts.live ? Math.round(parent.height - Theme.barMargin - height) : parent.height
+        spacing: Theme.notificationGap
 
-                PopupText {
-                    id: foldLabel
-                    anchors.centerIn: parent
-                    text: toasts.expanded ? "Show less" : "+" + toasts.hiddenCount + " more"
-                    color: foldMouse.containsMouse ? Theme.text : Theme.subtext0
-                    font.pixelSize: Theme.fontSize - 2
+        Behavior on y {
+            enabled: !toasts.atTop
+            NumberAnimation {
+                duration: Theme.notificationSlide
+                easing.type: Easing.OutCubic
+            }
+        }
+        // Same timing as the stack: when a card goes, the ones below it
+        // stay where they are and the ones above come down.
+        move: Transition {
+            NumberAnimation {
+                property: "y"
+                duration: Theme.notificationSlide
+                easing.type: Easing.OutCubic
+            }
+        }
+
+        // The folded notifications: "+N more", or "Show less" once unfolded.
+        Rectangle {
+            id: fold
+
+            // Explicit geometry: the cards move with the stack.
+            readonly property Region inputRegion: Region {
+                x: stack.x + fold.x
+                y: stack.y + fold.y
+                width: fold.width
+                height: fold.height
+            }
+            readonly property Region blurRegion: Region {
+                x: stack.x + fold.x
+                y: stack.y + fold.y
+                width: fold.width
+                height: fold.height
+                radius: Theme.barRadius
+            }
+
+            visible: toasts.hiddenCount > 0
+            width: Theme.notificationWidth
+            height: foldLabel.implicitHeight + 2 * Theme.popupPaddingV
+            radius: Theme.barRadius
+            color: "transparent"   // the background is drawn below, with the shadow
+
+            Component.onCompleted: toasts.cards = toasts.cards.concat([fold])
+
+            PopupText {
+                id: foldLabel
+                anchors.centerIn: parent
+                text: toasts.expanded ? "Show less" : "+" + toasts.hiddenCount + " more"
+                color: foldMouse.containsMouse ? Theme.text : Theme.subtext0
+                font.pixelSize: Theme.fontSize - 2
+            }
+
+            MouseArea {
+                id: foldMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                onClicked: toasts.expanded = !toasts.expanded
+            }
+        }
+
+        Repeater {
+            model: Notifications.list
+
+            Rectangle {
+                id: card
+
+                required property var modelData
+                required property int index
+                readonly property var notification: modelData
+                readonly property color accent: notification.urgency === NotificationUrgency.Critical ? Theme.red : notification.urgency === NotificationUrgency.Low ? Theme.subtext0 : Theme.teal
+                readonly property var extraActions: notification.actions.filter(a => a.identifier !== "default")
+                readonly property Region inputRegion: Region {
+                    x: stack.x + card.x
+                    y: stack.y + card.y
+                    width: card.width
+                    height: card.height
+                }
+                readonly property Region blurRegion: Region {
+                    x: stack.x + card.x
+                    y: stack.y + card.y
+                    width: card.width
+                    height: card.height
+                    radius: Theme.barRadius
+                }
+                property bool appeared: false
+
+                visible: toasts.expanded || index >= toasts.hiddenCount
+                width: Theme.notificationWidth
+                height: content.implicitHeight + 2 * (Theme.popupPaddingV + Theme.popupTextInsetV)
+                radius: Theme.barRadius
+                color: "transparent"   // the background is drawn below, with the shadow
+                // In a top corner it fades in instead.
+                opacity: appeared || !toasts.atTop ? 1 : 0
+                Behavior on opacity {
+                    NumberAnimation { duration: Theme.hoverDuration }
+                }
+
+                Component.onCompleted: {
+                    appeared = true;
+                    toasts.cards = toasts.cards.concat([card]);
+                }
+                Component.onDestruction: toasts.cards = toasts.cards.filter(c => c !== card)
+
+                Timer {
+                    interval: Notifications.timeout(card.notification)
+                    running: interval > 0 && !hover.hovered
+                    onTriggered: card.notification.expire()
+                }
+
+                HoverHandler {
+                    id: hover
                 }
 
                 MouseArea {
-                    id: foldMouse
                     anchors.fill: parent
-                    hoverEnabled: true
-                    onClicked: toasts.expanded = !toasts.expanded
+                    acceptedButtons: Qt.LeftButton | Qt.RightButton
+                    onClicked: m => {
+                        const action = card.notification.actions.find(a => a.identifier === "default");
+                        if (m.button === Qt.LeftButton && action)
+                            action.invoke();
+                        card.notification.dismiss();
+                    }
                 }
-            }
 
-            Repeater {
-                model: Notifications.list
-
+                // The urgency, in the place of a module's underline.
                 Rectangle {
-                    id: card
+                    x: Theme.popupPadding
+                    y: Theme.popupPaddingV + Theme.popupTextInsetV
+                    width: 3
+                    height: parent.height - 2 * y
+                    radius: 1.5
+                    color: card.accent
+                }
 
-                    required property var modelData
-                    required property int index
-                    readonly property var notification: modelData
-                    readonly property color accent: notification.urgency === NotificationUrgency.Critical ? Theme.red : notification.urgency === NotificationUrgency.Low ? Theme.subtext0 : Theme.teal
-                    readonly property var extraActions: notification.actions.filter(a => a.identifier !== "default")
-                    readonly property Region inputRegion: Region {
-                        x: stack.x + card.x
-                        y: stack.y + card.y
-                        width: card.width
-                        height: card.height
-                    }
-                    readonly property Region blurRegion: Region {
-                        x: stack.x + card.x
-                        y: stack.y + card.y
-                        width: card.width
-                        height: card.height
-                        radius: Theme.barRadius
-                    }
-                    property bool appeared: false
+                Column {
+                    id: content
+                    x: Theme.popupPadding + Theme.popupTextInset
+                    y: Theme.popupPaddingV + Theme.popupTextInsetV
+                    width: parent.width - x - Theme.popupPadding - Theme.popupTextInset + 3
+                    spacing: 4
 
-                    visible: toasts.expanded || index >= toasts.hiddenCount
-                    width: Theme.notificationWidth
-                    height: content.implicitHeight + 2 * (Theme.popupPaddingV + Theme.popupTextInsetV)
-                    radius: Theme.barRadius
-                    color: Theme.base
-                    // In a top corner it fades in instead.
-                    opacity: appeared || !toasts.atTop ? 1 : 0
-                    Behavior on opacity {
-                        NumberAnimation { duration: Theme.hoverDuration }
+                    PopupText {
+                        width: parent.width
+                        text: card.notification.summary
+                        textFormat: Text.PlainText
+                        font.bold: true
+                        wrapMode: Text.Wrap
+                        maximumLineCount: 2
+                        elide: Text.ElideRight
                     }
 
-                    Component.onCompleted: {
-                        appeared = true;
-                        toasts.cards = toasts.cards.concat([card]);
-                    }
-                    Component.onDestruction: toasts.cards = toasts.cards.filter(c => c !== card)
-
-                    Timer {
-                        interval: Notifications.timeout(card.notification)
-                        running: interval > 0 && !hover.hovered
-                        onTriggered: card.notification.expire()
-                    }
-
-                    HoverHandler {
-                        id: hover
+                    PopupText {
+                        visible: text !== ""
+                        width: parent.width
+                        text: card.notification.body
+                        textFormat: Text.StyledText
+                        color: Theme.subtext0
+                        font.pixelSize: Theme.fontSize - 2
+                        wrapMode: Text.Wrap
+                        maximumLineCount: 6
+                        elide: Text.ElideRight
                     }
 
-                    MouseArea {
-                        anchors.fill: parent
-                        acceptedButtons: Qt.LeftButton | Qt.RightButton
-                        onClicked: m => {
-                            const action = card.notification.actions.find(a => a.identifier === "default");
-                            if (m.button === Qt.LeftButton && action)
-                                action.invoke();
-                            card.notification.dismiss();
-                        }
-                    }
+                    Row {
+                        visible: card.extraActions.length > 0
+                        topPadding: 4
+                        spacing: 6
 
-                    // The urgency, in the place of a module's underline.
-                    Rectangle {
-                        x: Theme.popupPadding
-                        y: Theme.popupPaddingV + Theme.popupTextInsetV
-                        width: 3
-                        height: parent.height - 2 * y
-                        radius: 1.5
-                        color: card.accent
-                    }
+                        Repeater {
+                            model: card.extraActions
 
-                    Column {
-                        id: content
-                        x: Theme.popupPadding + Theme.popupTextInset
-                        y: Theme.popupPaddingV + Theme.popupTextInsetV
-                        width: parent.width - x - Theme.popupPadding - Theme.popupTextInset + 3
-                        spacing: 4
+                            Rectangle {
+                                id: button
+                                required property var modelData
+                                width: label.implicitWidth + 20
+                                height: label.implicitHeight + 8
+                                radius: Theme.moduleRadius
+                                color: buttonMouse.containsMouse ? Theme.surface0 : Qt.rgba(Theme.surface0.r, Theme.surface0.g, Theme.surface0.b, 0.5)
 
-                        PopupText {
-                            width: parent.width
-                            text: card.notification.summary
-                            textFormat: Text.PlainText
-                            font.bold: true
-                            wrapMode: Text.Wrap
-                            maximumLineCount: 2
-                            elide: Text.ElideRight
-                        }
+                                PopupText {
+                                    id: label
+                                    anchors.centerIn: parent
+                                    text: button.modelData.text
+                                    font.pixelSize: Theme.fontSize - 2
+                                }
 
-                        PopupText {
-                            visible: text !== ""
-                            width: parent.width
-                            text: card.notification.body
-                            textFormat: Text.StyledText
-                            color: Theme.subtext0
-                            font.pixelSize: Theme.fontSize - 2
-                            wrapMode: Text.Wrap
-                            maximumLineCount: 6
-                            elide: Text.ElideRight
-                        }
-
-                        Row {
-                            visible: card.extraActions.length > 0
-                            topPadding: 4
-                            spacing: 6
-
-                            Repeater {
-                                model: card.extraActions
-
-                                Rectangle {
-                                    id: button
-                                    required property var modelData
-                                    width: label.implicitWidth + 20
-                                    height: label.implicitHeight + 8
-                                    radius: Theme.moduleRadius
-                                    color: buttonMouse.containsMouse ? Theme.surface0 : Qt.rgba(Theme.surface0.r, Theme.surface0.g, Theme.surface0.b, 0.5)
-
-                                    PopupText {
-                                        id: label
-                                        anchors.centerIn: parent
-                                        text: button.modelData.text
-                                        font.pixelSize: Theme.fontSize - 2
-                                    }
-
-                                    MouseArea {
-                                        id: buttonMouse
-                                        anchors.fill: parent
-                                        hoverEnabled: true
-                                        onClicked: {
-                                            button.modelData.invoke();
-                                            if (!card.notification.resident)
-                                                card.notification.dismiss();
-                                        }
+                                MouseArea {
+                                    id: buttonMouse
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    onClicked: {
+                                        button.modelData.invoke();
+                                        if (!card.notification.resident)
+                                            card.notification.dismiss();
                                     }
                                 }
                             }

@@ -152,56 +152,57 @@ PanelWindow {
             Behavior on opacity {
                 NumberAnimation { duration: Theme.hoverDuration }
             }
+        }
+    }
 
-            Row {
-                id: content
-                anchors.centerIn: parent
-                spacing: Theme.popupColumnGap
+    // Outside the shadow's layer: text drawn into it comes out soft.
+    Row {
+        id: content
+        anchors.centerIn: parent
+        spacing: Theme.popupColumnGap
 
-                PopupText {
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: iconSize.width
-                    horizontalAlignment: Text.AlignHCenter
-                    text: osd.icon
-                    color: osd.accent
-                }
+        PopupText {
+            anchors.verticalCenter: parent.verticalCenter
+            width: iconSize.width
+            horizontalAlignment: Text.AlignHCenter
+            text: osd.icon
+            color: osd.accent
+        }
 
-                Rectangle {
-                    visible: osd.level >= 0
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: 200
-                    height: 6
-                    radius: 3
-                    color: Theme.surface0
+        Rectangle {
+            visible: osd.level >= 0
+            anchors.verticalCenter: parent.verticalCenter
+            width: 200
+            height: 6
+            radius: 3
+            color: Theme.surface0
 
-                    Rectangle {
-                        width: parent.width * Math.max(0, osd.level)
-                        height: parent.height
-                        radius: parent.radius
-                        color: Theme.subtext0
-                        Behavior on width {
-                            NumberAnimation { duration: 80 }
-                        }
-                    }
-
-                    Rectangle {
-                        width: parent.width * Math.max(0, osd.fill)
-                        height: parent.height
-                        radius: parent.radius
-                        color: osd.fillColor
-                        Behavior on width {
-                            NumberAnimation { duration: 80 }
-                        }
-                    }
-                }
-
-                PopupText {
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: osd.level >= 0 ? labelSize.width : implicitWidth
-                    horizontalAlignment: Text.AlignRight
-                    text: osd.label
+            Rectangle {
+                width: parent.width * Math.max(0, osd.level)
+                height: parent.height
+                radius: parent.radius
+                color: Theme.subtext0
+                Behavior on width {
+                    NumberAnimation { duration: 80 }
                 }
             }
+
+            Rectangle {
+                width: parent.width * Math.max(0, osd.fill)
+                height: parent.height
+                radius: parent.radius
+                color: osd.fillColor
+                Behavior on width {
+                    NumberAnimation { duration: 80 }
+                }
+            }
+        }
+
+        PopupText {
+            anchors.verticalCenter: parent.verticalCenter
+            width: osd.level >= 0 ? labelSize.width : implicitWidth
+            horizontalAlignment: Text.AlignRight
+            text: osd.label
         }
     }
 
