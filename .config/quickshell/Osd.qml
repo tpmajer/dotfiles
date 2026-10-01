@@ -15,13 +15,18 @@ PanelWindow {
     property string icon: ""
     property color accent: Theme.text
     property real level: 0          // 0..1, or -1 for no level bar (a switch)
+    // The colored part of the bar; below level, the rest of it shows in grey.
+    property real fill: 0
+    property color fillColor: accent
     property string label: ""
     property bool shown: false
 
-    function show(icon, accent, level, label) {
+    function show(icon, accent, level, label, fill = level, fillColor = accent) {
         osd.icon = icon;
         osd.accent = accent;
         osd.level = Math.min(1, level);
+        osd.fill = Math.min(1, fill);
+        osd.fillColor = fillColor;
         osd.label = label;
         shown = true;
         hideTimer.restart();
@@ -32,8 +37,8 @@ PanelWindow {
         if (!sink || !sink.audio || settle.running)
             return;
         const muted = sink.audio.muted;
-        // Muted, the bar keeps the level and turns grey.
-        show(Audio.icon(sink), muted ? Theme.subtext0 : Theme.yellow, sink.audio.volume, muted ? "muted" : Audio.volume(sink) + "%");
+        // Muted, the yellow bar runs out and leaves the level in grey.
+        show(Audio.icon(sink), muted ? Theme.subtext0 : Theme.yellow, sink.audio.volume, muted ? "muted" : Audio.volume(sink) + "%", muted ? 0 : sink.audio.volume, Theme.yellow);
     }
 
     screen: Quickshell.screens.find(s => s.name === Niri.focusedOutput) ?? Quickshell.screens[0]
@@ -173,7 +178,17 @@ PanelWindow {
                         width: parent.width * Math.max(0, osd.level)
                         height: parent.height
                         radius: parent.radius
-                        color: osd.accent
+                        color: Theme.subtext0
+                        Behavior on width {
+                            NumberAnimation { duration: 80 }
+                        }
+                    }
+
+                    Rectangle {
+                        width: parent.width * Math.max(0, osd.fill)
+                        height: parent.height
+                        radius: parent.radius
+                        color: osd.fillColor
                         Behavior on width {
                             NumberAnimation { duration: 80 }
                         }
