@@ -163,6 +163,10 @@ PanelWindow {
         id: content
         x: Theme.snap((parent.width - width) / 2, osd.devicePixelRatio)
         y: Theme.snap((parent.height - height) / 2, osd.devicePixelRatio)
+        // Fades with the pill, but twice as fast: gone by the time the pill is
+        // half faded (when its blur goes too) and back only after that. Bright
+        // text on a nearly faded pill reads as the content outliving it.
+        opacity: Math.max(0, 2 * box.opacity - 1)
         spacing: Theme.popupColumnGap
 
         PopupText {
