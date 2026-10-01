@@ -20,6 +20,7 @@
 |----------|-------|-------------|
 | `fkill` | `fkill` | Pick and kill a process via fzf (supports multi-select) |
 | `port` | `port <number>` | Show what is listening on a given port (`ss -tlnp`) |
+| `wgauto` | `wgauto [on\|off\|status]` | Toggle WireGuard auto-start: `off` sets `/var/lib/wg-auto-disabled` and stops wg0, `on` removes it and re-activates Wi-Fi so the SSID rule applies; no argument shows the state |
 
 ## Nix
 
