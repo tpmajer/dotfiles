@@ -65,6 +65,9 @@ Singleton {
     readonly property string notificationsPosition: "bottom-right"
     readonly property int notificationWidth: 380
     readonly property int notificationGap: 8
+    readonly property int notificationSlide: 250   // ms, cards sliding in and closing ranks
+    // More than this many are folded into a "+N more" row; a click unfolds them.
+    readonly property int notificationsVisible: 5
 
     function glyph(codepoint) {
         return String.fromCodePoint(codepoint);

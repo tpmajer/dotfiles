@@ -9,7 +9,8 @@ import qs.widgets
 // Notifications: a stack of cards in a corner of the focused output, the
 // newest at the bottom. A card stays for a time set by its urgency (not while
 // the pointer is over it); a left click runs its default action and closes it,
-// a right click only closes it.
+// a right click only closes it. Only the newest few are shown; the rest fold
+// into a row at the top that unfolds them on a click.
 PanelWindow {
     id: toasts
 
@@ -18,25 +19,47 @@ PanelWindow {
     // Room around the cards for their shadow.
     readonly property int shadowRoom: 30
     property var cards: []
+    readonly property int count: Notifications.list.values.length
+    readonly property int hiddenCount: Math.max(0, count - Theme.notificationsVisible)
+    property bool expanded: false
+    onHiddenCountChanged: if (hiddenCount === 0)
+        expanded = false
+
+    // The window is on screen and has its size, so an animation started now is seen.
+    property bool live: false
+    onBackingWindowVisibleChanged: {
+        if (backingWindowVisible) {
+            liveTimer.restart();
+        } else {
+            liveTimer.stop();
+            live = false;
+        }
+    }
+    Timer {
+        id: liveTimer
+        interval: 50
+        onTriggered: toasts.live = true
+    }
 
     screen: Quickshell.screens.find(s => s.name === Niri.focusedOutput) ?? Quickshell.screens[0]
+    // The whole height of the screen: the window never resizes, so the stack
+    // can slide inside it. It is there only while there are notifications.
     anchors {
-        top: atTop
-        bottom: !atTop
+        top: true
+        bottom: true
         left: atLeft
         right: !atLeft
     }
-    // Below the bar at the top, by the screen edge elsewhere.
+    // Over everything and reserving nothing: anchored to three edges, the
+    // window would otherwise claim its width and push the other windows aside.
+    exclusionMode: ExclusionMode.Ignore
     margins {
-        top: Theme.popupGap - shadowRoom
-        bottom: Theme.barMargin - shadowRoom
         left: Theme.barMargin - shadowRoom
         right: Theme.barMargin - shadowRoom
     }
     implicitWidth: Theme.notificationWidth + 2 * shadowRoom
-    implicitHeight: stack.height + 2 * shadowRoom
     color: "transparent"
-    visible: cards.length > 0
+    visible: count > 0
 
     WlrLayershell.namespace: "quickshell-notifications"
     WlrLayershell.layer: WlrLayer.Overlay
@@ -44,10 +67,10 @@ PanelWindow {
 
     // Only the cards take input and get blurred, not the gaps or the shadow room.
     mask: Region {
-        regions: toasts.cards.map(c => c.inputRegion)
+        regions: toasts.cards.filter(c => c.visible).map(c => c.inputRegion)
     }
     BackgroundEffect.blurRegion: Region {
-        regions: toasts.cards.map(c => c.blurRegion)
+        regions: toasts.cards.filter(c => c.visible).map(c => c.blurRegion)
     }
 
     Item {
@@ -65,8 +88,72 @@ PanelWindow {
         Column {
             id: stack
             x: toasts.shadowRoom
-            y: toasts.shadowRoom
+            // In a bottom corner the stack ends at the bottom edge and slides up
+            // as it grows: a new card comes from below the screen edge and
+            // pushes the older ones up. Until the window is on screen the stack
+            // waits below the edge, so the first card slides in too.
+            y: toasts.atTop ? Theme.barMargin + Theme.barHeight + Theme.popupGap : toasts.live ? parent.height - Theme.barMargin - height : parent.height
             spacing: Theme.notificationGap
+
+            Behavior on y {
+                enabled: !toasts.atTop
+                NumberAnimation {
+                    duration: Theme.notificationSlide
+                    easing.type: Easing.OutCubic
+                }
+            }
+            // Same timing as the stack: when a card goes, the ones below it
+            // stay where they are and the ones above come down.
+            move: Transition {
+                NumberAnimation {
+                    property: "y"
+                    duration: Theme.notificationSlide
+                    easing.type: Easing.OutCubic
+                }
+            }
+
+            // The folded notifications: "+N more", or "Show less" once unfolded.
+            Rectangle {
+                id: fold
+
+                // Explicit geometry: the cards move with the stack.
+                readonly property Region inputRegion: Region {
+                    x: stack.x + fold.x
+                    y: stack.y + fold.y
+                    width: fold.width
+                    height: fold.height
+                }
+                readonly property Region blurRegion: Region {
+                    x: stack.x + fold.x
+                    y: stack.y + fold.y
+                    width: fold.width
+                    height: fold.height
+                    radius: Theme.barRadius
+                }
+
+                visible: toasts.hiddenCount > 0
+                width: Theme.notificationWidth
+                height: foldLabel.implicitHeight + 2 * Theme.popupPaddingV
+                radius: Theme.barRadius
+                color: Theme.base
+
+                Component.onCompleted: toasts.cards = toasts.cards.concat([fold])
+
+                PopupText {
+                    id: foldLabel
+                    anchors.centerIn: parent
+                    text: toasts.expanded ? "Show less" : "+" + toasts.hiddenCount + " more"
+                    color: foldMouse.containsMouse ? Theme.text : Theme.subtext0
+                    font.pixelSize: Theme.fontSize - 2
+                }
+
+                MouseArea {
+                    id: foldMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked: toasts.expanded = !toasts.expanded
+                }
+            }
 
             Repeater {
                 model: Notifications.list
@@ -75,23 +162,32 @@ PanelWindow {
                     id: card
 
                     required property var modelData
+                    required property int index
                     readonly property var notification: modelData
                     readonly property color accent: notification.urgency === NotificationUrgency.Critical ? Theme.red : notification.urgency === NotificationUrgency.Low ? Theme.subtext0 : Theme.teal
                     readonly property var extraActions: notification.actions.filter(a => a.identifier !== "default")
                     readonly property Region inputRegion: Region {
-                        item: card
+                        x: stack.x + card.x
+                        y: stack.y + card.y
+                        width: card.width
+                        height: card.height
                     }
                     readonly property Region blurRegion: Region {
-                        item: card
+                        x: stack.x + card.x
+                        y: stack.y + card.y
+                        width: card.width
+                        height: card.height
                         radius: Theme.barRadius
                     }
                     property bool appeared: false
 
+                    visible: toasts.expanded || index >= toasts.hiddenCount
                     width: Theme.notificationWidth
                     height: content.implicitHeight + 2 * (Theme.popupPaddingV + Theme.popupTextInsetV)
                     radius: Theme.barRadius
                     color: Theme.base
-                    opacity: appeared ? 1 : 0
+                    // In a top corner it fades in instead.
+                    opacity: appeared || !toasts.atTop ? 1 : 0
                     Behavior on opacity {
                         NumberAnimation { duration: Theme.hoverDuration }
                     }
