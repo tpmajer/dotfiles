@@ -32,7 +32,8 @@ PanelWindow {
         if (!sink || !sink.audio || settle.running)
             return;
         const muted = sink.audio.muted;
-        show(Audio.icon(sink), muted ? Theme.subtext0 : Theme.yellow, muted ? 0 : sink.audio.volume, muted ? "muted" : Audio.volume(sink) + "%");
+        // Muted, the bar keeps the level and turns grey.
+        show(Audio.icon(sink), muted ? Theme.subtext0 : Theme.yellow, sink.audio.volume, muted ? "muted" : Audio.volume(sink) + "%");
     }
 
     screen: Quickshell.screens.find(s => s.name === Niri.focusedOutput) ?? Quickshell.screens[0]
