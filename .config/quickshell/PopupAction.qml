@@ -15,7 +15,7 @@ Rectangle {
     signal triggered
 
     implicitWidth: row.implicitWidth + 24
-    implicitHeight: row.implicitHeight + 12
+    implicitHeight: row.implicitHeight + 8
     radius: Theme.moduleRadius
     color: active ? Theme.surface0 : Qt.rgba(Theme.surface0.r, Theme.surface0.g, Theme.surface0.b, 0)
     Behavior on color {
@@ -26,10 +26,11 @@ Rectangle {
         id: row
         x: 12
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 12
+        spacing: Theme.popupIconGap
 
         PopupText {
             width: 20
+            horizontalAlignment: Text.AlignHCenter
             text: root.icon
             color: root.iconColor
         }

@@ -95,8 +95,12 @@ PanelWindow {
 
     readonly property real popupContentWidth: popupLoader.item ? popupLoader.item.implicitWidth : 0
     readonly property real popupContentHeight: popupLoader.item ? popupLoader.item.implicitHeight : 0
-    readonly property real popupWidth: popupContentWidth + 2 * Theme.popupPadding
-    property real popupHeight: popupContentHeight + 2 * Theme.popupPadding
+    // Popups made of clickable rows set hasRows and inset their own text.
+    readonly property bool popupHasRows: !!popupLoader.item && popupLoader.item.hasRows === true
+    readonly property real popupPadH: Theme.popupPadding + (popupHasRows ? 0 : Theme.popupTextInset)
+    readonly property real popupPadV: Theme.popupPaddingV + (popupHasRows ? 0 : Theme.popupTextInsetV)
+    readonly property real popupWidth: popupContentWidth + 2 * popupPadH
+    property real popupHeight: popupContentHeight + 2 * popupPadV
     Behavior on popupHeight {
         enabled: bar.openness > 0.01
         NumberAnimation {
@@ -436,9 +440,9 @@ PanelWindow {
 
         Loader {
             id: popupLoader
-            x: Theme.popupPadding
+            x: bar.popupPadH
             // Slides down with the popup instead of being revealed in place.
-            y: Theme.popupPadding - (bar.popupHeight - bar.popupVisibleHeight)
+            y: bar.popupPadV - (bar.popupHeight - bar.popupVisibleHeight)
             opacity: bar.openness
         }
 
@@ -708,6 +712,14 @@ PanelWindow {
 
             PopupText { text: "Load " + SysStats.loadAvg }
 
+            // The widest core number, so the grid starts flush with the line above.
+            TextMetrics {
+                id: coreIndex
+                font.family: Theme.font
+                font.pixelSize: Theme.fontSize
+                text: String(Math.max(SysStats.coreUsages.length - 1, 0))
+            }
+
             Grid {
                 columns: 4
                 columnSpacing: 20
@@ -722,7 +734,7 @@ PanelWindow {
                         spacing: 8
 
                         PopupText {
-                            width: 28
+                            width: Math.ceil(coreIndex.width)
                             horizontalAlignment: Text.AlignRight
                             text: parent.index
                             color: Theme.subtext0
@@ -791,7 +803,11 @@ PanelWindow {
         id: networkPopup
 
         Column {
+            readonly property bool hasRows: true
             spacing: 4
+            // The rows below the switches are inset like the switches' text, on
+            // the sides and at the bottom.
+            bottomPadding: Theme.popupTextInsetV
 
             Component.onCompleted: Network.refreshWgAuto()
             Connections {
@@ -802,18 +818,16 @@ PanelWindow {
                 }
             }
 
-            // WireGuard switches, side by side: the tunnel by hand, and wg-auto. Their
-            // highlight reaches into the popup padding so the text lines up with the
-            // rows below; they share the popup width evenly.
+            // WireGuard switches, side by side: the tunnel by hand, and wg-auto.
+            // They share the popup width evenly.
             Item {
                 id: wgSwitches
                 readonly property real cell: Math.max(tunnelAction.implicitWidth, wgAutoAction.implicitWidth, (trafficGrid.implicitWidth + 24 - wgActions.spacing) / 2)
-                implicitWidth: 2 * cell + wgActions.spacing - 24
+                implicitWidth: 2 * cell + wgActions.spacing
                 implicitHeight: wgActions.implicitHeight
 
                 Row {
                     id: wgActions
-                    x: -12
                     spacing: 2
 
                     PopupAction {
@@ -836,6 +850,7 @@ PanelWindow {
             }
             GridLayout {
                 id: trafficGrid
+                x: 12
                 columns: 3
                 columnSpacing: 16
                 rowSpacing: 4
@@ -859,6 +874,7 @@ PanelWindow {
             }
             PopupText {
                 visible: Network.wired && Network.slowUsb
+                x: 12
                 text: Network.usbName
                 color: Theme.maroon
             }
@@ -895,9 +911,13 @@ PanelWindow {
             }
 
             Grid {
+                id: btGrid
+                // No battery column when no device reports one: empty, it would
+                // still add its spacing to the right margin.
+                readonly property bool anyBattery: btList.connected.some(d => d.batteryAvailable)
                 visible: btList.connected.length > 0
-                columns: 3
-                columnSpacing: 12
+                columns: anyBattery ? 3 : 2
+                columnSpacing: Theme.popupIconGap
                 rowSpacing: 4
 
                 Repeater {
@@ -909,10 +929,12 @@ PanelWindow {
                             {text: btList.deviceIcon(Audio.deviceType(modelData)), color: Theme.sapphire, align: Text.AlignHCenter},
                             {text: modelData.name, color: Theme.text, align: Text.AlignLeft},
                             {text: modelData.batteryAvailable ? Math.round(modelData.battery * 100) + "%" : "", color: Theme.subtext0, align: Text.AlignRight}
-                        ]
+                        ].slice(0, btGrid.columns)
 
                         PopupText {
                             required property var modelData
+                            required property int index
+                            leftPadding: index === 2 ? Theme.popupColumnGap - Theme.popupIconGap : 0
                             text: modelData.text
                             color: modelData.color
                             horizontalAlignment: modelData.align
@@ -931,6 +953,7 @@ PanelWindow {
 
         Column {
             id: sinkList
+            readonly property bool hasRows: true
             // Columns line up across rows: each keeps the widest text seen so far.
             property real nameWidth: 0
             property real valueWidth: 0
@@ -957,7 +980,7 @@ PanelWindow {
                         id: cells
                         x: 12
                         anchors.verticalCenter: parent.verticalCenter
-                        spacing: 12
+                        spacing: Theme.popupIconGap
 
                         PopupText {
                             width: 20
@@ -974,6 +997,7 @@ PanelWindow {
                         }
                         PopupText {
                             width: sinkList.valueWidth
+                            leftPadding: Theme.popupColumnGap - Theme.popupIconGap
                             horizontalAlignment: Text.AlignRight
                             text: sinkRow.modelData.audio && sinkRow.modelData.audio.muted ? "muted" : Audio.volume(sinkRow.modelData) + "%"
                             color: sinkRow.textColor
@@ -1015,6 +1039,7 @@ PanelWindow {
 
         Column {
             id: actionList
+            readonly property bool hasRows: true
             // Rows share the width of the widest one.
             property real rowWidth: 0
             spacing: 2
