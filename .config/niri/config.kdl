@@ -697,6 +697,15 @@ layer-rule {
     }
 }
 
+// Quickshell notifications, like the OSD.
+layer-rule {
+    match namespace="^quickshell-notifications$"
+    opacity 0.9
+    background-effect {
+        xray false
+    }
+}
+
 // Indicate screencasted windows with red colors.
 window-rule {
     match is-window-cast-target=true

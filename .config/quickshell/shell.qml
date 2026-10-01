@@ -19,6 +19,7 @@ ShellRoot {
     }
 
     Osd {}
+    Toasts {}
 
     // `qs ipc call power toggle` (Super+Esc in niri): the power menu on the
     // focused output's bar, driven from the keyboard.

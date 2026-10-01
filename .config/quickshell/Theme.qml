@@ -60,6 +60,12 @@ Singleton {
     readonly property int osdBottom: 90
     readonly property int osdTimeout: 1500
 
+    // Notifications: the corner they stack in ("bottom-right", "bottom-left",
+    // "top-right", "top-left"), the card width and the gap between cards.
+    readonly property string notificationsPosition: "bottom-right"
+    readonly property int notificationWidth: 380
+    readonly property int notificationGap: 8
+
     function glyph(codepoint) {
         return String.fromCodePoint(codepoint);
     }
