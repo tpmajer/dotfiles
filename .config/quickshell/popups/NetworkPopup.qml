@@ -7,7 +7,7 @@ import qs.widgets
 Column {
     id: root
 
-    required property var host   // the Bar, which opens and closes the popup
+    required property var host   // the PopupHost, which opens and closes the popup
     readonly property bool hasRows: true
     spacing: 4
     // The rows below the switches are inset like the switches' text, on

@@ -24,7 +24,7 @@ Item {
     property int minWidth: 0
     property bool underline: true      // colored underline on hover
 
-    property var host: null            // the Bar, which owns the popup
+    property var host: null            // the PopupHost, which owns the popup
     property Component popup: null
     readonly property bool hovered: mouse.containsMouse
     readonly property real centerX: leftMargin + bg.width / 2

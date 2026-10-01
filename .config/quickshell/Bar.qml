@@ -1,6 +1,4 @@
 import QtQuick
-import QtQuick.Effects
-import QtQuick.Shapes
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Bluetooth
@@ -8,9 +6,10 @@ import qs.popups
 import qs.services
 import qs.widgets
 
-// The bar. The layer surface is taller than the bar
+// The bar's window and its modules. The layer surface is taller than the bar
 // so popups can grow out of it as one connected shape; only the bar and the open
 // popup take input and get blurred, the rest of the surface is transparent.
+// PopupHost draws the bar and runs the popups.
 PanelWindow {
     id: bar
 
@@ -31,158 +30,8 @@ PanelWindow {
     // The keyboard only while the power menu is open from the keyboard.
     WlrLayershell.keyboardFocus: keyboardMode ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
-    mask: Region {
-        item: barRect
-        Region { item: popupHitArea }
-        Region { item: popupGapArea }
-    }
-
-    BackgroundEffect.blurRegion: Region {
-        x: barRect.x
-        y: barRect.y
-        width: barRect.width
-        height: barRect.height
-        radius: Theme.barRadius
-
-        Region {
-            x: popupBody.x
-            readonly property bool shown: popupBody.visible && (!bar.fadeAnimation || bar.openness > 0.5)
-            y: bar.popupTop + bar.animShift
-            width: shown ? popupBody.width : 0
-            height: shown ? bar.popupVisibleHeight : 0
-            topLeftRadius: Theme.popupAttached ? 0 : Theme.popupRadius
-            topRightRadius: Theme.popupAttached ? 0 : Theme.popupRadius
-            bottomLeftRadius: Theme.popupRadius
-            bottomRightRadius: Theme.popupRadius
-        }
-    }
-
-    // ---- popup state ------------------------------------------------------
-
-    property Item popupOwner: null
-    property Item pendingOwner: null
-    property bool popupOpen: false
-    property real openness: popupOpen ? 1 : 0
-    property bool instantClose: false
-    readonly property bool niriAnimation: Theme.popupAnimation === "niri"
-    readonly property bool popAnimation: Theme.popupAnimation === "pop"
-    // Both show the popup whole and fade it, instead of growing it.
-    readonly property bool fadeAnimation: niriAnimation || popAnimation
-    Behavior on openness {
-        enabled: !bar.instantClose
-        // The target is already set when this starts, so popupOpen tells open from close.
-        // "niri": prism-glide.kdl's window-open/close timings and curves, times its
-        // slowdown 1.3. "pop": quick with a slight overshoot in, quicker out.
-        NumberAnimation {
-            duration: bar.niriAnimation ? (bar.popupOpen ? 260 * 1.3 : 120 * 1.3) : bar.popAnimation ? (bar.popupOpen ? 220 : 120) : Theme.popupDuration
-            easing.type: bar.niriAnimation ? Easing.BezierSpline : bar.popAnimation ? (bar.popupOpen ? Easing.OutBack : Easing.InQuad) : Easing.OutCubic
-            easing.bezierCurve: bar.popupOpen ? [0.22, 1.0, 0.36, 1.0, 1, 1] : [0.32, 0.0, 0.67, 0.0, 1, 1]
-            easing.overshoot: 1.2
-        }
-    }
-
-    // prism-glide: opening slides up 60 px-ish into place and scales from 0.985,
-    // closing slides 40 px-ish down and scales to 0.988. Its shader shifts by
-    // px / width in height units, hence the height / width factor.
-    // pop: scales from 0.9 at the top edge (towards the module) and back to 0.95.
-    readonly property real animShift: niriAnimation ? (1 - openness) * (popupOpen ? 60 : 40) * popupHeight / Math.max(popupWidth, 1) : 0
-    readonly property real animScale: {
-        if (niriAnimation)
-            return popupOpen ? 0.985 + 0.015 * openness : 1 - 0.012 * (1 - openness);
-        if (popAnimation)
-            return popupOpen ? 0.9 + 0.1 * openness : 0.95 + 0.05 * openness;
-        return 1;
-    }
-    readonly property bool scaleFromTop: popAnimation
-
-    readonly property real popupContentWidth: popupLoader.item ? popupLoader.item.implicitWidth : 0
-    readonly property real popupContentHeight: popupLoader.item ? popupLoader.item.implicitHeight : 0
-    // Popups made of clickable rows set hasRows and inset their own text.
-    readonly property bool popupHasRows: !!popupLoader.item && popupLoader.item.hasRows === true
-    readonly property real popupPadH: Theme.popupPadding + (popupHasRows ? 0 : Theme.popupTextInset)
-    readonly property real popupPadV: Theme.popupPaddingV + (popupHasRows ? 0 : Theme.popupTextInsetV)
-    readonly property real popupWidth: popupContentWidth + 2 * popupPadH
-    property real popupHeight: popupContentHeight + 2 * popupPadV
-    Behavior on popupHeight {
-        enabled: bar.openness > 0.01
-        NumberAnimation {
-            duration: Theme.popupDuration
-            easing.type: Easing.OutCubic
-        }
-    }
-    // "grow" reveals the popup gradually; "niri" shows it whole and fades it.
-    readonly property real popupVisibleHeight: fadeAnimation ? (openness > 0.001 ? popupHeight : 0) : popupHeight * openness
-    // Where the popup starts: right at the bar's bottom edge, or below a gap.
-    readonly property real popupTop: barRect.y + barRect.height + (Theme.popupAttached ? 0 : Theme.popupGap)
-
-    readonly property real ownerCenter: {
-        const o = popupOwner;
-        if (!o)
-            return 0;
-        // Referenced so the binding re-evaluates when the module or its row moves.
-        void (o.x + o.width + o.parent.x + o.parent.width);
-        return o.mapToItem(barRect, o.centerX, 0).x;
-    }
-
-    // The popup stays open while the pointer is over its module, over the popup,
-    // or over the strip of bar right above the popup (the way between the two).
-    // This is state, not enter/leave events, whose order Qt doesn't guarantee.
-    readonly property bool popupHovered: {
-        if (keyboardMode)
-            return true;
-        if (popupOwner && popupOwner.hovered)
-            return true;
-        if (popupHover.hovered || gapHover.hovered)
-            return true;
-        if (!barHover.hovered)
-            return false;
-        const x = modules.x + barHover.point.position.x;
-        return x >= popupBody.x && x <= popupBody.x + popupBody.width;
-    }
-
-    onPopupHoveredChanged: {
-        if (popupHovered)
-            hideTimer.stop();
-        else if (popupOpen)
-            hideTimer.restart();
-    }
-
-    function moduleHovered(module, hovered) {
-        if (hovered) {
-            if (!module.popup) {
-                pendingOwner = null;
-                showTimer.stop();
-            } else if (popupOpen) {
-                showPopup(module);
-            } else {
-                pendingOwner = module;
-                showTimer.restart();
-            }
-        } else if (pendingOwner === module) {
-            pendingOwner = null;
-            showTimer.stop();
-        }
-    }
-
-    // Hide the popup at once and run the command only after a frame without it
-    // has been drawn: hyprlock (Lock, and Suspend via hypridle) screenshots the
-    // screen right away and would otherwise capture the closing popup.
-    function runAction(command) {
-        instantClose = true;
-        popupOpen = false;
-        actionTimer.command = command;
-        actionTimer.restart();
-    }
-
-    Timer {
-        id: actionTimer
-        property string command
-        interval: 100
-        onTriggered: {
-            bar.instantClose = false;
-            Quickshell.execDetached(["sh", "-c", command]);
-        }
-    }
+    mask: popups.inputRegion
+    BackgroundEffect.blurRegion: popups.blurRegion
 
     // ---- power menu from the keyboard (Super+Esc) ---------------------------------
 
@@ -197,18 +46,20 @@ PanelWindow {
     property int powerIndex: 0
 
     function togglePowerMenu() {
-        if (keyboardMode && popupOpen) {
-            popupOpen = false;
+        if (keyboardMode && popups.popupOpen) {
+            popups.popupOpen = false;
             return;
         }
         powerIndex = 0;
-        showPopup(powerModule);
+        popups.showPopup(powerModule);
         keyboardMode = true;
         keyHandler.forceActiveFocus();
     }
 
-    onPopupOpenChanged: if (!popupOpen)
-        keyboardMode = false
+    // For the key handler and the power popup.
+    function runAction(command) {
+        popups.runAction(command);
+    }
 
     Item {
         id: keyHandler
@@ -233,7 +84,7 @@ PanelWindow {
                 bar.runAction(bar.powerActions[bar.powerIndex].command);
                 break;
             case Qt.Key_Escape:
-                bar.popupOpen = false;
+                popups.popupOpen = false;
                 break;
             default:
                 return;
@@ -242,230 +93,16 @@ PanelWindow {
         }
     }
 
-    function showPopup(module) {
-        showTimer.stop();
-        if (module !== powerModule)
-            keyboardMode = false;
-        popupOwner = module;
-        popupLoader.sourceComponent = module.popup;
-        popupOpen = true;
-    }
-
-    Timer {
-        id: showTimer
-        interval: 350
-        onTriggered: if (bar.pendingOwner)
-            bar.showPopup(bar.pendingOwner)
-    }
-
-    Timer {
-        id: hideTimer
-        interval: 200
-        onTriggered: if (!bar.popupHovered)
-            bar.popupOpen = false
-    }
-
-    // ---- background: bar + popup as one shape, with a shadow ----------------
-
-    Item {
-        id: shapes
+    PopupHost {
+        id: popups
         anchors.fill: parent
-
-        layer.enabled: true
-        layer.effect: MultiEffect {
-            shadowEnabled: true
-            shadowColor: "#77000000"
-            shadowBlur: 1.0
-            blurMax: 24
-            shadowVerticalOffset: 3
+        pinned: bar.keyboardMode
+        onAboutToShow: module => {
+            if (module !== powerModule)
+                bar.keyboardMode = false;
         }
-
-        Rectangle {
-            id: barRect
-            x: Theme.barMargin
-            y: Theme.barMargin
-            width: parent.width - 2 * Theme.barMargin
-            height: Theme.barHeight
-            radius: Theme.barRadius
-            color: Theme.base
-        }
-
-        Rectangle {
-            id: popupBody
-
-            readonly property real targetX: {
-                const minX = Theme.popupFillet + 4;
-                const maxX = barRect.width - bar.popupWidth - Theme.popupFillet - 4;
-                return barRect.x + Math.max(minX, Math.min(maxX, bar.ownerCenter - bar.popupWidth / 2));
-            }
-
-            // Attached, it starts inside the bar so the join has no seam.
-            readonly property real overlap: Theme.popupAttached ? Theme.popupFillet : 0
-            readonly property real topRadius: Theme.popupAttached ? 0 : Math.min(Theme.popupRadius, bar.popupVisibleHeight / 2)
-            x: targetX
-            y: bar.popupTop - overlap
-            width: bar.popupWidth
-            height: bar.popupVisibleHeight + overlap
-            visible: bar.popupVisibleHeight > 0.5
-            color: Theme.base
-            topLeftRadius: topRadius
-            topRightRadius: topRadius
-            opacity: bar.fadeAnimation ? bar.openness : 1
-            transform: [
-                Scale {
-                    origin.x: popupBody.width / 2
-                    origin.y: bar.scaleFromTop ? 0 : popupBody.height / 2
-                    xScale: bar.animScale
-                    yScale: bar.animScale
-                },
-                Translate { y: bar.animShift }
-            ]
-            bottomLeftRadius: Math.min(Theme.popupRadius, bar.popupVisibleHeight / 2)
-            bottomRightRadius: Math.min(Theme.popupRadius, bar.popupVisibleHeight / 2)
-
-            Behavior on x {
-                enabled: bar.openness > 0.01
-                NumberAnimation {
-                    duration: Theme.popupDuration
-                    easing.type: Easing.OutCubic
-                }
-            }
-            Behavior on width {
-                enabled: bar.openness > 0.01
-                NumberAnimation {
-                    duration: Theme.popupDuration
-                    easing.type: Easing.OutCubic
-                }
-            }
-        }
-
-        // Concave corners joining the popup to the bar's bottom edge.
-        Shape {
-            id: leftFillet
-            readonly property real r: Math.min(Theme.popupFillet, bar.popupVisibleHeight)
-            visible: popupBody.visible && Theme.popupAttached
-            x: popupBody.x - r
-            y: barRect.y + barRect.height
-            width: r
-            height: r
-            preferredRendererType: Shape.CurveRenderer
-
-            ShapePath {
-                fillColor: Theme.base
-                strokeColor: "transparent"
-                startX: 0
-                startY: 0
-                PathLine { x: leftFillet.r; y: 0 }
-                PathLine { x: leftFillet.r; y: leftFillet.r }
-                PathArc {
-                    x: 0
-                    y: 0
-                    radiusX: leftFillet.r
-                    radiusY: leftFillet.r
-                    direction: PathArc.Counterclockwise
-                }
-            }
-        }
-
-        Shape {
-            id: rightFillet
-            readonly property real r: leftFillet.r
-            visible: popupBody.visible && Theme.popupAttached
-            x: popupBody.x + popupBody.width
-            y: barRect.y + barRect.height
-            width: r
-            height: r
-            preferredRendererType: Shape.CurveRenderer
-
-            ShapePath {
-                fillColor: Theme.base
-                strokeColor: "transparent"
-                startX: 0
-                startY: 0
-                PathLine { x: rightFillet.r; y: 0 }
-                PathArc {
-                    x: 0
-                    y: rightFillet.r
-                    radiusX: rightFillet.r
-                    radiusY: rightFillet.r
-                    direction: PathArc.Counterclockwise
-                }
-                PathLine { x: 0; y: 0 }
-            }
-        }
-    }
-
-    // ---- popup content --------------------------------------------------------
-
-    // The popup's input area: popupBody's geometry without its animation
-    // transform, which the mask region doesn't follow (a transformed popupBody
-    // dropped out of the mask and the pointer fell through to the window below).
-    Item {
-        id: popupHitArea
-        x: popupBody.x
-        y: popupBody.y
-        width: popupBody.visible ? popupBody.width : 0
-        height: popupBody.height
-    }
-
-    // The gap between the bar and a detached popup: part of the popup for input,
-    // so moving the pointer slowly across it doesn't close the popup.
-    Item {
-        id: popupGapArea
-        x: popupBody.x
-        y: barRect.y + barRect.height
-        width: popupBody.visible && !Theme.popupAttached ? popupBody.width : 0
-        height: Theme.popupAttached ? 0 : Theme.popupGap
-
-        HoverHandler {
-            id: gapHover
-        }
-    }
-
-    Item {
-        id: popupClip
-        x: popupBody.x
-        y: bar.popupTop
-        transform: [
-            Scale {
-                origin.x: popupClip.width / 2
-                origin.y: bar.scaleFromTop ? 0 : popupClip.height / 2
-                xScale: bar.animScale
-                yScale: bar.animScale
-            },
-            Translate { y: bar.animShift }
-        ]
-        width: popupBody.width
-        height: bar.popupVisibleHeight
-        clip: true
-        visible: popupBody.visible
-
-        Loader {
-            id: popupLoader
-            x: bar.popupPadH
-            // Slides down with the popup instead of being revealed in place.
-            y: bar.popupPadV - (bar.popupHeight - bar.popupVisibleHeight)
-            opacity: bar.openness
-        }
-
-        // A HoverHandler, not a MouseArea, so clickable rows in the popup still get the mouse.
-        HoverHandler {
-            id: popupHover
-        }
-    }
-
-    // ---- modules ----------------------------------------------------------------
-
-    Item {
-        id: modules
-        x: barRect.x
-        y: barRect.y
-        width: barRect.width
-        height: barRect.height
-
-        HoverHandler {
-            id: barHover
-        }
+        onPopupOpenChanged: if (!popupOpen)
+            bar.keyboardMode = false
 
         Row {
             id: leftRow
@@ -473,7 +110,7 @@ PanelWindow {
 
             // custom/logo
             Module {
-                host: bar
+                host: popups
                 text: Theme.glyph(0xf313)
                 color: Theme.blue
                 fontSize: 22
@@ -495,7 +132,7 @@ PanelWindow {
                     Module {
                         required property int index
                         readonly property var ws: workspaceRow.workspaces[index]
-                        host: bar
+                        host: popups
                         text: !ws ? "" : ws.is_active ? Theme.glyph(0xf14fb) : String(ws.name || ws.idx)
                         bold: !!ws && ws.is_active
                         color: !ws ? Theme.subtext0 : ws.is_urgent ? Theme.red : (ws.is_active || hovered) ? Theme.text : Theme.subtext0
@@ -514,7 +151,7 @@ PanelWindow {
                 readonly property var win: Niri.focusedWindow
                 // Desktop entries load asynchronously; the length makes this re-evaluate once they do.
                 readonly property var entry: win && DesktopEntries.applications.values.length >= 0 ? DesktopEntries.heuristicLookup(win.app_id) : null
-                host: bar
+                host: popups
                 text: !win ? "" : alt ? (win.app_id || "") : (win.title || "")
                 iconSource: entry ? Quickshell.iconPath(entry.icon, true) : ""
                 maxTextWidth: Math.max(0, clock.x - leftRow.x - windowModule.x - 80)
@@ -527,7 +164,7 @@ PanelWindow {
             id: clock
             property bool alt: false
             anchors.horizontalCenter: parent.horizontalCenter
-            host: bar
+            host: popups
             text: alt ? Theme.glyph(0xf00ed) + " " + Qt.formatDate(systemClock.date, "dd.MM.yyyy") : Theme.glyph(0xf017) + " " + Qt.formatTime(systemClock.date, "HH:mm:ss")
             color: Theme.mauve
             popup: CalendarPopup {
@@ -548,7 +185,7 @@ PanelWindow {
 
             // custom/idle-inhibit
             Module {
-                host: bar
+                host: popups
                 text: Custom.idle.text || ""
                 color: Custom.idle.class === "activated" ? Theme.sky : Theme.subtext0
                 popup: Custom.idle.tooltip ? idlePopup : null
@@ -557,7 +194,7 @@ PanelWindow {
 
             // cpu
             Module {
-                host: bar
+                host: popups
                 text: "CPU " + SysStats.cpuUsage + "%"
                 color: Theme.lavender
                 popup: CpuPopup {}
@@ -566,7 +203,7 @@ PanelWindow {
 
             // memory
             Module {
-                host: bar
+                host: popups
                 text: "RAM " + SysStats.memPercent + "%"
                 color: Theme.peach
                 popup: MemoryPopup {}
@@ -575,13 +212,13 @@ PanelWindow {
 
             // custom/network
             Module {
-                host: bar
+                host: popups
                 prefix: Network.wiredText
                 prefixColor: Network.slowUsb ? Theme.maroon : Theme.teal
                 text: Network.text
                 color: Theme.teal
                 popup: NetworkPopup {
-                    host: bar
+                    host: popups
                 }
                 onClicked: m => Quickshell.execDetached(m.button === Qt.RightButton ? ["nmcli", "device", "wifi", "rescan"] : ["networkmanager_dmenu"])
             }
@@ -589,7 +226,7 @@ PanelWindow {
             // bluetooth
             Module {
                 readonly property var adapter: Bluetooth.defaultAdapter
-                host: bar
+                host: popups
                 text: !adapter || adapter.state === BluetoothAdapterState.Blocked ? "" : Theme.glyph(adapter.enabled ? 0xf00af : 0xf00b2)
                 color: Theme.sapphire
                 popup: BluetoothPopup {}
@@ -600,7 +237,7 @@ PanelWindow {
             Module {
                 readonly property var sink: Audio.defaultSink
                 readonly property bool ready: !!sink && !!sink.audio
-                host: bar
+                host: popups
                 text: !ready ? "" : Audio.icon(sink) + (sink.audio.muted ? "" : " " + Audio.volume(sink) + "%")
                 color: Theme.yellow
                 popup: VolumePopup {}
@@ -616,7 +253,7 @@ PanelWindow {
             // battery
             Module {
                 property bool alt: false
-                host: bar
+                host: popups
                 text: Battery.icon + " " + (alt ? Battery.timeText : Battery.capacity + "%")
                 color: Battery.color
                 popup: BatteryPopup {}
@@ -626,14 +263,14 @@ PanelWindow {
             // custom/power
             Module {
                 id: powerModule
-                host: bar
+                host: popups
                 text: Theme.glyph(0xf0906)
                 color: Theme.subtext0
                 rightMargin: 6
                 popup: PowerPopup {
                     host: bar
                 }
-                onClicked: bar.showPopup(this)
+                onClicked: popups.showPopup(this)
             }
         }
     }
