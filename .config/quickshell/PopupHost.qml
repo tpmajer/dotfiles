@@ -18,6 +18,8 @@ Item {
     // Right before a module's popup is shown or switched to.
     signal aboutToShow(Item module)
 
+    readonly property real devicePixelRatio: QsWindow.window?.devicePixelRatio ?? 1
+
     // For the window: what takes input, and what the compositor blurs.
     readonly property Region inputRegion: Region {
         item: barRect
@@ -225,7 +227,9 @@ Item {
             readonly property real targetX: {
                 const minX = Theme.popupFillet + 4;
                 const maxX = barRect.width - root.popupWidth - Theme.popupFillet - 4;
-                return barRect.x + Math.max(minX, Math.min(maxX, root.ownerCenter - root.popupWidth / 2));
+                // Centered under its module, but on a whole device pixel: off
+                // one, everything in the popup is drawn slightly soft.
+                return Theme.snap(barRect.x + Math.max(minX, Math.min(maxX, root.ownerCenter - root.popupWidth / 2)), root.devicePixelRatio);
             }
 
             // Attached, it starts inside the bar so the join has no seam.
@@ -371,9 +375,10 @@ Item {
 
         Loader {
             id: popupLoader
-            x: root.popupPadH
+            // The content's origin on a whole device pixel too.
+            x: Theme.snap(popupClip.x + root.popupPadH, root.devicePixelRatio) - popupClip.x
             // Slides down with the popup instead of being revealed in place.
-            y: root.popupPadV - (root.popupHeight - root.popupVisibleHeight)
+            y: Theme.snap(popupClip.y + root.popupPadV, root.devicePixelRatio) - popupClip.y - (root.popupHeight - root.popupVisibleHeight)
             opacity: root.openness
         }
 

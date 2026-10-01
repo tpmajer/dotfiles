@@ -143,7 +143,9 @@ PanelWindow {
 
         Rectangle {
             id: box
-            anchors.centerIn: parent
+            // Centered, on whole device pixels.
+            x: Theme.snap((parent.width - width) / 2, osd.devicePixelRatio)
+            y: Theme.snap((parent.height - height) / 2, osd.devicePixelRatio)
             width: content.implicitWidth + 2 * (Theme.popupPadding + Theme.popupTextInset)
             height: Theme.barHeight
             radius: Theme.barRadius
@@ -155,14 +157,16 @@ PanelWindow {
         }
     }
 
-    // Outside the shadow's layer: text drawn into it comes out soft.
+    // Outside the shadow's layer: text drawn into it comes out soft. Centered
+    // on whole device pixels, and so is each part within the row.
     Row {
         id: content
-        anchors.centerIn: parent
+        x: Theme.snap((parent.width - width) / 2, osd.devicePixelRatio)
+        y: Theme.snap((parent.height - height) / 2, osd.devicePixelRatio)
         spacing: Theme.popupColumnGap
 
         PopupText {
-            anchors.verticalCenter: parent.verticalCenter
+            y: Theme.snap(content.y + (content.height - height) / 2, osd.devicePixelRatio) - content.y
             width: iconSize.width
             horizontalAlignment: Text.AlignHCenter
             text: osd.icon
@@ -171,14 +175,21 @@ PanelWindow {
 
         Rectangle {
             visible: osd.level >= 0
-            anchors.verticalCenter: parent.verticalCenter
+            y: Theme.snap(content.y + (content.height - height) / 2, osd.devicePixelRatio) - content.y
             width: 200
-            height: 6
-            radius: 3
+            height: Theme.levelHeight
+            radius: height / 2
             color: Theme.surface0
 
             Rectangle {
-                width: parent.width * Math.max(0, osd.level)
+                // Never narrower than its height, or it can't be round and
+                // sticks out of the track's end: at 0 it shrinks to a dot and
+                // fades out.
+                width: Math.max(height, parent.width * osd.level)
+                opacity: osd.level > 0 ? 1 : 0
+                Behavior on opacity {
+                    NumberAnimation { duration: 80 }
+                }
                 height: parent.height
                 radius: parent.radius
                 color: Theme.subtext0
@@ -188,7 +199,11 @@ PanelWindow {
             }
 
             Rectangle {
-                width: parent.width * Math.max(0, osd.fill)
+                width: Math.max(height, parent.width * osd.fill)
+                opacity: osd.fill > 0 ? 1 : 0
+                Behavior on opacity {
+                    NumberAnimation { duration: 80 }
+                }
                 height: parent.height
                 radius: parent.radius
                 color: osd.fillColor
@@ -199,7 +214,7 @@ PanelWindow {
         }
 
         PopupText {
-            anchors.verticalCenter: parent.verticalCenter
+            y: Theme.snap(content.y + (content.height - height) / 2, osd.devicePixelRatio) - content.y
             width: osd.level >= 0 ? labelSize.width : implicitWidth
             horizontalAlignment: Text.AlignRight
             text: osd.label

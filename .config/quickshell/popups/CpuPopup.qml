@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import qs
 import qs.services
 import qs.widgets
@@ -17,6 +18,7 @@ Column {
     }
 
     Grid {
+        id: grid
         columns: 4
         columnSpacing: 20
         rowSpacing: 4
@@ -37,14 +39,24 @@ Column {
                 }
 
                 Rectangle {
-                    anchors.verticalCenter: parent.verticalCenter
+                    // Centered in its row, on whole device pixels (the popup's
+                    // origin is on one).
+                    readonly property real popupY: grid.y + parent.y + (parent.height - height) / 2
+                    y: Theme.snap(popupY, QsWindow.window?.devicePixelRatio ?? 1) - grid.y - parent.y
                     width: 60
-                    height: 6
-                    radius: 3
+                    height: Theme.levelHeight
+                    radius: height / 2
                     color: Theme.surface0
 
                     Rectangle {
-                        width: parent.width * parent.parent.usage / 100
+                        // Never narrower than its height, or it can't be round
+                        // and sticks out of the track's end: at 0 it shrinks to
+                        // a dot and fades out.
+                        width: Math.max(height, parent.width * parent.parent.usage / 100)
+                        opacity: parent.parent.usage > 0 ? 1 : 0
+                        Behavior on opacity {
+                            NumberAnimation { duration: 300 }
+                        }
                         height: parent.height
                         radius: parent.radius
                         color: Theme.lavender

@@ -73,6 +73,9 @@ Singleton {
     // 2.5 px is 4 whole device pixels at scale 1.6.
     readonly property real lineWidth: 2.5
 
+    // Level bars (the OSD, CPU cores): 5 px is 8 whole device pixels at 1.6.
+    readonly property real levelHeight: 5
+
     // The nearest position, in a window's coordinates, that falls on a whole
     // device pixel. A line both placed and sized in whole device pixels has
     // hard edges; otherwise its edges are smoothed over two.
