@@ -38,8 +38,11 @@ Singleton {
 
     property string lastEvent: ""
 
+    // reload() only starts the read; without the wait, text() is still the
+    // previous content.
     function read(file) {
         file.reload();
+        file.waitForJob();
         return file.text().trim();
     }
 
