@@ -802,20 +802,36 @@ PanelWindow {
                 }
             }
 
-            // wg-auto switch. The row's highlight reaches into the popup padding
-            // so its text lines up with the rows below.
+            // WireGuard switches, side by side: the tunnel by hand, and wg-auto. Their
+            // highlight reaches into the popup padding so the text lines up with the
+            // rows below; they share the popup width evenly.
             Item {
-                implicitWidth: Math.max(trafficGrid.implicitWidth, wgAutoAction.implicitWidth - 24)
-                implicitHeight: wgAutoAction.implicitHeight
+                id: wgSwitches
+                readonly property real cell: Math.max(tunnelAction.implicitWidth, wgAutoAction.implicitWidth, (trafficGrid.implicitWidth + 24 - wgActions.spacing) / 2)
+                implicitWidth: 2 * cell + wgActions.spacing - 24
+                implicitHeight: wgActions.implicitHeight
 
-                PopupAction {
-                    id: wgAutoAction
+                Row {
+                    id: wgActions
                     x: -12
-                    width: parent.width + 24
-                    icon: Theme.glyph(Network.wgAuto ? 0xf0565 : 0xf099e)
-                    iconColor: Network.wgAuto ? Theme.teal : Theme.subtext0
-                    text: "WireGuard auto: " + (Network.wgAuto ? "on" : "off")
-                    onTriggered: Network.toggleWgAuto()
+                    spacing: 2
+
+                    PopupAction {
+                        id: tunnelAction
+                        width: wgSwitches.cell
+                        icon: Theme.glyph(Network.vpn ? 0xf0565 : 0xf099e)
+                        iconColor: Network.vpn ? Theme.teal : Theme.subtext0
+                        text: "WireGuard " + (Network.vpn ? "on" : "off")
+                        onTriggered: Network.toggleTunnel()
+                    }
+                    PopupAction {
+                        id: wgAutoAction
+                        width: wgSwitches.cell
+                        icon: Theme.glyph(0xf006a)
+                        iconColor: Network.wgAuto ? Theme.teal : Theme.subtext0
+                        text: "Auto " + (Network.wgAuto ? "on" : "off")
+                        onTriggered: Network.toggleWgAuto()
+                    }
                 }
             }
             GridLayout {

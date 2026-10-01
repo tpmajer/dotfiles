@@ -4,6 +4,8 @@
 # brings wg0 up on untrusted Wi-Fi unless /var/lib/wg-auto-disabled exists.
 # Shared by the fish function `wgauto` and the quickshell network popup.
 #   off     set the flag and stop wg0 (always asks for the password)
+#   up      set the flag and start wg0: a manual tunnel, e.g. on a trusted
+#           network, that the dispatcher leaves alone (asks for the password)
 #   on      remove the flag and re-activate Wi-Fi so the SSID rule applies now
 #   status  print the state (default)
 
@@ -25,6 +27,9 @@ case "${1:-status}" in
         # One command, so one password prompt. Absolute paths: run0 does not pass PATH on.
         as_root "$bin/sh" -c "$bin/touch $flag && $bin/systemctl stop wg-quick-wg0.service" || exit
         ;;
+    up)
+        as_root "$bin/sh" -c "$bin/touch $flag && $bin/systemctl start wg-quick-wg0.service" || exit
+        ;;
     on)
         # NOPASSWD in sudoers (system.nix); fall back to asking if that rule is missing.
         sudo -n "$bin/rm" -f "$flag" 2>/dev/null || as_root "$bin/rm" -f "$flag" || exit
@@ -35,7 +40,7 @@ case "${1:-status}" in
         ;;
     status) ;;
     *)
-        echo "Usage: wgauto [on|off|status]"
+        echo "Usage: wgauto [on|off|up|status]"
         exit 1
         ;;
 esac

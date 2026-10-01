@@ -140,15 +140,25 @@ Singleton {
     // wg-auto: the NetworkManager dispatcher that brings wg0 up on untrusted
     // Wi-Fi, off while /var/lib/wg-auto-disabled exists. scripts/wg-auto.sh flips
     // it; the state is read when the popup opens and after a toggle, not polled.
+    // Switching the tunnel by hand turns wg-auto off, or the dispatcher would undo
+    // it on the next "up" event (which also comes with DHCP renewals).
     property bool wgAuto: true
 
     function refreshWgAuto() {
         wgAutoQuery.running = true;
     }
 
-    function toggleWgAuto() {
-        wgAutoToggle.command = [Quickshell.shellDir + "/scripts/wg-auto.sh", wgAuto ? "off" : "on"];
+    function runWgAuto(action) {
+        wgAutoToggle.command = [Quickshell.shellDir + "/scripts/wg-auto.sh", action];
         wgAutoToggle.running = true;
+    }
+
+    function toggleWgAuto() {
+        runWgAuto(wgAuto ? "off" : "on");
+    }
+
+    function toggleTunnel() {
+        runWgAuto(vpn ? "off" : "up");
     }
 
     Process {
