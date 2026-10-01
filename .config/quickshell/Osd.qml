@@ -6,22 +6,22 @@ import qs.services
 import qs.widgets
 
 // On-screen display: a pill at the bottom of the focused output, shown for a
-// moment when the default output's volume or mute, or the screen brightness,
-// changes. It reacts to the change itself, so it doesn't matter what made it
-// (the keys in niri, the bar, another program).
+// moment when the default output's volume or mute, the screen brightness, the
+// microphone's mute or airplane mode changes. It reacts to the change itself,
+// so it doesn't matter what made it (the keys, the bar, another program).
 PanelWindow {
     id: osd
 
     property string icon: ""
     property color accent: Theme.text
-    property real level: 0          // 0..1
+    property real level: 0          // 0..1, or -1 for no level bar (a switch)
     property string label: ""
     property bool shown: false
 
     function show(icon, accent, level, label) {
         osd.icon = icon;
         osd.accent = accent;
-        osd.level = Math.max(0, Math.min(1, level));
+        osd.level = Math.min(1, level);
         osd.label = label;
         shown = true;
         hideTimer.restart();
@@ -86,6 +86,31 @@ PanelWindow {
     }
 
     Connections {
+        target: Audio
+        function onDefaultSourceChanged() {
+            settle.restart();
+        }
+    }
+
+    Connections {
+        target: Audio.defaultSource ? Audio.defaultSource.audio : null
+        function onMutedChanged() {
+            if (settle.running)
+                return;
+            const muted = Audio.defaultSource.audio.muted;
+            osd.show(Theme.glyph(muted ? 0xf036d : 0xf036c), muted ? Theme.red : Theme.green, -1, muted ? "Microphone muted" : "Microphone on");
+        }
+    }
+
+    Connections {
+        target: Rfkill
+        function onAirplaneChanged() {
+            if (Rfkill.ready)
+                osd.show(Theme.glyph(Rfkill.airplane ? 0xf001d : 0xf001e), Rfkill.airplane ? Theme.sky : Theme.subtext0, -1, "Airplane mode " + (Rfkill.airplane ? "on" : "off"));
+        }
+    }
+
+    Connections {
         target: Brightness
         function onChanged() {
             osd.show(Theme.glyph(0xf00e0), Theme.peach, Brightness.percent / 100, Brightness.percent + "%");
@@ -136,6 +161,7 @@ PanelWindow {
                 }
 
                 Rectangle {
+                    visible: osd.level >= 0
                     anchors.verticalCenter: parent.verticalCenter
                     width: 200
                     height: 6
@@ -143,7 +169,7 @@ PanelWindow {
                     color: Theme.surface0
 
                     Rectangle {
-                        width: parent.width * osd.level
+                        width: parent.width * Math.max(0, osd.level)
                         height: parent.height
                         radius: parent.radius
                         color: osd.accent
@@ -155,7 +181,7 @@ PanelWindow {
 
                 PopupText {
                     anchors.verticalCenter: parent.verticalCenter
-                    width: labelSize.width
+                    width: osd.level >= 0 ? labelSize.width : implicitWidth
                     horizontalAlignment: Text.AlignRight
                     text: osd.label
                 }
@@ -163,7 +189,7 @@ PanelWindow {
         }
     }
 
-    // Fixed widths, so the pill doesn't resize between icons and values.
+    // Fixed widths, so the pill doesn't resize between icons and levels.
     TextMetrics {
         id: iconSize
         font.family: Theme.font

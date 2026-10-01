@@ -12,6 +12,7 @@ Singleton {
     id: root
 
     readonly property var defaultSink: Pipewire.defaultAudioSink
+    readonly property var defaultSource: Pipewire.defaultAudioSource   // the microphone
     // The default sink first, the rest in PipeWire's order.
     readonly property var sinks: Pipewire.nodes.values.filter(n => n.isSink && !n.isStream && n.audio).sort((a, b) => (b === defaultSink) - (a === defaultSink))
 
@@ -68,5 +69,9 @@ Singleton {
     // Keeps volume/mute of every sink up to date, not only the default one.
     PwObjectTracker {
         objects: root.sinks
+    }
+
+    PwObjectTracker {
+        objects: [root.defaultSource]
     }
 }
