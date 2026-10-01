@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Bluetooth
 import Quickshell.Services.Pipewire
+import qs
 
 // Audio outputs (sinks) and how the bar shows them: the volume level icon,
 // a headphone icon for bluetooth headphones, a muted icon.

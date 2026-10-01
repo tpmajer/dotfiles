@@ -1,4 +1,5 @@
 import QtQuick
+import qs
 
 // A clickable row in a popup: icon + label and an optional value on the right,
 // Surface 0 highlight on hover or when selected from the keyboard. The label is

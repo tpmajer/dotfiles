@@ -2,6 +2,7 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
+import qs
 import Quickshell.Io
 
 // BAT1 read from sysfs every 5 s and on power_supply udev events. Capacity is

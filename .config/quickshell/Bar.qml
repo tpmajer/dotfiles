@@ -5,6 +5,8 @@ import QtQuick.Shapes
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Bluetooth
+import qs.services
+import qs.widgets
 
 // The bar. The layer surface is taller than the bar
 // so popups can grow out of it as one connected shape; only the bar and the open

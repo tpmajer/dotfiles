@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell.Widgets
+import qs
 
 // One bar module: colored text on a transparent background, a faint Surface 0
 // rectangle on hover and an optional popup (tooltip) grown out of the bar.
