@@ -656,17 +656,6 @@ layer-rule {
 }
 
 layer-rule {
-    match namespace="^notifications$"
-    opacity 1.0
-    background-effect {
-        blur true
-        xray false
-    }
-    geometry-corner-radius 10
-	baba-is-float false
-}
-
-layer-rule {
     match namespace="logout_dialog"
     opacity 0.9
     background-effect {
