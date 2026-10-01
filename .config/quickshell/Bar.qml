@@ -887,11 +887,26 @@ PanelWindow {
         Column {
             id: btList
             readonly property var adapter: Bluetooth.defaultAdapter
-            readonly property var connected: Bluetooth.devices.values.filter(d => d.connected)
-            spacing: 4
+            // Paired devices by name; clicking one connects or disconnects it.
+            readonly property var devices: Bluetooth.devices.values.filter(d => d.paired || d.connected).sort((a, b) => a.name.localeCompare(b.name))
+            readonly property bool hasRows: !!adapter && adapter.enabled && devices.length > 0
+            // Columns line up across rows.
+            readonly property real nameWidth: widest(i => i.labelImplicitWidth)
+            readonly property real valueWidth: widest(i => i.valueImplicitWidth)
+            spacing: 2
+
+            function widest(width) {
+                let w = 0;
+                for (let i = 0; i < btRows.count; i++) {
+                    const item = btRows.itemAt(i);
+                    if (item)
+                        w = Math.max(w, width(item));
+                }
+                return w;
+            }
 
             PopupText {
-                visible: parent.connected.length === 0
+                visible: !btList.hasRows
                 text: !parent.adapter ? "No bluetooth controller found" : parent.adapter.enabled ? "Bluetooth on" : "Bluetooth off"
             }
 
@@ -910,35 +925,27 @@ PanelWindow {
                 return Theme.glyph(icons[type] || 0xf00af);
             }
 
-            Grid {
-                id: btGrid
-                // No battery column when no device reports one: empty, it would
-                // still add its spacing to the right margin.
-                readonly property bool anyBattery: btList.connected.some(d => d.batteryAvailable)
-                visible: btList.connected.length > 0
-                columns: anyBattery ? 3 : 2
-                columnSpacing: Theme.popupIconGap
-                rowSpacing: 4
+            Repeater {
+                id: btRows
+                model: btList.hasRows ? btList.devices : []
 
-                Repeater {
-                    model: btList.connected
-
-                    delegate: Repeater {
-                        required property var modelData
-                        model: [
-                            {text: btList.deviceIcon(Audio.deviceType(modelData)), color: Theme.sapphire, align: Text.AlignHCenter},
-                            {text: modelData.name, color: Theme.text, align: Text.AlignLeft},
-                            {text: modelData.batteryAvailable ? Math.round(modelData.battery * 100) + "%" : "", color: Theme.subtext0, align: Text.AlignRight}
-                        ].slice(0, btGrid.columns)
-
-                        PopupText {
-                            required property var modelData
-                            required property int index
-                            leftPadding: index === 2 ? Theme.popupColumnGap - Theme.popupIconGap : 0
-                            text: modelData.text
-                            color: modelData.color
-                            horizontalAlignment: modelData.align
-                        }
+                PopupAction {
+                    required property var modelData
+                    readonly property bool busy: modelData.state === BluetoothDeviceState.Connecting || modelData.state === BluetoothDeviceState.Disconnecting
+                    labelWidth: btList.nameWidth
+                    valueWidth: btList.valueWidth
+                    icon: btList.deviceIcon(Audio.deviceType(modelData))
+                    iconColor: modelData.connected ? Theme.sapphire : Theme.subtext0
+                    bright: modelData.connected
+                    text: modelData.name
+                    value: modelData.state === BluetoothDeviceState.Connecting ? "connecting…" : modelData.state === BluetoothDeviceState.Disconnecting ? "disconnecting…" : modelData.connected && modelData.batteryAvailable ? Math.round(modelData.battery * 100) + "%" : ""
+                    onTriggered: {
+                        if (busy)
+                            return;
+                        if (modelData.connected)
+                            modelData.disconnect();
+                        else
+                            modelData.connect();
                     }
                 }
             }
@@ -962,58 +969,24 @@ PanelWindow {
             Repeater {
                 model: Audio.sinks
 
-                Rectangle {
-                    id: sinkRow
+                PopupAction {
                     required property var modelData
                     readonly property bool isDefault: modelData === Audio.defaultSink
-                    readonly property color textColor: isDefault ? Theme.text : Theme.subtext0
-
-                    implicitWidth: cells.implicitWidth + 24
-                    implicitHeight: cells.implicitHeight + 8
-                    radius: Theme.moduleRadius
-                    color: rowMouse.containsMouse ? Theme.surface0 : Qt.rgba(Theme.surface0.r, Theme.surface0.g, Theme.surface0.b, 0)
-                    Behavior on color {
-                        ColorAnimation { duration: Theme.hoverDuration }
+                    labelWidth: sinkList.nameWidth
+                    valueWidth: sinkList.valueWidth
+                    icon: Audio.icon(modelData)
+                    iconColor: isDefault ? Theme.yellow : Theme.subtext0
+                    bright: isDefault
+                    text: Audio.name(modelData)
+                    value: modelData.audio && modelData.audio.muted ? "muted" : Audio.volume(modelData) + "%"
+                    onLabelImplicitWidthChanged: sinkList.nameWidth = Math.max(sinkList.nameWidth, labelImplicitWidth)
+                    onValueImplicitWidthChanged: sinkList.valueWidth = Math.max(sinkList.valueWidth, valueImplicitWidth)
+                    Component.onCompleted: {
+                        sinkList.nameWidth = Math.max(sinkList.nameWidth, labelImplicitWidth);
+                        sinkList.valueWidth = Math.max(sinkList.valueWidth, valueImplicitWidth);
                     }
-
-                    Row {
-                        id: cells
-                        x: 12
-                        anchors.verticalCenter: parent.verticalCenter
-                        spacing: Theme.popupIconGap
-
-                        PopupText {
-                            width: 20
-                            horizontalAlignment: Text.AlignHCenter
-                            text: Audio.icon(sinkRow.modelData)
-                            color: sinkRow.isDefault ? Theme.yellow : Theme.subtext0
-                        }
-                        PopupText {
-                            width: sinkList.nameWidth
-                            text: Audio.name(sinkRow.modelData)
-                            color: sinkRow.textColor
-                            onImplicitWidthChanged: sinkList.nameWidth = Math.max(sinkList.nameWidth, implicitWidth)
-                            Component.onCompleted: sinkList.nameWidth = Math.max(sinkList.nameWidth, implicitWidth)
-                        }
-                        PopupText {
-                            width: sinkList.valueWidth
-                            leftPadding: Theme.popupColumnGap - Theme.popupIconGap
-                            horizontalAlignment: Text.AlignRight
-                            text: sinkRow.modelData.audio && sinkRow.modelData.audio.muted ? "muted" : Audio.volume(sinkRow.modelData) + "%"
-                            color: sinkRow.textColor
-                            onImplicitWidthChanged: sinkList.valueWidth = Math.max(sinkList.valueWidth, implicitWidth)
-                            Component.onCompleted: sinkList.valueWidth = Math.max(sinkList.valueWidth, implicitWidth)
-                        }
-                    }
-
-                    MouseArea {
-                        id: rowMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: Audio.toggleMute(sinkRow.modelData)
-                        onWheel: w => Audio.changeVolume(sinkRow.modelData, w.angleDelta.y > 0 ? 1 : w.angleDelta.y < 0 ? -1 : 0)
-                    }
+                    onTriggered: Audio.toggleMute(modelData)
+                    onScrolled: steps => Audio.changeVolume(modelData, steps)
                 }
             }
         }
