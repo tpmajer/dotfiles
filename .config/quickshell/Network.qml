@@ -137,6 +137,32 @@ Singleton {
         onTriggered: root.readTraffic()
     }
 
+    // wg-auto: the NetworkManager dispatcher that brings wg0 up on untrusted
+    // Wi-Fi, off while /var/lib/wg-auto-disabled exists. scripts/wg-auto.sh flips
+    // it; the state is read when the popup opens and after a toggle, not polled.
+    property bool wgAuto: true
+
+    function refreshWgAuto() {
+        wgAutoQuery.running = true;
+    }
+
+    function toggleWgAuto() {
+        wgAutoToggle.command = [Quickshell.shellDir + "/scripts/wg-auto.sh", wgAuto ? "off" : "on"];
+        wgAutoToggle.running = true;
+    }
+
+    Process {
+        id: wgAutoQuery
+        running: true
+        command: ["test", "-e", "/var/lib/wg-auto-disabled"]
+        onExited: exitCode => root.wgAuto = exitCode !== 0
+    }
+
+    Process {
+        id: wgAutoToggle
+        onExited: root.refreshWgAuto()
+    }
+
     onSsidChanged: frequencyQuery.running = true
 
     Process {

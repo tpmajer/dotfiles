@@ -792,7 +792,34 @@ PanelWindow {
 
         Column {
             spacing: 4
+
+            Component.onCompleted: Network.refreshWgAuto()
+            Connections {
+                target: bar
+                function onPopupOpenChanged() {
+                    if (bar.popupOpen)
+                        Network.refreshWgAuto();
+                }
+            }
+
+            // wg-auto switch. The row's highlight reaches into the popup padding
+            // so its text lines up with the rows below.
+            Item {
+                implicitWidth: Math.max(trafficGrid.implicitWidth, wgAutoAction.implicitWidth - 24)
+                implicitHeight: wgAutoAction.implicitHeight
+
+                PopupAction {
+                    id: wgAutoAction
+                    x: -12
+                    width: parent.width + 24
+                    icon: Theme.glyph(Network.wgAuto ? 0xf0565 : 0xf099e)
+                    iconColor: Network.wgAuto ? Theme.teal : Theme.subtext0
+                    text: "WireGuard auto: " + (Network.wgAuto ? "on" : "off")
+                    onTriggered: Network.toggleWgAuto()
+                }
+            }
             GridLayout {
+                id: trafficGrid
                 columns: 3
                 columnSpacing: 16
                 rowSpacing: 4
