@@ -1,10 +1,10 @@
 import QtQuick
 import QtQuick.Effects
-import QtQuick.Layouts
 import QtQuick.Shapes
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Bluetooth
+import qs.popups
 import qs.services
 import qs.widgets
 
@@ -530,7 +530,9 @@ PanelWindow {
             host: bar
             text: alt ? Theme.glyph(0xf00ed) + " " + Qt.formatDate(systemClock.date, "dd.MM.yyyy") : Theme.glyph(0xf017) + " " + Qt.formatTime(systemClock.date, "HH:mm:ss")
             color: Theme.mauve
-            popup: calendarPopup
+            popup: CalendarPopup {
+                now: systemClock.date
+            }
             onClicked: m => {
                 if (m.button === Qt.RightButton)
                     Quickshell.execDetached(["ghostty", "-e", "calcure"]);
@@ -558,7 +560,7 @@ PanelWindow {
                 host: bar
                 text: "CPU " + SysStats.cpuUsage + "%"
                 color: Theme.lavender
-                popup: cpuPopup
+                popup: CpuPopup {}
                 onClicked: Quickshell.execDetached(["ghostty", "-e", "btop"])
             }
 
@@ -567,7 +569,7 @@ PanelWindow {
                 host: bar
                 text: "RAM " + SysStats.memPercent + "%"
                 color: Theme.peach
-                popup: memoryPopup
+                popup: MemoryPopup {}
                 onClicked: Quickshell.execDetached(["ghostty", "-e", "btop"])
             }
 
@@ -578,7 +580,9 @@ PanelWindow {
                 prefixColor: Network.slowUsb ? Theme.maroon : Theme.teal
                 text: Network.text
                 color: Theme.teal
-                popup: networkPopup
+                popup: NetworkPopup {
+                    host: bar
+                }
                 onClicked: m => Quickshell.execDetached(m.button === Qt.RightButton ? ["nmcli", "device", "wifi", "rescan"] : ["networkmanager_dmenu"])
             }
 
@@ -588,7 +592,7 @@ PanelWindow {
                 host: bar
                 text: !adapter || adapter.state === BluetoothAdapterState.Blocked ? "" : Theme.glyph(adapter.enabled ? 0xf00af : 0xf00b2)
                 color: Theme.sapphire
-                popup: bluetoothPopup
+                popup: BluetoothPopup {}
                 onClicked: Quickshell.execDetached(["ghostty", "-e", "bluetui"])
             }
 
@@ -599,7 +603,7 @@ PanelWindow {
                 host: bar
                 text: !ready ? "" : Audio.icon(sink) + (sink.audio.muted ? "" : " " + Audio.volume(sink) + "%")
                 color: Theme.yellow
-                popup: volumePopup
+                popup: VolumePopup {}
                 onClicked: m => {
                     if (m.button === Qt.RightButton)
                         Quickshell.execDetached(["ghostty", "-e", "wiremix"]);
@@ -615,7 +619,7 @@ PanelWindow {
                 host: bar
                 text: Battery.icon + " " + (alt ? Battery.timeText : Battery.capacity + "%")
                 color: Battery.color
-                popup: batteryPopup
+                popup: BatteryPopup {}
                 onClicked: alt = !alt
             }
 
@@ -637,376 +641,11 @@ PanelWindow {
         precision: SystemClock.Seconds
     }
 
-    // ---- popup contents -----------------------------------------------------------
-
-    Component {
-        id: calendarPopup
-
-        Column {
-            id: cal
-            readonly property var locale: Qt.locale("en_US")
-            readonly property date now: systemClock.date
-            readonly property int year: now.getFullYear()
-            readonly property int month: now.getMonth()
-            // Weeks start on Monday: getDay() is 0 for Sunday, so shift it to the end.
-            readonly property int firstDay: (new Date(year, month, 1).getDay() + 6) % 7
-            readonly property int daysInMonth: new Date(year, month + 1, 0).getDate()
-            spacing: 6
-
-            TextMetrics {
-                id: cell
-                font.family: Theme.font
-                font.pixelSize: Theme.fontSize
-                font.bold: true
-                text: "00"
-            }
-
-            PopupText {
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: cal.locale.standaloneMonthName(cal.month) + " " + cal.year
-            }
-
-            Grid {
-                columns: 7
-                columnSpacing: 10
-                rowSpacing: 4
-
-                Repeater {
-                    model: 7
-                    PopupText {
-                        required property int index
-                        width: cell.width
-                        horizontalAlignment: Text.AlignRight
-                        text: cal.locale.dayName((index + 1) % 7, Locale.ShortFormat).slice(0, 2)
-                        color: Theme.pink
-                        font.bold: true
-                    }
-                }
-
-                Repeater {
-                    model: Math.ceil((cal.firstDay + cal.daysInMonth) / 7) * 7
-                    PopupText {
-                        required property int index
-                        readonly property int day: index - cal.firstDay + 1
-                        readonly property bool today: day === cal.now.getDate()
-                        width: cell.width
-                        horizontalAlignment: Text.AlignRight
-                        text: day >= 1 && day <= cal.daysInMonth ? day : ""
-                        color: today ? Theme.pink : Theme.white
-                        font.bold: today
-                        font.underline: today
-                    }
-                }
-            }
-        }
-    }
+    // ---- popup contents: the rest live in popups/ ----------------------------------
 
     Component {
         id: idlePopup
-        PopupText { text: Custom.idle.tooltip || "" }
-    }
-
-    Component {
-        id: cpuPopup
-
-        Column {
-            spacing: 8
-
-            PopupText { text: "Load " + SysStats.loadAvg }
-
-            // The widest core number, so the grid starts flush with the line above.
-            TextMetrics {
-                id: coreIndex
-                font.family: Theme.font
-                font.pixelSize: Theme.fontSize
-                text: String(Math.max(SysStats.coreUsages.length - 1, 0))
-            }
-
-            Grid {
-                columns: 4
-                columnSpacing: 20
-                rowSpacing: 4
-
-                Repeater {
-                    model: SysStats.coreUsages.length
-
-                    Row {
-                        required property int index
-                        readonly property int usage: SysStats.coreUsages[index] || 0
-                        spacing: 8
-
-                        PopupText {
-                            width: Math.ceil(coreIndex.width)
-                            horizontalAlignment: Text.AlignRight
-                            text: parent.index
-                            color: Theme.subtext0
-                        }
-
-                        Rectangle {
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: 60
-                            height: 6
-                            radius: 3
-                            color: Theme.surface0
-
-                            Rectangle {
-                                width: parent.width * parent.parent.usage / 100
-                                height: parent.height
-                                radius: parent.radius
-                                color: Theme.lavender
-                                Behavior on width {
-                                    NumberAnimation { duration: 300 }
-                                }
-                            }
-                        }
-
-                        PopupText {
-                            width: 44
-                            horizontalAlignment: Text.AlignRight
-                            text: parent.usage + "%"
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    Component {
-        id: memoryPopup
-
-        // Like the network popup: the label left, used and total right-aligned.
-        GridLayout {
-            columns: 3
-            columnSpacing: 16
-            rowSpacing: 4
-
-            Repeater {
-                model: [
-                    {label: "RAM", used: SysStats.memUsedGiB, total: SysStats.memTotalGiB},
-                    {label: "Swap", used: SysStats.swapUsedGiB, total: SysStats.swapTotalGiB}
-                ].filter(r => r.total > 0)
-
-                delegate: Repeater {
-                    required property var modelData
-                    model: [modelData.label, modelData.used.toFixed(1) + " GiB", "/ " + modelData.total.toFixed(1) + " GiB"]
-
-                    PopupText {
-                        required property var modelData
-                        required property int index
-                        text: modelData
-                        Layout.alignment: index === 0 ? Qt.AlignLeft : Qt.AlignRight
-                    }
-                }
-            }
-        }
-    }
-
-    Component {
-        id: networkPopup
-
-        Column {
-            readonly property bool hasRows: true
-            spacing: 4
-            // The rows below the switches are inset like the switches' text, on
-            // the sides and at the bottom.
-            bottomPadding: Network.rows.length ? Theme.popupTextInsetV : 0
-
-            Component.onCompleted: Network.refreshWgAuto()
-            Connections {
-                target: bar
-                function onPopupOpenChanged() {
-                    if (bar.popupOpen)
-                        Network.refreshWgAuto();
-                }
-            }
-
-            // WireGuard switches, side by side: the tunnel by hand, and wg-auto.
-            // They share the popup width evenly.
-            Item {
-                id: wgSwitches
-                readonly property real cell: Math.max(tunnelAction.implicitWidth, wgAutoAction.implicitWidth, (trafficGrid.implicitWidth + 24 - wgActions.spacing) / 2)
-                implicitWidth: 2 * cell + wgActions.spacing
-                implicitHeight: wgActions.implicitHeight
-
-                Row {
-                    id: wgActions
-                    spacing: 2
-
-                    PopupAction {
-                        id: tunnelAction
-                        width: wgSwitches.cell
-                        icon: Theme.glyph(Network.vpn ? 0xf0565 : 0xf099e)
-                        iconColor: Network.vpn ? Theme.teal : Theme.subtext0
-                        text: "WireGuard " + (Network.vpn ? "on" : "off")
-                        onTriggered: Network.toggleTunnel()
-                    }
-                    PopupAction {
-                        id: wgAutoAction
-                        width: wgSwitches.cell
-                        icon: Theme.glyph(0xf006a)
-                        iconColor: Network.wgAuto ? Theme.teal : Theme.subtext0
-                        text: "Auto " + (Network.wgAuto ? "on" : "off")
-                        onTriggered: Network.toggleWgAuto()
-                    }
-                }
-            }
-            GridLayout {
-                id: trafficGrid
-                visible: Network.rows.length > 0
-                x: 12
-                columns: 3
-                columnSpacing: 16
-                rowSpacing: 4
-
-                Repeater {
-                    model: Network.rows
-
-                    delegate: Repeater {
-                        required property var modelData
-                        model: [modelData.label, modelData.down, modelData.up]
-
-                        PopupText {
-                            required property var modelData
-                            required property int index
-                            text: modelData
-                            // The label left, the two rates right-aligned in their columns.
-                            Layout.alignment: index === 0 ? Qt.AlignLeft : Qt.AlignRight
-                        }
-                    }
-                }
-            }
-            PopupText {
-                visible: Network.wired && Network.slowUsb
-                x: 12
-                text: Network.usbName
-                color: Theme.maroon
-            }
-        }
-    }
-
-    Component {
-        id: bluetoothPopup
-
-        Column {
-            id: btList
-            readonly property var adapter: Bluetooth.defaultAdapter
-            // Paired devices by name; clicking one connects or disconnects it.
-            readonly property var devices: Bluetooth.devices.values.filter(d => d.paired || d.connected).sort((a, b) => a.name.localeCompare(b.name))
-            readonly property bool hasRows: !!adapter && adapter.enabled && devices.length > 0
-            // Columns line up across rows.
-            readonly property real nameWidth: widest(i => i.labelImplicitWidth)
-            readonly property real valueWidth: widest(i => i.valueImplicitWidth)
-            spacing: 2
-
-            function widest(width) {
-                let w = 0;
-                for (let i = 0; i < btRows.count; i++) {
-                    const item = btRows.itemAt(i);
-                    if (item)
-                        w = Math.max(w, width(item));
-                }
-                return w;
-            }
-
-            PopupText {
-                visible: !btList.hasRows
-                text: !parent.adapter ? "No bluetooth controller found" : parent.adapter.enabled ? "Bluetooth on" : "Bluetooth off"
-            }
-
-            // Icon by the BlueZ device type; headphones match the volume module.
-            function deviceIcon(type) {
-                const icons = {
-                    "audio-headphones": 0xf025,
-                    "audio-headset": 0xf02ce,
-                    "audio-card": 0xf04c3,
-                    "input-mouse": 0xf037d,
-                    "input-keyboard": 0xf030c,
-                    "input-gaming": 0xf0297,
-                    "phone": 0xf011c,
-                    "computer": 0xf0322
-                };
-                return Theme.glyph(icons[type] || 0xf00af);
-            }
-
-            Repeater {
-                id: btRows
-                model: btList.hasRows ? btList.devices : []
-
-                PopupAction {
-                    required property var modelData
-                    readonly property bool busy: modelData.state === BluetoothDeviceState.Connecting || modelData.state === BluetoothDeviceState.Disconnecting
-                    labelWidth: btList.nameWidth
-                    valueWidth: btList.valueWidth
-                    icon: btList.deviceIcon(Audio.deviceType(modelData))
-                    iconColor: modelData.connected ? Theme.sapphire : Theme.subtext0
-                    bright: modelData.connected
-                    text: modelData.name
-                    value: modelData.state === BluetoothDeviceState.Connecting ? "connecting…" : modelData.state === BluetoothDeviceState.Disconnecting ? "disconnecting…" : modelData.connected && modelData.batteryAvailable ? Math.round(modelData.battery * 100) + "%" : ""
-                    onTriggered: {
-                        if (busy)
-                            return;
-                        if (modelData.connected)
-                            modelData.disconnect();
-                        else
-                            modelData.connect();
-                    }
-                }
-            }
-        }
-    }
-
-    // Every audio output with its volume or mute, the default one (the one the
-    // module controls) first, in brighter text with a yellow icon. Clicking a row
-    // mutes or unmutes that output, scrolling over it changes its volume.
-    Component {
-        id: volumePopup
-
-        Column {
-            id: sinkList
-            readonly property bool hasRows: true
-            // Columns line up across rows: each keeps the widest text seen so far.
-            property real nameWidth: 0
-            property real valueWidth: 0
-            spacing: 2
-
-            Repeater {
-                model: Audio.sinks
-
-                PopupAction {
-                    required property var modelData
-                    readonly property bool isDefault: modelData === Audio.defaultSink
-                    labelWidth: sinkList.nameWidth
-                    valueWidth: sinkList.valueWidth
-                    icon: Audio.icon(modelData)
-                    iconColor: isDefault ? Theme.yellow : Theme.subtext0
-                    bright: isDefault
-                    text: Audio.name(modelData)
-                    value: modelData.audio && modelData.audio.muted ? "muted" : Audio.volume(modelData) + "%"
-                    onLabelImplicitWidthChanged: sinkList.nameWidth = Math.max(sinkList.nameWidth, labelImplicitWidth)
-                    onValueImplicitWidthChanged: sinkList.valueWidth = Math.max(sinkList.valueWidth, valueImplicitWidth)
-                    Component.onCompleted: {
-                        sinkList.nameWidth = Math.max(sinkList.nameWidth, labelImplicitWidth);
-                        sinkList.valueWidth = Math.max(sinkList.valueWidth, valueImplicitWidth);
-                    }
-                    onTriggered: Audio.toggleMute(modelData)
-                    onScrolled: steps => Audio.changeVolume(modelData, steps)
-                }
-            }
-        }
-    }
-
-    Component {
-        id: batteryPopup
-
-        Column {
-            spacing: 4
-            PopupText { text: "Battery " + Battery.capacity + "%" }
-            PopupText {
-                visible: Battery.timeText !== ""
-                text: (Battery.charging ? "Full in " : "Empty in ") + Battery.timeText
-                color: Theme.subtext0
-            }
-        }
+        IdlePopup {}
     }
 
     // Power menu: lock, logout, shutdown, suspend, reboot.
