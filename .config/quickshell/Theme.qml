@@ -55,6 +55,11 @@ Singleton {
     // "pop": a popover scaling up from its module with a slight overshoot.
     readonly property string popupAnimation: "pop"
 
+    // On-screen display for volume and brightness: distance from the bottom
+    // edge of the screen, and how long it stays.
+    readonly property int osdBottom: 90
+    readonly property int osdTimeout: 1500
+
     function glyph(codepoint) {
         return String.fromCodePoint(codepoint);
     }

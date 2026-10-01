@@ -687,6 +687,16 @@ layer-rule {
     }
 }
 
+// Quickshell volume/brightness OSD: like the bar, it draws its own shape,
+// shadow and blur region.
+layer-rule {
+    match namespace="^quickshell-osd$"
+    opacity 0.9
+    background-effect {
+        xray false
+    }
+}
+
 // Indicate screencasted windows with red colors.
 window-rule {
     match is-window-cast-target=true
