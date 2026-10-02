@@ -500,6 +500,10 @@ Scope {
                 text: Qt.formatDateTime(clock.date, "HH:mm")
                 font.pixelSize: 96
                 font.bold: true
+                opacity: 0.9
+                // Qt's default renderer leaves text this large with rough,
+                // colour-fringed edges.
+                renderType: Text.CurveRendering
             }
 
             PopupText {
