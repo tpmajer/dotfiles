@@ -550,6 +550,7 @@ Scope {
                 text: Qt.formatDateTime(clock.date, "HH:mm")
                 font.pixelSize: 96
                 font.bold: true
+                color: Theme.subtext1
                 opacity: 0.9
                 // Qt's default renderer leaves text this large with rough,
                 // colour-fringed edges.
@@ -716,7 +717,7 @@ Scope {
                             readonly property bool typed: index < root.marks
 
                             text: Theme.glyph(0xf14fb)
-                            color: root.accepted ? Theme.green : root.rejected ? Theme.red : Theme.text
+                            color: root.accepted ? Theme.green : root.rejected ? Theme.red : Theme.subtext1
 
                             // Red comes in gradually. Green does not: the
                             // curtain takes over within a few frames, and
