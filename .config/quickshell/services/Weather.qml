@@ -24,6 +24,12 @@ Singleton {
     readonly property string temperatureText: known ? Math.round(temperature) + "°" : ""
     property real attemptedAt: 0
 
+    // After a suspend, say: the lock refreshes it before it shows.
+    function refreshIfStale() {
+        if (!fetch.running && Date.now() - fetchedAt >= 30 * 60 * 1000)
+            fetch.running = true;
+    }
+
     // WMO weather codes, as Open-Meteo gives them.
     readonly property string icon: {
         const c = code;

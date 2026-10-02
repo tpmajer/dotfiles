@@ -63,6 +63,7 @@ Scope {
         status = "";
         wallpaperQuery.running = true;
         capsQuery.running = true;
+        Weather.refreshIfStale();
         fingerState = "";
         fadeOut.stop();
         endRejection();
