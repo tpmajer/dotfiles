@@ -7,10 +7,10 @@ import Quickshell.Wayland
 import qs.services
 import qs.widgets
 
-// Lock screen (prototype): a session lock with the clock and a password
-// field on every output, over the output's wallpaper, blurred and dimmed.
-// `qs ipc call lock lock` locks; nothing else does yet, hyprlock stays the lock
-// that hypridle and the power menus start.
+// Lock screen: a session lock with the clock and a password field on every
+// output, over the output's wallpaper, blurred and dimmed. hypridle starts it
+// (`qs ipc call lock lock` as its lock_cmd), for loginctl lock-session, Mod+L
+// and the power menu too; before a suspend, scripts/lock-before-sleep.sh.
 //
 // The session is unlocked the moment the password is accepted, with nothing
 // animated while it is still locked: niri ignores most key bindings until then.
