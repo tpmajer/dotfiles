@@ -319,16 +319,25 @@ Scope {
     function watchFinger() {
         fingerRetry.stop();
         if (state.locked && !unlocking) {
-            if (!finger.active)
+            if (!finger.active) {
+                fingerPrompted = false;
                 finger.start();
+            }
         } else if (finger.active) {
             finger.abort();
         }
     }
 
+    // Whether the reader asked for a finger in this conversation: it does not
+    // when there is no reader.
+    property bool fingerPrompted: false
+
     // A second conversation, next to the password's: pam_fprintd waits for a
-    // finger and nothing else. It gives up after three wrong ones or half a
-    // minute without any, and is started again.
+    // finger and nothing else. It gives up after half a minute without one,
+    // and is started again at once, the icon staying; after three wrong
+    // ones, and is started again half a minute later, so its limit holds;
+    // without asking for one (no reader, or fprintd lost it in a suspend),
+    // and is tried again every few seconds.
     PamContext {
         id: finger
 
@@ -339,6 +348,7 @@ Scope {
         onPamMessage: {
             if (!state.locked || root.unlocking)
                 return;
+            root.fingerPrompted = true;
             if (messageIsError) {
                 root.status = "Fingerprint not recognised";
                 root.fingerState = "bad";
@@ -356,17 +366,28 @@ Scope {
                 root.unlock();
                 return;
             }
-            if (!fingerBad.running)
-                root.fingerState = "";
-            fingerRetry.interval = 1000;
-            fingerRetry.restart();
+            root.retryFinger(result === PamResult.MaxTries);
         }
-        // No reader, or fprintd has lost it (a suspend): not as often.
         onError: error => {
-            root.fingerState = "";
-            fingerRetry.interval = 3000;
-            fingerRetry.restart();
+            if (state.locked && !root.unlocking)
+                root.retryFinger(false);
         }
+    }
+
+    function retryFinger(tooMany) {
+        if (tooMany) {
+            fingerBad.stop();
+            fingerState = "";
+            status = "Too many fingerprint attempts";
+            fingerRetry.interval = 30000;
+        } else if (fingerPrompted) {
+            // Timed out: the icon stays, the reader is back in a moment.
+            fingerRetry.interval = 1000;
+        } else {
+            fingerState = "";
+            fingerRetry.interval = 3000;
+        }
+        fingerRetry.restart();
     }
 
     // How long the mark of a finger not recognised stays.
@@ -378,7 +399,11 @@ Scope {
 
     Timer {
         id: fingerRetry
-        onTriggered: root.watchFinger()
+        onTriggered: {
+            if (root.status === "Too many fingerprint attempts")
+                root.status = "";
+            root.watchFinger();
+        }
     }
 
     // Asked at startup, every half a minute and at every lock: awww does not
