@@ -28,13 +28,17 @@ Scope {
     // From Enter until the answer is acted on. Not pam.active, which is over a
     // moment before that: the marks would be undimmed for a frame in between.
     property bool checking: false
-    // What the field shows: a mark per character and whether they are dimmed.
-    // Frozen while the curtain fades out, as the buffer is cleared at once and
-    // the field would otherwise empty itself during the fade.
+    // What the field shows: a mark per character, green once the password is
+    // accepted, red for a moment when it is not. The buffer is cleared at
+    // once either way, so the count is frozen for as long as that shows: while
+    // the curtain fades out, or until the red marks go.
     property int frozenMarks: -1
-    property bool frozenDimmed: false
+    property bool accepted: false
+    property bool rejected: false
+    // What the red marks turn into, in the field for three seconds or until
+    // the next key.
+    property string rejection: ""
     readonly property int marks: frozenMarks >= 0 ? frozenMarks : buffer.length
-    readonly property bool dimmed: frozenMarks >= 0 ? frozenDimmed : checking
     readonly property bool locked: state.locked
     // The reader: "" not watched, "waiting" for a finger, "bad" for a moment
     // after one it did not recognise, "ok" after one it did, which stays
@@ -60,7 +64,10 @@ Scope {
         capsQuery.running = true;
         fingerState = "";
         fadeOut.stop();
+        endRejection();
+        rejection = "";
         frozenMarks = -1;
+        accepted = false;
         locking = true;
         lockDeadline.restart();
         // Else the fade starts when a curtain is drawn, see below.
@@ -80,13 +87,14 @@ Scope {
         curtainDrop.restart();
     }
 
-    // dimmed: the marks stay as they were while the password was checked.
-    function unlock(dimmed = false) {
+    // accepted: by the password, which turns its marks green.
+    function unlock(accepted = false) {
         if (pam.active)
             pam.abort();
+        endRejection();
         if (state.locked) {
             frozenMarks = buffer.length;
-            frozenDimmed = dimmed;
+            root.accepted = accepted;
         }
         checking = false;
         fingerRetry.stop();
@@ -146,6 +154,7 @@ Scope {
         onFinished: {
             root.curtain = false;
             root.frozenMarks = -1;
+            root.accepted = false;
         }
     }
 
@@ -181,6 +190,40 @@ Scope {
         id: lockDeadline
         interval: 600
         onTriggered: root.engage()
+    }
+
+    // The red marks go, the field is empty again. They stay red while they
+    // fade, unless a key has already started the next attempt.
+    function endRejection(now = true) {
+        if (!rejected)
+            return;
+        rejectionShown.stop();
+        frozenMarks = -1;
+        if (now) {
+            rejectionFade.stop();
+            rejected = false;
+        } else {
+            rejectionFade.restart();
+        }
+    }
+
+    Timer {
+        id: rejectionShown
+        interval: 800
+        onTriggered: root.endRejection(false)
+    }
+
+    // From the rejection: the red marks' time, then the three seconds.
+    Timer {
+        id: rejectionGone
+        interval: rejectionShown.interval + 3000
+        onTriggered: root.rejection = ""
+    }
+
+    Timer {
+        id: rejectionFade
+        interval: 120
+        onTriggered: root.rejected = false
     }
 
     function submit() {
@@ -254,8 +297,12 @@ Scope {
                 return;
             }
             root.checking = false;
+            root.frozenMarks = root.buffer.length;
+            root.rejected = true;
+            rejectionShown.restart();
+            rejectionGone.restart();
             root.buffer = "";
-            root.status = result === PamResult.MaxTries ? "Too many attempts" : "Wrong password";
+            root.rejection = result === PamResult.MaxTries ? "too many attempts" : "wrong password";
         }
         onError: error => {
             root.checking = false;
@@ -501,8 +548,15 @@ Scope {
 
                     anchors.centerIn: parent
 
-                    text: root.checking ? "Checking…" : "Password"
-                    color: Theme.subtext0
+                    text: root.rejection !== "" ? root.rejection : root.checking ? "checking…" : "password"
+                    color: root.rejection !== "" ? Theme.red : Theme.subtext0
+
+                    Behavior on color {
+                        enabled: view.animated
+                        ColorAnimation {
+                            duration: 250
+                        }
+                    }
 
                     // Gone at the first key; back once the marks have faded.
                     states: State {
@@ -530,10 +584,42 @@ Scope {
                 // As in hyprlock: a mark fades and grows in at the end of the
                 // row, which stays centred by sliding, not jumping.
                 Row {
+                    id: marksRow
                     x: (parent.width - width) / 2
                     anchors.verticalCenter: parent.verticalCenter
-                    opacity: root.dimmed ? 0.5 : 1
                     spacing: 8
+
+                    // Pulses while the password is checked: PAM takes a couple
+                    // of seconds to say no.
+                    SequentialAnimation {
+                        running: root.checking && view.animated
+                        loops: Animation.Infinite
+                        onStopped: pulseEnd.start()
+
+                        NumberAnimation {
+                            target: marksRow
+                            property: "opacity"
+                            to: 0.35
+                            duration: 450
+                            easing.type: Easing.InOutSine
+                        }
+                        NumberAnimation {
+                            target: marksRow
+                            property: "opacity"
+                            to: 1
+                            duration: 450
+                            easing.type: Easing.InOutSine
+                        }
+                    }
+
+                    // Back to full from wherever the pulse was.
+                    NumberAnimation {
+                        id: pulseEnd
+                        target: marksRow
+                        property: "opacity"
+                        to: 1
+                        duration: 150
+                    }
 
                     Behavior on x {
                         enabled: view.animated
@@ -555,6 +641,17 @@ Scope {
                             readonly property bool typed: index < root.marks
 
                             text: Theme.glyph(0xf14fb)
+                            color: root.accepted ? Theme.green : root.rejected ? Theme.red : Theme.text
+
+                            // Red comes in gradually. Green does not: the
+                            // curtain takes over within a few frames, and
+                            // has it at once.
+                            Behavior on color {
+                                enabled: view.animated && !root.accepted
+                                ColorAnimation {
+                                    duration: 250
+                                }
+                            }
                             opacity: typed ? 1 : 0
                             scale: typed ? 1 : 0.4
                             // Out of the row once faded: the row is as wide
@@ -636,6 +733,9 @@ Scope {
                         capsDelay.restart();
                     if (root.checking)
                         return;
+                    // A key during the red marks starts the next attempt.
+                    root.endRejection();
+                    root.rejection = "";
                     switch (event.key) {
                     case Qt.Key_Return:
                     case Qt.Key_Enter:
