@@ -789,6 +789,7 @@ Scope {
     }
 
     WlSessionLock {
+        id: sessionLock
         locked: state.locked
 
         WlSessionLockSurface {
@@ -905,6 +906,17 @@ Scope {
 
         function lock(): void {
             root.lock();
+        }
+
+        // Before a suspend: no fade, the session locks at once.
+        function lockNow(): void {
+            root.lock();
+            root.engage();
+        }
+
+        // The compositor has locked the session and the lock is drawn.
+        function isLocked(): bool {
+            return sessionLock.secure;
         }
 
         function unlock(): void {
