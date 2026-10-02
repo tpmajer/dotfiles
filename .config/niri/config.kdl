@@ -686,6 +686,15 @@ layer-rule {
     }
 }
 
+// Quickshell centered power menu, like the OSD.
+layer-rule {
+    match namespace="^quickshell-power$"
+    opacity 0.9
+    background-effect {
+        xray false
+    }
+}
+
 // Quickshell notifications, like the OSD.
 layer-rule {
     match namespace="^quickshell-notifications$"

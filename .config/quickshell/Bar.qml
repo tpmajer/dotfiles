@@ -33,15 +33,9 @@ PanelWindow {
     mask: popups.inputRegion
     BackgroundEffect.blurRegion: popups.blurRegion
 
-    // ---- power menu from the keyboard (Super+Esc) ---------------------------------
+    // ---- power menu from the keyboard (qs ipc call power toggleBar) ---------------
 
-    readonly property var powerActions: [
-        {icon: 0xf033e, text: "Lock", command: "loginctl lock-session"},
-        {icon: 0xf0343, text: "Logout", command: "niri msg action quit -s"},
-        {icon: 0xf0425, text: "Shutdown", command: "systemctl poweroff", color: Theme.red},
-        {icon: 0xf0904, text: "Suspend", command: "systemctl suspend"},
-        {icon: 0xf0709, text: "Reboot", command: "systemctl reboot", color: Theme.peach}
-    ]
+    readonly property var powerActions: Power.actions
     property bool keyboardMode: false
     property int powerIndex: 0
 
