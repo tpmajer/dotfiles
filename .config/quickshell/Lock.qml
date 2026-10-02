@@ -390,11 +390,15 @@ Scope {
         fingerRetry.restart();
     }
 
-    // How long the mark of a finger not recognised stays.
+    // How long the mark of a finger not recognised stays, and its line.
     Timer {
         id: fingerBad
-        interval: 1000
-        onTriggered: root.fingerState = finger.active ? "waiting" : ""
+        interval: 1500
+        onTriggered: {
+            root.fingerState = finger.active ? "waiting" : "";
+            if (root.status === "Fingerprint not recognised")
+                root.status = "";
+        }
     }
 
     Timer {
