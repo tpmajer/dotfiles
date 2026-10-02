@@ -1,14 +1,16 @@
 import QtQuick
 import QtQuick.Effects
 import Quickshell
+import Quickshell.Services.Mpris
 import Quickshell.Wayland
 import qs.services
 import qs.widgets
 
 // On-screen display: a pill at the bottom of the focused output, shown for a
 // moment when the default output's volume or mute, the screen brightness, the
-// microphone's mute or airplane mode changes. It reacts to the change itself,
-// so it doesn't matter what made it (the keys, the bar, another program).
+// microphone's mute, airplane mode or Spotify's own volume changes. It reacts
+// to the change itself, so it doesn't matter what made it (the keys, the bar,
+// another program).
 PanelWindow {
     id: osd
 
@@ -20,6 +22,9 @@ PanelWindow {
     property color fillColor: accent
     property string label: ""
     property bool shown: false
+
+    // Spotify's own volume is the speaker's when it plays on a Connect device.
+    readonly property var spotify: Mpris.players.values.find(p => p.dbusName.endsWith(".spotify")) ?? null
 
     function show(icon, accent, level, label, fill = level, fillColor = accent) {
         osd.icon = icon;
@@ -88,6 +93,24 @@ PanelWindow {
         }
         function onMutedChanged() {
             osd.showVolume();
+        }
+    }
+
+    // Spotify reports its volume as it starts; that is not a change either.
+    onSpotifyChanged: spotifySettle.restart()
+
+    Timer {
+        id: spotifySettle
+        interval: 1000
+    }
+
+    Connections {
+        target: osd.spotify
+        function onVolumeChanged() {
+            if (spotifySettle.running)
+                return;
+            const volume = osd.spotify.volume;
+            osd.show(Theme.glyph(0xf04c7), Theme.green, volume, Math.round(volume * 100) + "%");
         }
     }
 
