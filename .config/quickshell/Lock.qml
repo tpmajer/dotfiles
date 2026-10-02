@@ -569,7 +569,10 @@ Scope {
 
                 PopupText {
                     text: Battery.icon + " " + Battery.capacity + "%"
-                    color: Battery.state === "warning" || Battery.state === "critical" ? Battery.color : Theme.subtext0
+                    // Coloured only when low and not charging, as the
+                    // bar's warning; the bar's green for charging would read
+                    // as good.
+                    color: Battery.discharging && (Battery.state === "warning" || Battery.state === "critical") ? Battery.color : Theme.subtext0
                 }
 
                 PopupText {
