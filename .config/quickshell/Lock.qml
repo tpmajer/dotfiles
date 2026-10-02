@@ -718,6 +718,14 @@ Scope {
             id: surface
             color: Theme.base
 
+            // No pointer over the lock: there is nothing to click.
+            MouseArea {
+                anchors.fill: parent
+                acceptedButtons: Qt.NoButton
+                hoverEnabled: true
+                cursorShape: Qt.BlankCursor
+            }
+
             View {
                 anchors.fill: parent
                 output: surface.screen?.name ?? ""
