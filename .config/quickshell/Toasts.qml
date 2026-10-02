@@ -41,6 +41,27 @@ PanelWindow {
         onTriggered: toasts.live = true
     }
 
+    // The first card slides in from the side of the screen the stack is on:
+    // 1 with the stack past that edge, 0 with it in place.
+    property real enter: 1
+    onLiveChanged: {
+        if (live) {
+            enterAnimation.restart();
+        } else {
+            enterAnimation.stop();
+            enter = 1;
+        }
+    }
+    NumberAnimation {
+        id: enterAnimation
+        target: toasts
+        property: "enter"
+        from: 1
+        to: 0
+        duration: Theme.notificationSlide
+        easing.type: Easing.OutCubic
+    }
+
     screen: Quickshell.screens.find(s => s.name === Niri.focusedOutput) ?? Quickshell.screens[0]
     // The whole height of the screen: the window never resizes, so the stack
     // can slide inside it. It is there only while there are notifications.
@@ -105,16 +126,16 @@ PanelWindow {
 
     Column {
         id: stack
-        x: toasts.shadowRoom
+        x: toasts.shadowRoom + toasts.enter * (toasts.atLeft ? -toasts.width : toasts.width)
         // In a bottom corner the stack ends at the bottom edge and slides up
         // as it grows: a new card comes from below the screen edge and
-        // pushes the older ones up. Until the window is on screen the stack
-        // waits below the edge, so the first card slides in too.
-        y: toasts.atTop ? Theme.barMargin + Theme.barHeight + Theme.popupGap : toasts.live ? Math.round(parent.height - Theme.barMargin - height) : parent.height
+        // pushes the older ones up. Not before the window is on screen: the
+        // stack takes its place unseen, then slides in from the side.
+        y: toasts.atTop ? Theme.barMargin + Theme.barHeight + Theme.popupGap : Math.round(parent.height - Theme.barMargin - height)
         spacing: Theme.notificationGap
 
         Behavior on y {
-            enabled: !toasts.atTop
+            enabled: !toasts.atTop && toasts.live
             NumberAnimation {
                 duration: Theme.notificationSlide
                 easing.type: Easing.OutCubic
