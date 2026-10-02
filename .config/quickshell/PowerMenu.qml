@@ -14,8 +14,6 @@ PanelWindow {
 
     property bool shown: false
     property int index: 0
-    // Closing to run an action skips the fade; see runAction().
-    property bool instantClose: false
 
     // The bar popups' "pop": quick with a slight overshoot in, quicker out,
     // scaling from 0.9 and back to 0.95 around the middle while it fades.
@@ -23,7 +21,6 @@ PanelWindow {
     // otherwise come out of the animation's start.
     property real openness: shown && backingWindowVisible ? 1 : 0
     Behavior on openness {
-        enabled: !menu.instantClose
         // The target is already set when this starts, so shown tells open from close.
         NumberAnimation {
             duration: menu.shown ? 220 : 120
@@ -43,23 +40,28 @@ PanelWindow {
         keyHandler.forceActiveFocus();
     }
 
-    // Runs the command only once the menu is gone and a frame without it has
-    // been drawn: hyprlock (Lock, and Suspend via hypridle) screenshots the
-    // screen right away and would otherwise capture the closing menu.
+    // Closes the menu and runs the command only once it is gone and a frame
+    // without it has been drawn: hyprlock (Lock, and Suspend via hypridle)
+    // screenshots the screen right away and would otherwise capture the
+    // closing menu.
+    property string pendingAction: ""
     function runAction(command) {
-        instantClose = true;
+        pendingAction = command;
         shown = false;
-        actionTimer.command = command;
-        actionTimer.restart();
     }
+    onOpennessChanged: if (openness <= 0 && pendingAction !== "")
+        actionTimer.restart()
+    onShownChanged: if (shown)
+        pendingAction = ""
 
     Timer {
         id: actionTimer
-        property string command
-        interval: 100
+        interval: Theme.actionDelay
         onTriggered: {
-            menu.instantClose = false;
-            Quickshell.execDetached(["sh", "-c", command]);
+            const command = menu.pendingAction;
+            menu.pendingAction = "";
+            if (command !== "")
+                Quickshell.execDetached(["sh", "-c", command]);
         }
     }
 

@@ -61,7 +61,6 @@ Item {
     property Item pendingOwner: null
     property bool popupOpen: false
     property real openness: popupOpen ? 1 : 0
-    property bool instantClose: false
 
     // With Qt's threaded render loop (the one that runs animations at the
     // screen's refresh rate) a new blur region sometimes goes out right after a
@@ -70,9 +69,13 @@ Item {
     // again. So change it a few more times once a popup closes: each bump
     // resizes a 1 px region inside the bar, which sends the whole region anew.
     property int blurResend: 0
-    onPopupOpenChanged: if (!popupOpen) {
-        blurResendTimer.left = 4;
-        blurResendTimer.start();
+    onPopupOpenChanged: {
+        if (popupOpen) {
+            pendingAction = "";
+        } else {
+            blurResendTimer.left = 4;
+            blurResendTimer.start();
+        }
     }
     Timer {
         id: blurResendTimer
@@ -90,7 +93,6 @@ Item {
     // Both show the popup whole and fade it, instead of growing it.
     readonly property bool fadeAnimation: niriAnimation || popAnimation
     Behavior on openness {
-        enabled: !root.instantClose
         // The target is already set when this starts, so popupOpen tells open from close.
         // "niri": prism-glide.kdl's window-open/close timings and curves, times its
         // slowdown 1.3. "pop": quick with a slight overshoot in, quicker out.
@@ -185,23 +187,26 @@ Item {
         }
     }
 
-    // Hide the popup at once and run the command only after a frame without it
-    // has been drawn: hyprlock (Lock, and Suspend via hypridle) screenshots the
-    // screen right away and would otherwise capture the closing popup.
+    // Closes the popup and runs the command only once it is gone and a frame
+    // without it has been drawn: hyprlock (Lock, and Suspend via hypridle)
+    // screenshots the screen right away and would otherwise capture the
+    // closing popup.
+    property string pendingAction: ""
     function runAction(command) {
-        instantClose = true;
+        pendingAction = command;
         popupOpen = false;
-        actionTimer.command = command;
-        actionTimer.restart();
     }
+    onOpennessChanged: if (openness <= 0 && pendingAction !== "")
+        actionTimer.restart()
 
     Timer {
         id: actionTimer
-        property string command
-        interval: 100
+        interval: Theme.actionDelay
         onTriggered: {
-            root.instantClose = false;
-            Quickshell.execDetached(["sh", "-c", command]);
+            const command = root.pendingAction;
+            root.pendingAction = "";
+            if (command !== "")
+                Quickshell.execDetached(["sh", "-c", command]);
         }
     }
 

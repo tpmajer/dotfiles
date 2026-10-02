@@ -55,6 +55,10 @@ Singleton {
     // "pop": a popover scaling up from its module with a slight overshoot.
     readonly property string popupAnimation: "pop"
 
+    // Power menus: how long after a menu is gone its action runs, in ms. Too
+    // short and hyprlock's screenshot still catches the closing menu.
+    readonly property int actionDelay: 8
+
     // On-screen display for volume and brightness: distance from the bottom
     // edge of the screen, and how long it stays.
     readonly property int osdBottom: 90
