@@ -172,6 +172,15 @@ PanelWindow {
             }
         }
 
+        // weather, next to the clock; not there until it is known
+        Module {
+            anchors.left: clock.right
+            host: popups
+            text: Weather.known ? Weather.icon + " " + Weather.temperatureText : ""
+            color: Theme.sky
+            popup: WeatherPopup {}
+        }
+
         Row {
             id: rightRow
             anchors.right: parent.right

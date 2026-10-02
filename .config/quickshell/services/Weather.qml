@@ -30,6 +30,29 @@ Singleton {
             fetch.running = true;
     }
 
+    readonly property string description: {
+        const c = code;
+        if (c === 0)
+            return "Clear";
+        if (c <= 2)
+            return "Partly cloudy";
+        if (c === 3)
+            return "Overcast";
+        if (c === 45 || c === 48)
+            return "Fog";
+        if (c >= 51 && c <= 57)
+            return "Drizzle";
+        if (c === 65 || c === 82)
+            return "Heavy rain";
+        if ((c >= 61 && c <= 67) || (c >= 80 && c <= 82))
+            return "Rain";
+        if ((c >= 71 && c <= 77) || c === 85 || c === 86)
+            return "Snow";
+        if (c >= 95)
+            return "Thunderstorm";
+        return "";
+    }
+
     // WMO weather codes, as Open-Meteo gives them.
     readonly property string icon: {
         const c = code;
