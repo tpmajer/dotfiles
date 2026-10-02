@@ -773,10 +773,11 @@ Scope {
 
             PopupText {
                 anchors.horizontalCenter: parent.horizontalCenter
-                // Why the last attempt failed, else a warning about Caps
-                // Lock. Keeps its line when empty, so nothing moves.
-                text: root.status !== "" ? root.status : root.capsLock ? "Caps Lock is on" : " "
-                color: root.status !== "" ? Theme.red : Theme.peach
+                // Caps Lock, which matters while typing, else what the
+                // reader or PAM had to say. Keeps its line when empty, so
+                // nothing moves.
+                text: root.capsLock ? "Caps Lock is on" : root.status !== "" ? root.status : " "
+                color: root.capsLock ? Theme.peach : Theme.red
                 font.pixelSize: Theme.fontSize - 2
             }
         }
