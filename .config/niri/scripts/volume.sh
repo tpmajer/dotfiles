@@ -6,7 +6,6 @@
 
 STEP_LOCAL="0.02"
 STEP_SPOTIFY="0.03"
-SAVED_VOLUME="${XDG_RUNTIME_DIR:-/tmp}/spotify-connect-volume"
 
 # Spotify reports "Playing" but has no audio stream in PipeWire -> the sound
 # comes out of a remote Connect device, not this machine.
@@ -22,15 +21,7 @@ if spotify_on_connect; then
     case "$1" in
         up)   playerctl -p spotify volume "${STEP_SPOTIFY}+" ;;
         down) playerctl -p spotify volume "${STEP_SPOTIFY}-" ;;
-        mute)
-            if [ -f "$SAVED_VOLUME" ]; then
-                playerctl -p spotify volume "$(cat "$SAVED_VOLUME")"
-                rm -f "$SAVED_VOLUME"
-            else
-                playerctl -p spotify volume > "$SAVED_VOLUME"
-                playerctl -p spotify volume 0
-            fi
-            ;;
+        mute) qs ipc call spotify toggleMute ;;
     esac
 else
     case "$1" in

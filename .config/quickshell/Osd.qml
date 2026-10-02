@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Effects
 import Quickshell
-import Quickshell.Services.Mpris
 import Quickshell.Wayland
 import qs.services
 import qs.widgets
@@ -22,9 +21,6 @@ PanelWindow {
     property color fillColor: accent
     property string label: ""
     property bool shown: false
-
-    // Spotify's own volume is the speaker's when it plays on a Connect device.
-    readonly property var spotify: Mpris.players.values.find(p => p.dbusName.endsWith(".spotify")) ?? null
 
     function show(icon, accent, level, label, fill = level, fillColor = accent) {
         osd.icon = icon;
@@ -97,7 +93,12 @@ PanelWindow {
     }
 
     // Spotify reports its volume as it starts; that is not a change either.
-    onSpotifyChanged: spotifySettle.restart()
+    Connections {
+        target: Spotify
+        function onPlayerChanged() {
+            spotifySettle.restart();
+        }
+    }
 
     Timer {
         id: spotifySettle
@@ -105,12 +106,12 @@ PanelWindow {
     }
 
     Connections {
-        target: osd.spotify
+        target: Spotify.player
         function onVolumeChanged() {
             if (spotifySettle.running)
                 return;
-            const volume = osd.spotify.volume;
-            osd.show(Theme.glyph(0xf04c7), Theme.green, volume, Math.round(volume * 100) + "%");
+            const muted = Spotify.muted;
+            osd.show(Theme.glyph(0xf04c7), muted ? Theme.subtext0 : Theme.green, Spotify.player.volume, muted ? "muted" : Spotify.volume + "%");
         }
     }
 
