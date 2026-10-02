@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Pam
 import Quickshell.Wayland
+import qs.services
 import qs.widgets
 
 // Lock screen (prototype): a session lock with the clock and a password
@@ -527,6 +528,23 @@ Scope {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: Qt.formatDateTime(clock.date, "dddd, d MMMM")
                 color: Theme.subtext0
+            }
+
+            // The battery, and the weather when it is known.
+            Row {
+                anchors.horizontalCenter: parent.horizontalCenter
+                spacing: 24
+
+                PopupText {
+                    text: Battery.icon + " " + Battery.capacity + "%"
+                    color: Battery.state === "warning" || Battery.state === "critical" ? Battery.color : Theme.subtext0
+                }
+
+                PopupText {
+                    visible: Weather.known
+                    text: Weather.icon + " " + Weather.temperatureText
+                    color: Theme.subtext0
+                }
             }
 
             Item {

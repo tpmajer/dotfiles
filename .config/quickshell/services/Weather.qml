@@ -1,0 +1,83 @@
+pragma Singleton
+
+import QtQuick
+import Quickshell
+import Quickshell.Io
+import qs
+
+// The current weather in Warsaw from Open-Meteo (no key), every half an hour.
+// Unknown when it has not been fetched for three hours: offline, it is not
+// shown rather than shown stale.
+Singleton {
+    id: root
+
+    readonly property real latitude: 52.23
+    readonly property real longitude: 21.01
+
+    property real temperature: NaN
+    property int code: -1
+    property bool day: true
+    property real fetchedAt: 0
+    readonly property bool known: !isNaN(temperature) && clock.date.getTime() - fetchedAt < 3 * 3600 * 1000
+
+    readonly property string temperatureText: known ? Math.round(temperature) + "°" : ""
+
+    // WMO weather codes, as Open-Meteo gives them.
+    readonly property string icon: {
+        const c = code;
+        let glyph;
+        if (c === 0)
+            glyph = day ? 0xf0599 : 0xf0594;            // clear
+        else if (c <= 2)
+            glyph = day ? 0xf0595 : 0xf0f31;            // partly cloudy
+        else if (c === 3)
+            glyph = 0xf0590;                            // overcast
+        else if (c === 45 || c === 48)
+            glyph = 0xf0591;                            // fog
+        else if (c === 65 || c === 82)
+            glyph = 0xf0596;                            // heavy rain
+        else if ((c >= 51 && c <= 67) || (c >= 80 && c <= 82))
+            glyph = 0xf0597;                            // drizzle, rain
+        else if ((c >= 71 && c <= 77) || c === 85 || c === 86)
+            glyph = 0xf0598;                            // snow
+        else if (c >= 95)
+            glyph = 0xf0593;                            // thunderstorm
+        else
+            glyph = 0xf0590;
+        return Theme.glyph(glyph);
+    }
+
+    SystemClock {
+        id: clock
+        precision: SystemClock.Minutes
+    }
+
+    Process {
+        id: fetch
+        command: ["curl", "-sf", "--max-time", "15", `https://api.open-meteo.com/v1/forecast?latitude=${root.latitude}&longitude=${root.longitude}&current=temperature_2m,weather_code,is_day`]
+        running: true
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    const current = JSON.parse(text).current;
+                    root.temperature = current.temperature_2m;
+                    root.code = current.weather_code;
+                    root.day = current.is_day === 1;
+                    root.fetchedAt = Date.now();
+                    timer.interval = 30 * 60 * 1000;
+                } catch (e) {
+                    // Offline or a bad answer: sooner again.
+                    timer.interval = 2 * 60 * 1000;
+                }
+                timer.restart();
+            }
+        }
+    }
+
+    Timer {
+        id: timer
+        interval: 30 * 60 * 1000
+        running: true
+        onTriggered: fetch.running = true
+    }
+}
