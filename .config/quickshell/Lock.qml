@@ -668,6 +668,7 @@ Scope {
                     SequentialAnimation {
                         running: root.checking && view.animated
                         loops: Animation.Infinite
+                        onStarted: pulseEnd.stop()
                         onStopped: pulseEnd.start()
 
                         NumberAnimation {
