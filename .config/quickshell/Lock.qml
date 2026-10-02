@@ -487,7 +487,7 @@ Scope {
             Rectangle {
                 anchors.fill: parent
                 color: Theme.base
-                opacity: 0.45
+                opacity: 0.6
             }
         }
 
