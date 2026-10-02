@@ -36,6 +36,10 @@ Scope {
     readonly property int marks: frozenMarks >= 0 ? frozenMarks : buffer.length
     readonly property bool dimmed: frozenMarks >= 0 ? frozenDimmed : checking
     readonly property bool locked: state.locked
+    // The reader: "" not watched, "waiting" for a finger, "bad" for a moment
+    // after one it did not recognise, "ok" after one it did, which stays
+    // through the fade out.
+    property string fingerState: ""
     // Caps Lock is on, as the keyboards' LEDs have it: Qt does not tell.
     property bool capsLock: false
     // Output name -> URL of the image awww shows there.
@@ -54,6 +58,7 @@ Scope {
         status = "";
         wallpaperQuery.running = true;
         capsQuery.running = true;
+        fingerState = "";
         fadeOut.stop();
         frozenMarks = -1;
         locking = true;
@@ -84,6 +89,9 @@ Scope {
             frozenDimmed = dimmed;
         }
         checking = false;
+        fingerRetry.stop();
+        if (finger.active)
+            finger.abort();
         buffer = "";
         status = "";
         locking = false;
@@ -195,8 +203,12 @@ Scope {
         onLoaded: {
             if (locked)
                 root.shade = 1;
+            root.watchFinger();
         }
-        onLockedChanged: Quickshell.execDetached(locked ? ["touch", root.marker] : ["rm", "-f", root.marker])
+        onLockedChanged: {
+            Quickshell.execDetached(locked ? ["touch", root.marker] : ["rm", "-f", root.marker]);
+            root.watchFinger();
+        }
     }
 
     // Survives the process: if it dies while locked, niri keeps the session
@@ -250,6 +262,72 @@ Scope {
             root.buffer = "";
             root.status = "Authentication error: " + PamError.toString(error);
         }
+    }
+
+    // The fingerprint reader, watched for as long as the session is locked.
+    function watchFinger() {
+        fingerRetry.stop();
+        if (state.locked && !unlocking) {
+            if (!finger.active)
+                finger.start();
+        } else if (finger.active) {
+            finger.abort();
+        }
+    }
+
+    // A second conversation, next to the password's: pam_fprintd waits for a
+    // finger and nothing else. It gives up after three wrong ones or half a
+    // minute without any, and is started again.
+    PamContext {
+        id: finger
+
+        // GDM's service for now: it has pam_fprintd, hyprlock's has not.
+        config: "gdm-fingerprint"
+
+        // Its prompt for a finger, then an error for each one not recognised.
+        onPamMessage: {
+            if (!state.locked || root.unlocking)
+                return;
+            if (messageIsError) {
+                root.status = "Fingerprint not recognised";
+                root.fingerState = "bad";
+                fingerBad.restart();
+            } else if (root.fingerState !== "bad") {
+                root.fingerState = "waiting";
+            }
+        }
+        onCompleted: result => {
+            if (!state.locked || root.unlocking)
+                return;
+            if (result === PamResult.Success) {
+                fingerBad.stop();
+                root.fingerState = "ok";
+                root.unlock();
+                return;
+            }
+            if (!fingerBad.running)
+                root.fingerState = "";
+            fingerRetry.interval = 1000;
+            fingerRetry.restart();
+        }
+        // No reader, or fprintd has lost it (a suspend): not as often.
+        onError: error => {
+            root.fingerState = "";
+            fingerRetry.interval = 3000;
+            fingerRetry.restart();
+        }
+    }
+
+    // How long the mark of a finger not recognised stays.
+    Timer {
+        id: fingerBad
+        interval: 1000
+        onTriggered: root.fingerState = finger.active ? "waiting" : ""
+    }
+
+    Timer {
+        id: fingerRetry
+        onTriggered: root.watchFinger()
     }
 
     // Asked at startup, every half a minute and at every lock: awww does not
@@ -497,6 +575,30 @@ Scope {
                                 }
                             }
                         }
+                    }
+                }
+            }
+
+            // The reader waits for a finger; red for one it did not
+            // recognise, green for one it did. Keeps its place when not
+            // shown, so nothing moves.
+            PopupText {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: Theme.glyph(0xf0237)
+                font.pixelSize: 36
+                opacity: root.fingerState === "" ? 0 : 1
+                color: root.fingerState === "ok" ? Theme.green : root.fingerState === "bad" ? Theme.red : Theme.subtext0
+
+                Behavior on opacity {
+                    enabled: view.animated
+                    NumberAnimation {
+                        duration: 150
+                    }
+                }
+                Behavior on color {
+                    enabled: view.animated
+                    ColorAnimation {
+                        duration: 150
                     }
                 }
             }
