@@ -17,6 +17,22 @@ PanelWindow {
     // Closing to run an action skips the fade; see runAction().
     property bool instantClose: false
 
+    // The bar popups' "pop": quick with a slight overshoot in, quicker out,
+    // scaling from 0.9 and back to 0.95 around the middle while it fades.
+    // Opening waits for the window: mapping it takes a few frames, which would
+    // otherwise come out of the animation's start.
+    property real openness: shown && backingWindowVisible ? 1 : 0
+    Behavior on openness {
+        enabled: !menu.instantClose
+        // The target is already set when this starts, so shown tells open from close.
+        NumberAnimation {
+            duration: menu.shown ? 220 : 120
+            easing.type: menu.shown ? Easing.OutBack : Easing.InQuad
+            easing.overshoot: 1.2
+        }
+    }
+    readonly property real animScale: shown ? 0.9 + 0.1 * openness : 0.95 + 0.05 * openness
+
     function toggle() {
         if (shown) {
             shown = false;
@@ -56,24 +72,24 @@ PanelWindow {
     }
     exclusionMode: ExclusionMode.Ignore
     color: "transparent"
-    visible: box.opacity > 0
+    visible: shown || openness > 0
 
     WlrLayershell.namespace: "quickshell-power"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: shown ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
     BackgroundEffect.blurRegion: Region {
-        x: box.x
-        y: box.y
-        width: box.opacity > 0.5 ? box.width : 0
-        height: box.opacity > 0.5 ? box.height : 0
+        x: shadowLayer.x + box.x
+        y: shadowLayer.y + box.y
+        width: menu.openness > 0.5 ? box.width : 0
+        height: menu.openness > 0.5 ? box.height : 0
         radius: Theme.barRadius
     }
 
     Rectangle {
         anchors.fill: parent
         color: "black"
-        opacity: 0.35 * box.opacity
+        opacity: 0.35 * Math.min(1, menu.openness)
     }
 
     MouseArea {
@@ -112,8 +128,19 @@ PanelWindow {
         }
     }
 
+    // Only as large as the menu and its shadow: the effect redraws its whole
+    // layer on every frame of the fade, and one the size of the output stutters.
     Item {
-        anchors.fill: parent
+        id: shadowLayer
+        readonly property int room: 30
+        // Centered, on whole device pixels.
+        x: Theme.snap((parent.width - box.width) / 2, menu.devicePixelRatio) - room
+        y: Theme.snap((parent.height - box.height) / 2, menu.devicePixelRatio) - room
+        width: box.width + 2 * room
+        height: box.height + 2 * room
+
+        opacity: menu.openness
+        scale: menu.animScale
 
         layer.enabled: true
         layer.effect: MultiEffect {
@@ -126,18 +153,12 @@ PanelWindow {
 
         Rectangle {
             id: box
-            // Centered, on whole device pixels.
-            x: Theme.snap((parent.width - width) / 2, menu.devicePixelRatio)
-            y: Theme.snap((parent.height - height) / 2, menu.devicePixelRatio)
+            x: shadowLayer.room
+            y: shadowLayer.room
             width: tiles.width + 2 * Theme.popupPadding
             height: tiles.height + 2 * Theme.popupPadding
             radius: Theme.barRadius
             color: Theme.base
-            opacity: menu.shown ? 1 : 0
-            Behavior on opacity {
-                enabled: !menu.instantClose
-                NumberAnimation { duration: Theme.hoverDuration }
-            }
         }
     }
 
@@ -146,7 +167,8 @@ PanelWindow {
         id: tiles
         x: Theme.snap((parent.width - width) / 2, menu.devicePixelRatio)
         y: Theme.snap((parent.height - height) / 2, menu.devicePixelRatio)
-        opacity: Math.max(0, 2 * box.opacity - 1)
+        opacity: menu.openness
+        scale: menu.animScale
         spacing: Theme.popupIconGap
 
         Repeater {
