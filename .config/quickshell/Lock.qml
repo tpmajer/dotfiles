@@ -423,6 +423,23 @@ Scope {
         onTriggered: capsQuery.running = true
     }
 
+    // Keeps the wallpapers decoded while unlocked. A curtain loads its image
+    // anew when its window is shown, and a lock surface is new each time: both
+    // ask for the same file and get it from Qt's cache at once, as long as
+    // something holds it there. The cache is keyed by the fill mode, hence the
+    // same one here, and by sourceSize, which none of them sets: a window
+    // scales it by a ratio that is not known out here.
+    Variants {
+        model: Quickshell.screens
+
+        Image {
+            required property ShellScreen modelData
+            source: root.wallpapers[modelData?.name ?? ""] ?? ""
+            fillMode: Image.PreserveAspectCrop
+            asynchronous: true
+        }
+    }
+
     SystemClock {
         id: clock
         precision: SystemClock.Minutes
@@ -467,7 +484,7 @@ Scope {
             }
 
             Behavior on opacity {
-                enabled: backdrop.late
+                enabled: backdrop.late && view.animated
                 NumberAnimation {
                     duration: 400
                     easing.type: Easing.OutCubic
@@ -773,10 +790,7 @@ Scope {
     }
 
     // The curtain. Nothing reaches it: the pointer and the keys go to what is
-    // under it. Its views also keep the wallpapers decoded while unlocked, a
-    // hidden window's items being alive: neither they nor the lock's set
-    // sourceSize, which the cache is keyed by and a window scales by its own
-    // ratio.
+    // under it.
     Variants {
         model: Quickshell.screens
 
