@@ -34,6 +34,14 @@ Item {
         height: barRect.height
         radius: Theme.barRadius
 
+        // Inside the bar, so it blurs nothing new; see blurResend.
+        Region {
+            x: barRect.x + Theme.barRadius
+            y: barRect.y + Theme.barRadius
+            width: 1
+            height: 1 + root.blurResend % 2
+        }
+
         Region {
             x: popupBody.x
             readonly property bool shown: popupBody.visible && (!root.fadeAnimation || root.openness > 0.5)
@@ -54,6 +62,29 @@ Item {
     property bool popupOpen: false
     property real openness: popupOpen ? 1 : 0
     property bool instantClose: false
+
+    // With Qt's threaded render loop (the one that runs animations at the
+    // screen's refresh rate) a new blur region sometimes goes out right after a
+    // commit still waiting on its GPU fence; niri then applies it with that
+    // older commit and keeps blurring a closed popup until the region changes
+    // again. So change it a few more times once a popup closes: each bump
+    // resizes a 1 px region inside the bar, which sends the whole region anew.
+    property int blurResend: 0
+    onPopupOpenChanged: if (!popupOpen) {
+        blurResendTimer.left = 4;
+        blurResendTimer.start();
+    }
+    Timer {
+        id: blurResendTimer
+        property int left: 0
+        interval: 48
+        repeat: true
+        onTriggered: {
+            root.blurResend++;
+            if (--left <= 0)
+                stop();
+        }
+    }
     readonly property bool niriAnimation: Theme.popupAnimation === "niri"
     readonly property bool popAnimation: Theme.popupAnimation === "pop"
     // Both show the popup whole and fade it, instead of growing it.
