@@ -7,7 +7,8 @@ import qs
 
 // The current weather in Warsaw from Open-Meteo (no key), every half an hour.
 // Unknown when it has not been fetched for three hours: offline, it is not
-// shown rather than shown stale.
+// shown rather than shown stale. The half hours are by the wall clock, checked
+// every minute: a Timer's own does not run during a suspend.
 Singleton {
     id: root
 
@@ -21,6 +22,7 @@ Singleton {
     readonly property bool known: !isNaN(temperature) && clock.date.getTime() - fetchedAt < 3 * 3600 * 1000
 
     readonly property string temperatureText: known ? Math.round(temperature) + "°" : ""
+    property real attemptedAt: 0
 
     // WMO weather codes, as Open-Meteo gives them.
     readonly property string icon: {
@@ -54,6 +56,7 @@ Singleton {
 
     Process {
         id: fetch
+        onStarted: root.attemptedAt = Date.now()
         command: ["curl", "-sf", "--max-time", "15", `https://api.open-meteo.com/v1/forecast?latitude=${root.latitude}&longitude=${root.longitude}&current=temperature_2m,weather_code,is_day`]
         running: true
         stdout: StdioCollector {
@@ -64,20 +67,23 @@ Singleton {
                     root.code = current.weather_code;
                     root.day = current.is_day === 1;
                     root.fetchedAt = Date.now();
-                    timer.interval = 30 * 60 * 1000;
                 } catch (e) {
-                    // Offline or a bad answer: sooner again.
-                    timer.interval = 2 * 60 * 1000;
+                    // Offline or a bad answer: tried again sooner, see below.
                 }
-                timer.restart();
             }
         }
     }
 
+    // Every half an hour since the last answer, every two minutes since the
+    // last try while there is none.
     Timer {
-        id: timer
-        interval: 30 * 60 * 1000
+        interval: 60 * 1000
         running: true
-        onTriggered: fetch.running = true
+        repeat: true
+        onTriggered: {
+            const now = Date.now();
+            if (!fetch.running && now - root.fetchedAt >= 30 * 60 * 1000 && now - root.attemptedAt >= 2 * 60 * 1000)
+                fetch.running = true;
+        }
     }
 }
