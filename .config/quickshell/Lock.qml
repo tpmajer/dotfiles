@@ -94,6 +94,8 @@ Scope {
         if (pam.active)
             pam.abort();
         endRejection();
+        rejectionGone.stop();
+        rejection = "";
         if (state.locked) {
             frozenMarks = buffer.length;
             root.accepted = accepted;
