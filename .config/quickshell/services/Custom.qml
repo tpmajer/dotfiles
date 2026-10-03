@@ -5,7 +5,8 @@ import Quickshell
 import Quickshell.Io
 
 // The idle inhibitor module, backed by scripts/idle-inhibit.sh, which prints
-// JSON: {"text", "tooltip", "class"}.
+// JSON: {"text", "tooltip", "class"}. Asked right after a toggle, and every
+// half a minute for what ends it elsewhere: its timeout, or a suspend.
 Singleton {
     id: root
 
@@ -40,7 +41,7 @@ Singleton {
     }
 
     Timer {
-        interval: 2000
+        interval: 30000
         running: true
         repeat: true
         triggeredOnStart: true
