@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Pam
 import Quickshell.Wayland
+import qs.lock
 import qs.services
 import qs.widgets
 
@@ -48,8 +49,6 @@ Scope {
     property string fingerState: ""
     // Caps Lock is on, as the keyboards' LEDs have it: Qt does not tell.
     property bool capsLock: false
-    // Output name -> URL of the image awww shows there.
-    property var wallpapers: ({})
     property bool curtain: false
     property real shade: 0
     // Asked to lock, the curtain is not at full shade yet.
@@ -62,7 +61,7 @@ Scope {
             return;
         buffer = "";
         status = "";
-        wallpaperQuery.running = true;
+        wallpapers.refresh();
         capsQuery.running = true;
         Weather.refreshIfStale();
         fingerState = "";
@@ -428,42 +427,8 @@ Scope {
         }
     }
 
-    // Asked at startup, every half a minute and at every lock: awww does not
-    // tell when the wallpaper changes. What changes it does, where it can (the
-    // `wallpaper` IPC), so the new image is here and decoded before the next
-    // lock, not swapped in under it. The lock does not wait for it: a surface
-    // is plain until its image is there, and stays plain if awww shows none.
-    Process {
-        id: wallpaperQuery
-        command: ["awww", "query"]
-        running: true
-        stdout: StdioCollector {
-            onStreamFinished: {
-                // ": eDP-1: 1800x1200, scale: 1.6, currently displaying: image: /path"
-                // An output that is off is not listed at all: its image is
-                // kept for the lock that is there when it comes back.
-                const found = Object.assign({}, root.wallpapers);
-                for (const line of text.split("\n")) {
-                    const m = line.match(/^:?\s*(\S+): .*currently displaying: (?:image: (.+))?/);
-                    if (!m)
-                        continue;
-                    if (m[2])
-                        found[m[1]] = "file://" + m[2].split("/").map(encodeURIComponent).join("/");
-                    else
-                        delete found[m[1]];
-                }
-                // Unchanged: nothing is loaded again.
-                if (JSON.stringify(found) !== JSON.stringify(root.wallpapers))
-                    root.wallpapers = found;
-            }
-        }
-    }
-
-    Timer {
-        interval: 30000
-        running: true
-        repeat: true
-        onTriggered: wallpaperQuery.running = true
+    Wallpapers {
+        id: wallpapers
     }
 
     // Read at every lock and after the Caps Lock key is pressed and released,
@@ -480,23 +445,6 @@ Scope {
         id: capsDelay
         interval: 60
         onTriggered: capsQuery.running = true
-    }
-
-    // Keeps the wallpapers decoded while unlocked. A curtain loads its image
-    // anew when its window is shown, and a lock surface is new each time: both
-    // ask for the same file and get it from Qt's cache at once, as long as
-    // something holds it there. The cache is keyed by the fill mode, hence the
-    // same one here, and by sourceSize, which none of them sets: a window
-    // scales it by a ratio that is not known out here.
-    Variants {
-        model: Quickshell.screens
-
-        Image {
-            required property ShellScreen modelData
-            source: root.wallpapers[modelData?.name ?? ""] ?? ""
-            fillMode: Image.PreserveAspectCrop
-            asynchronous: true
-        }
     }
 
     SystemClock {
@@ -520,7 +468,7 @@ Scope {
             id: wallpaper
             anchors.fill: parent
             visible: false
-            source: root.wallpapers[view.output] ?? ""
+            source: wallpapers.images[view.output] ?? ""
             fillMode: Image.PreserveAspectCrop
             asynchronous: true
         }
@@ -942,7 +890,7 @@ Scope {
 
         // The wallpaper has changed: the scripts behind Mod+S and Mod+X, wp.
         function wallpaper(): void {
-            wallpaperQuery.running = true;
+            wallpapers.refresh();
         }
 
         // hypridle's after_sleep_cmd.
