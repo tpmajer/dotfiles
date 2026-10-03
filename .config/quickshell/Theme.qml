@@ -34,7 +34,7 @@ Singleton {
     readonly property int moduleRadius: 4
     readonly property int hoverDuration: 200
 
-    // Popups ("dymki") growing out of the bar.
+    // Popups ("dymki") below the bar.
     // Padding around clickable rows: sides, and top/bottom. Plain text gets the
     // inset on top, so it sits where the text inside a row does.
     readonly property int popupPadding: 14
@@ -46,9 +46,7 @@ Singleton {
     readonly property int popupIconGap: 8
     readonly property int popupColumnGap: 12
     readonly property int popupRadius: barRadius
-    readonly property int popupFillet: barRadius  // same as the bar corners
-    // false: popups float below the bar with a gap and all corners rounded.
-    readonly property bool popupAttached: false
+    // Popups float below the bar, with this gap.
     readonly property int popupGap: 8
     // A popup changing its size or moving to another module, in ms.
     readonly property int popupDuration: 180

@@ -1,12 +1,11 @@
 import QtQuick
-import QtQuick.Shapes
 import Quickshell
 import qs
 import qs.widgets
 
 // The bar's background and the popup that opens from it: which module's popup
-// is open, its animation and paddings, the bar and the popup drawn as one shape
-// with a shadow, and the regions the window takes input in and gets blurred in.
+// is open, its animation and paddings, the bar and the popup drawn under one
+// shadow, and the regions the window takes input in and gets blurred in.
 // The modules are its children and sit on top of the bar.
 Item {
     id: root
@@ -48,10 +47,7 @@ Item {
             y: root.popupTop
             width: shown ? popupBody.width : 0
             height: shown ? root.popupVisibleHeight : 0
-            topLeftRadius: Theme.popupAttached ? 0 : Theme.popupRadius
-            topRightRadius: Theme.popupAttached ? 0 : Theme.popupRadius
-            bottomLeftRadius: Theme.popupRadius
-            bottomRightRadius: Theme.popupRadius
+            radius: Theme.popupRadius
         }
     }
 
@@ -110,8 +106,8 @@ Item {
     }
     // The popup is there whole for as long as it shows at all.
     readonly property real popupVisibleHeight: openness > 0.001 ? popupHeight : 0
-    // Where the popup starts: right at the bar's bottom edge, or below a gap.
-    readonly property real popupTop: barRect.y + barRect.height + (Theme.popupAttached ? 0 : Theme.popupGap)
+    // Where the popup starts: below a gap under the bar.
+    readonly property real popupTop: barRect.y + barRect.height + Theme.popupGap
 
     readonly property real ownerCenter: {
         const o = popupOwner;
@@ -184,7 +180,7 @@ Item {
             root.popupOpen = false
     }
 
-    // ---- background: bar + popup as one shape, with a shadow ----------------
+    // ---- background: bar + popup, under one shadow ---------------------------
 
     Item {
         id: shapes
@@ -207,32 +203,26 @@ Item {
             id: popupBody
 
             readonly property real targetX: {
-                const minX = Theme.popupFillet + 4;
-                const maxX = barRect.width - root.popupWidth - Theme.popupFillet - 4;
+                const minX = Theme.popupRadius + 4;
+                const maxX = barRect.width - root.popupWidth - Theme.popupRadius - 4;
                 // Centered under its module, but on a whole device pixel: off
                 // one, everything in the popup is drawn slightly soft.
                 return Theme.snap(barRect.x + Math.max(minX, Math.min(maxX, root.ownerCenter - root.popupWidth / 2)), root.devicePixelRatio);
             }
 
-            // Attached, it starts inside the bar so the join has no seam.
-            readonly property real overlap: Theme.popupAttached ? Theme.popupFillet : 0
-            readonly property real topRadius: Theme.popupAttached ? 0 : Math.min(Theme.popupRadius, root.popupVisibleHeight / 2)
             x: targetX
-            y: root.popupTop - overlap
+            y: root.popupTop
             width: root.popupWidth
-            height: root.popupVisibleHeight + overlap
+            height: root.popupVisibleHeight
             visible: root.popupVisibleHeight > 0.5
             color: Theme.base
-            topLeftRadius: topRadius
-            topRightRadius: topRadius
+            radius: Theme.popupRadius
             opacity: root.openness
             transform: Scale {
                 origin.x: popupBody.width / 2
                 xScale: pop.scale
                 yScale: pop.scale
             }
-            bottomLeftRadius: Math.min(Theme.popupRadius, root.popupVisibleHeight / 2)
-            bottomRightRadius: Math.min(Theme.popupRadius, root.popupVisibleHeight / 2)
 
             Behavior on x {
                 enabled: root.openness > 0.01
@@ -247,61 +237,6 @@ Item {
                     duration: Theme.popupDuration
                     easing.type: Easing.OutCubic
                 }
-            }
-        }
-
-        // Concave corners joining the popup to the bar's bottom edge.
-        Shape {
-            id: leftFillet
-            readonly property real r: Math.min(Theme.popupFillet, root.popupVisibleHeight)
-            visible: popupBody.visible && Theme.popupAttached
-            x: popupBody.x - r
-            y: barRect.y + barRect.height
-            width: r
-            height: r
-            preferredRendererType: Shape.CurveRenderer
-
-            ShapePath {
-                fillColor: Theme.base
-                strokeColor: "transparent"
-                startX: 0
-                startY: 0
-                PathLine { x: leftFillet.r; y: 0 }
-                PathLine { x: leftFillet.r; y: leftFillet.r }
-                PathArc {
-                    x: 0
-                    y: 0
-                    radiusX: leftFillet.r
-                    radiusY: leftFillet.r
-                    direction: PathArc.Counterclockwise
-                }
-            }
-        }
-
-        Shape {
-            id: rightFillet
-            readonly property real r: leftFillet.r
-            visible: popupBody.visible && Theme.popupAttached
-            x: popupBody.x + popupBody.width
-            y: barRect.y + barRect.height
-            width: r
-            height: r
-            preferredRendererType: Shape.CurveRenderer
-
-            ShapePath {
-                fillColor: Theme.base
-                strokeColor: "transparent"
-                startX: 0
-                startY: 0
-                PathLine { x: rightFillet.r; y: 0 }
-                PathArc {
-                    x: 0
-                    y: rightFillet.r
-                    radiusX: rightFillet.r
-                    radiusY: rightFillet.r
-                    direction: PathArc.Counterclockwise
-                }
-                PathLine { x: 0; y: 0 }
             }
         }
     }
@@ -319,14 +254,14 @@ Item {
         height: popupBody.height
     }
 
-    // The gap between the bar and a detached popup: part of the popup for input,
+    // The gap between the bar and the popup: part of the popup for input,
     // so moving the pointer slowly across it doesn't close the popup.
     Item {
         id: popupGapArea
         x: popupBody.x
         y: barRect.y + barRect.height
-        width: popupBody.visible && !Theme.popupAttached ? popupBody.width : 0
-        height: Theme.popupAttached ? 0 : Theme.popupGap
+        width: popupBody.visible ? popupBody.width : 0
+        height: Theme.popupGap
 
         HoverHandler {
             id: gapHover

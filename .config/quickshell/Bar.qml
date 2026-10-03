@@ -7,7 +7,7 @@ import qs.services
 import qs.widgets
 
 // The bar's window and its modules. The layer surface is taller than the bar
-// so popups can grow out of it as one connected shape; only the bar and the open
+// so popups can open below it in the same window; only the bar and the open
 // popup take input and get blurred, the rest of the surface is transparent.
 // PopupHost draws the bar and runs the popups.
 PanelWindow {
