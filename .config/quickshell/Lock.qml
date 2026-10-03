@@ -9,8 +9,9 @@ import qs.widgets
 
 // Lock screen: a session lock with the clock and a password field on every
 // output, over the output's wallpaper, blurred and dimmed. hypridle starts it
-// (`qs ipc call lock lock` as its lock_cmd), for loginctl lock-session, Mod+L
-// and the power menu too; before a suspend, scripts/lock-before-sleep.sh.
+// (`qs ipc call lock lock` as its lock_cmd), for loginctl lock-session and
+// Mod+L too; the power menus call it themselves, hypridle or not; before a
+// suspend, scripts/lock-before-sleep.sh.
 //
 // The session is unlocked the moment the password is accepted, with nothing
 // animated while it is still locked: niri ignores most key bindings until then.
