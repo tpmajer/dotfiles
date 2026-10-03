@@ -1,8 +1,8 @@
-# It's important that .gitignore is absent from this list, so
-# that the .gitignore in this repo gets installed by stow as
-# ~/.gitignore.
+# What stow leaves out of ~. The list is stow's default, with this repo's own
+# files at the end.
 
-# However, .git must be in this list:
+# .git, and with the `.git.*` below .gitignore too: it is this repo's, not a
+# global one for ~.
 \.git
 /bin/git-deps
 
