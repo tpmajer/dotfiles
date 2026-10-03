@@ -289,7 +289,8 @@ Scope {
     PamContext {
         id: pam
 
-        // hyprlock's PAM service for now: the password only, no fingerprint.
+        // hyprlock's PAM service, borrowed: the password only, no fingerprint.
+        // It is set up in ~/.nixos (system.nix) and stays without hyprlock.
         config: "hyprlock"
 
         onPamMessage: {
@@ -342,7 +343,7 @@ Scope {
     PamContext {
         id: finger
 
-        // GDM's service for now: it has pam_fprintd, hyprlock's has not.
+        // GDM's service, borrowed: it has pam_fprintd, hyprlock's has not.
         config: "gdm-fingerprint"
 
         // Its prompt for a finger, then an error for each one not recognised.
