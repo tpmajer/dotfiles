@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Effects
 import Quickshell
 import Quickshell.Services.Notifications
 import Quickshell.Wayland
@@ -101,13 +100,7 @@ PanelWindow {
         anchors.fill: parent
 
         layer.enabled: true
-        layer.effect: MultiEffect {
-            shadowEnabled: true
-            shadowColor: "#77000000"
-            shadowBlur: 1.0
-            blurMax: 24
-            shadowVerticalOffset: 3
-        }
+        layer.effect: Shadow {}
 
         // Only the cards' backgrounds. Text drawn into the shadow's layer comes
         // out soft, so the cards themselves sit on top of this, outside it.

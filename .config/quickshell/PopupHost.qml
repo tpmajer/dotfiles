@@ -1,8 +1,8 @@
 import QtQuick
-import QtQuick.Effects
 import QtQuick.Shapes
 import Quickshell
 import qs
+import qs.widgets
 
 // The bar's background and the popup that grows out of it: which module's popup
 // is open, its animation and paddings, the bar and the popup drawn as one shape
@@ -239,13 +239,7 @@ Item {
         anchors.fill: parent
 
         layer.enabled: true
-        layer.effect: MultiEffect {
-            shadowEnabled: true
-            shadowColor: "#77000000"
-            shadowBlur: 1.0
-            blurMax: 24
-            shadowVerticalOffset: 3
-        }
+        layer.effect: Shadow {}
 
         Rectangle {
             id: barRect

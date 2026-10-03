@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
 import qs.services
@@ -145,13 +144,7 @@ PanelWindow {
         scale: menu.animScale
 
         layer.enabled: true
-        layer.effect: MultiEffect {
-            shadowEnabled: true
-            shadowColor: "#77000000"
-            shadowBlur: 1.0
-            blurMax: 24
-            shadowVerticalOffset: 3
-        }
+        layer.effect: Shadow {}
 
         Rectangle {
             id: box

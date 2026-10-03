@@ -602,13 +602,7 @@ Scope {
                     opacity: 0.7
 
                     layer.enabled: true
-                    layer.effect: MultiEffect {
-                        shadowEnabled: true
-                        shadowColor: "#77000000"
-                        shadowBlur: 1.0
-                        blurMax: 24
-                        shadowVerticalOffset: 3
-                    }
+                    layer.effect: Shadow {}
 
                     Rectangle {
                         anchors.fill: parent
