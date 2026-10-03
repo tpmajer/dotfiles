@@ -30,10 +30,8 @@ PanelWindow {
         keyHandler.forceActiveFocus();
     }
 
-    // Closes the menu and runs the command only once it is gone and a frame
-    // without it has been drawn: hyprlock (Lock, and Suspend via hypridle)
-    // screenshots the screen right away and would otherwise capture the
-    // closing menu.
+    // Closes the menu and runs the command only once it is gone, see
+    // DeferredAction.
     function runAction(command) {
         action.pending = command;
         shown = false;
