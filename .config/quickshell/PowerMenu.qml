@@ -14,20 +14,12 @@ PanelWindow {
     property bool shown: false
     property int index: 0
 
-    // The bar popups' "pop": quick with a slight overshoot in, quicker out,
-    // scaling from 0.9 and back to 0.95 around the middle while it fades.
-    // Opening waits for the window: mapping it takes a few frames, which would
-    // otherwise come out of the animation's start.
-    property real openness: shown && backingWindowVisible ? 1 : 0
-    Behavior on openness {
-        // The target is already set when this starts, so shown tells open from close.
-        NumberAnimation {
-            duration: menu.shown ? 220 : 120
-            easing.type: menu.shown ? Easing.OutBack : Easing.InQuad
-            easing.overshoot: 1.2
-        }
+    Pop {
+        id: pop
+        shown: menu.shown
+        mapped: menu.backingWindowVisible
     }
-    readonly property real animScale: shown ? 0.9 + 0.1 * openness : 0.95 + 0.05 * openness
+    readonly property real openness: pop.openness
 
     function toggle() {
         if (shown) {
@@ -73,7 +65,7 @@ PanelWindow {
     }
     exclusionMode: ExclusionMode.Ignore
     color: "transparent"
-    visible: shown || openness > 0
+    visible: shown || pop.openness > 0
 
     WlrLayershell.namespace: "quickshell-power"
     WlrLayershell.layer: WlrLayer.Overlay
@@ -82,15 +74,15 @@ PanelWindow {
     BackgroundEffect.blurRegion: Region {
         x: shadowLayer.x + box.x
         y: shadowLayer.y + box.y
-        width: menu.openness > 0.5 ? box.width : 0
-        height: menu.openness > 0.5 ? box.height : 0
+        width: pop.openness > 0.5 ? box.width : 0
+        height: pop.openness > 0.5 ? box.height : 0
         radius: Theme.barRadius
     }
 
     Rectangle {
         anchors.fill: parent
         color: "black"
-        opacity: 0.35 * Math.min(1, menu.openness)
+        opacity: 0.35 * Math.min(1, pop.openness)
     }
 
     MouseArea {
@@ -140,8 +132,8 @@ PanelWindow {
         width: box.width + 2 * room
         height: box.height + 2 * room
 
-        opacity: menu.openness
-        scale: menu.animScale
+        opacity: pop.openness
+        scale: pop.scale
 
         layer.enabled: true
         layer.effect: Shadow {}
@@ -162,8 +154,8 @@ PanelWindow {
         id: tiles
         x: Theme.snap((parent.width - width) / 2, menu.devicePixelRatio)
         y: Theme.snap((parent.height - height) / 2, menu.devicePixelRatio)
-        opacity: menu.openness
-        scale: menu.animScale
+        opacity: pop.openness
+        scale: pop.scale
         spacing: Theme.popupIconGap
 
         Repeater {

@@ -21,20 +21,11 @@ PanelWindow {
     property string label: ""
     property bool shown: false
 
-    // The bar popups' "pop": quick with a slight overshoot in, quicker out,
-    // scaling from 0.9 and back to 0.95 around the middle while it fades.
-    // Opening waits for the window: mapping it takes a few frames, which would
-    // otherwise come out of the animation's start.
-    property real openness: shown && backingWindowVisible ? 1 : 0
-    Behavior on openness {
-        // The target is already set when this starts, so shown tells open from close.
-        NumberAnimation {
-            duration: osd.shown ? 220 : 120
-            easing.type: osd.shown ? Easing.OutBack : Easing.InQuad
-            easing.overshoot: 1.2
-        }
+    Pop {
+        id: pop
+        shown: osd.shown
+        mapped: osd.backingWindowVisible
     }
-    readonly property real animScale: shown ? 0.9 + 0.1 * openness : 0.95 + 0.05 * openness
 
     function show(icon, accent, level, label, fill = level, fillColor = accent) {
         osd.icon = icon;
@@ -65,7 +56,7 @@ PanelWindow {
     implicitWidth: box.width + 2 * shadowRoom
     implicitHeight: box.height + 2 * shadowRoom
     color: "transparent"
-    visible: shown || openness > 0
+    visible: shown || pop.openness > 0
 
     WlrLayershell.namespace: "quickshell-osd"
     WlrLayershell.layer: WlrLayer.Overlay
@@ -77,8 +68,8 @@ PanelWindow {
     BackgroundEffect.blurRegion: Region {
         x: box.x
         y: box.y
-        width: osd.openness > 0.5 ? box.width : 0
-        height: osd.openness > 0.5 ? box.height : 0
+        width: pop.openness > 0.5 ? box.width : 0
+        height: pop.openness > 0.5 ? box.height : 0
         radius: Theme.barRadius
     }
 
@@ -169,8 +160,8 @@ PanelWindow {
 
     Item {
         anchors.fill: parent
-        opacity: osd.openness
-        scale: osd.animScale
+        opacity: pop.openness
+        scale: pop.scale
 
         layer.enabled: true
         layer.effect: Shadow {}
@@ -196,8 +187,8 @@ PanelWindow {
         // Pops in with the pill, but fades out twice as fast: gone by the time
         // the pill is half faded (when its blur goes too). Bright text on a
         // nearly faded pill reads as the content outliving it.
-        opacity: osd.shown ? osd.openness : Math.max(0, 2 * osd.openness - 1)
-        scale: osd.animScale
+        opacity: osd.shown ? pop.openness : Math.max(0, 2 * pop.openness - 1)
+        scale: pop.scale
         spacing: Theme.popupColumnGap
 
         PopupText {
