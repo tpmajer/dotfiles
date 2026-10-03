@@ -241,7 +241,10 @@ PanelWindow {
 
         PopupText {
             y: Theme.snap(content.y + (content.height - height) / 2, osd.devicePixelRatio) - content.y
-            width: osd.level >= 0 ? labelSize.width : implicitWidth
+            // Its own width for a switch: unset, not bound to implicitWidth,
+            // which Qt reports as a binding loop when a switch follows a
+            // level on screen.
+            width: osd.level >= 0 ? labelSize.width : undefined
             horizontalAlignment: Text.AlignRight
             text: osd.label
         }
