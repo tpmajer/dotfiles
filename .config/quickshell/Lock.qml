@@ -43,10 +43,6 @@ Scope {
     property string rejection: ""
     readonly property int marks: frozenMarks >= 0 ? frozenMarks : buffer.length
     readonly property bool locked: state.locked
-    // The reader: "" not watched, "waiting" for a finger, "bad" for a moment
-    // after one it did not recognise, "ok" after one it did, which stays
-    // through the fade out.
-    property string fingerState: ""
     // Caps Lock is on, as the keyboards' LEDs have it: Qt does not tell.
     property bool capsLock: false
     property bool curtain: false
@@ -64,7 +60,7 @@ Scope {
         wallpapers.refresh();
         capsQuery.running = true;
         Weather.refreshIfStale();
-        fingerState = "";
+        finger.mark = "";
         fadeOut.stop();
         endRejection();
         rejection = "";
@@ -101,9 +97,7 @@ Scope {
             root.accepted = accepted;
         }
         checking = false;
-        fingerRetry.stop();
-        if (finger.active)
-            finger.abort();
+        finger.stop();
         buffer = "";
         status = "";
         locking = false;
@@ -250,11 +244,11 @@ Scope {
         onLoaded: {
             if (locked)
                 root.shade = 1;
-            root.watchFinger();
+            finger.watch(state.locked && !root.unlocking);
         }
         onLockedChanged: {
             Quickshell.execDetached(locked ? ["touch", root.marker] : ["rm", "-f", root.marker]);
-            root.watchFinger();
+            finger.watch(state.locked && !root.unlocking);
         }
     }
 
@@ -316,115 +310,14 @@ Scope {
         }
     }
 
-    // The fingerprint reader, watched for as long as the session is locked.
-    function watchFinger() {
-        fingerRetry.stop();
-        if (state.locked && !unlocking) {
-            if (!finger.active) {
-                fingerPrompted = false;
-                finger.start();
-            }
-        } else if (finger.active) {
-            finger.abort();
-        }
-    }
-
-    // After a suspend. The conversation that slept through it is lost: fprintd
-    // is stopped on resume (NixOS, resumeCommands) and PAM takes seconds to say
-    // so, then the retry waits its turn. Dropped here, and a new one started
-    // once the old fprintd has had the moment it needs to go, the reader waits
-    // for a finger a second after the wake, not five. No icon until it does.
-    function woke() {
-        if (!state.locked || unlocking)
-            return;
-        if (finger.active)
-            finger.abort();
-        fingerBad.stop();
-        fingerState = "";
-        fingerRetry.interval = 300;
-        fingerRetry.restart();
-    }
-
-    // Whether the reader asked for a finger in this conversation: it does not
-    // when there is no reader.
-    property bool fingerPrompted: false
-
-    // A second conversation, next to the password's: pam_fprintd waits for a
-    // finger and nothing else. It gives up after half a minute without one,
-    // and is started again at once, the icon staying; after three wrong
-    // ones, and is started again half a minute later, so its limit holds;
-    // without asking for one (no reader, or fprintd lost it in a suspend),
-    // and is tried again every few seconds.
-    PamContext {
+    Fingerprint {
         id: finger
-
-        // GDM's service, borrowed: it has pam_fprintd, hyprlock's has not.
-        config: "gdm-fingerprint"
-
-        // Its prompt for a finger, then an error for each one not recognised.
-        onPamMessage: {
-            if (!state.locked || root.unlocking)
-                return;
-            root.fingerPrompted = true;
-            if (messageIsError) {
-                root.status = "fingerprint not recognised";
-                root.fingerState = "bad";
-                fingerBad.restart();
-            } else if (root.fingerState !== "bad") {
-                root.fingerState = "waiting";
-            }
-        }
-        onCompleted: result => {
-            if (!state.locked || root.unlocking)
-                return;
-            if (result === PamResult.Success) {
-                fingerBad.stop();
-                root.fingerState = "ok";
-                root.unlock();
-                return;
-            }
-            root.retryFinger(result === PamResult.MaxTries);
-        }
-        onError: error => {
-            if (state.locked && !root.unlocking)
-                root.retryFinger(false);
-        }
-    }
-
-    function retryFinger(tooMany) {
-        if (tooMany) {
-            fingerBad.stop();
-            fingerState = "";
-            status = "too many fingerprint attempts";
-            fingerRetry.interval = 30000;
-        } else if (fingerPrompted) {
-            // Timed out: the icon stays, the reader is back in a moment.
-            fingerRetry.interval = 1000;
-        } else {
-            fingerState = "";
-            fingerRetry.interval = 3000;
-        }
-        fingerRetry.restart();
-    }
-
-    // How long the mark of a finger not recognised stays, and its line.
-    Timer {
-        id: fingerBad
-        interval: 1500
-        onTriggered: {
-            root.fingerState = finger.active ? "waiting" : "";
-            if (root.status === "fingerprint not recognised")
+        onSaid: text => root.status = text
+        onUnsaid: text => {
+            if (root.status === text)
                 root.status = "";
         }
-    }
-
-    Timer {
-        id: fingerRetry
-        onTriggered: {
-            if (root.status === "too many fingerprint attempts")
-                root.status = "";
-            root.watchFinger();
-        }
+        onRecognised: root.unlock()
     }
 
     Wallpapers {
@@ -727,8 +620,8 @@ Scope {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: Theme.glyph(0xf0237)
                 font.pixelSize: 36
-                opacity: root.fingerState === "" ? 0 : 1
-                color: root.fingerState === "ok" ? Theme.green : root.fingerState === "bad" ? Theme.red : Theme.subtext0
+                opacity: finger.mark === "" ? 0 : 1
+                color: finger.mark === "ok" ? Theme.green : finger.mark === "bad" ? Theme.red : Theme.subtext0
 
                 Behavior on opacity {
                     enabled: view.animated
@@ -895,7 +788,7 @@ Scope {
 
         // hypridle's after_sleep_cmd.
         function woke(): void {
-            root.woke();
+            finger.woke();
         }
 
         function unlock(): void {
