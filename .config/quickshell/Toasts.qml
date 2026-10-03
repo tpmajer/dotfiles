@@ -10,7 +10,8 @@ import qs.widgets
 // newest at the bottom. A card stays for a time set by its urgency (not while
 // the pointer is over it); a left click runs its default action and closes it,
 // a right click only closes it. Only the newest few are shown; the rest fold
-// into a row at the top that unfolds them on a click.
+// into a row at the top that unfolds them on a click. None goes while the
+// session is locked: they are all there, for their whole time, once it is not.
 PanelWindow {
     id: toasts
 
@@ -22,6 +23,8 @@ PanelWindow {
     readonly property int count: Notifications.list.values.length
     readonly property int hiddenCount: Math.max(0, count - Theme.notificationsVisible)
     property bool expanded: false
+    // The session is locked: the lock is over the cards, nobody sees them.
+    property bool locked: false
     onHiddenCountChanged: if (hiddenCount === 0)
         expanded = false
 
@@ -239,7 +242,7 @@ PanelWindow {
 
                 Timer {
                     interval: Notifications.timeout(card.notification)
-                    running: interval > 0 && !hover.hovered
+                    running: interval > 0 && !hover.hovered && !toasts.locked
                     onTriggered: card.notification.expire()
                 }
 

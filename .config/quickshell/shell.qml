@@ -15,8 +15,13 @@ ShellRoot {
     }
 
     Osd {}
-    Toasts {}
-    Lock {}
+    Toasts {
+        locked: lock.locked
+    }
+
+    Lock {
+        id: lock
+    }
 
     PowerMenu {
         id: powerMenu
