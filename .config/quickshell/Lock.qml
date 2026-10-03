@@ -422,11 +422,17 @@ Scope {
         stdout: StdioCollector {
             onStreamFinished: {
                 // ": eDP-1: 1800x1200, scale: 1.6, currently displaying: image: /path"
-                const found = {};
+                // An output that is off is not listed at all: its image is
+                // kept for the lock that is there when it comes back.
+                const found = Object.assign({}, root.wallpapers);
                 for (const line of text.split("\n")) {
-                    const m = line.match(/^:?\s*(\S+): .*currently displaying: image: (.+)$/);
-                    if (m)
+                    const m = line.match(/^:?\s*(\S+): .*currently displaying: (?:image: (.+))?/);
+                    if (!m)
+                        continue;
+                    if (m[2])
                         found[m[1]] = "file://" + m[2].split("/").map(encodeURIComponent).join("/");
+                    else
+                        delete found[m[1]];
                 }
                 // Unchanged: nothing is loaded again.
                 if (JSON.stringify(found) !== JSON.stringify(root.wallpapers))
