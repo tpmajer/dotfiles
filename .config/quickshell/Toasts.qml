@@ -75,8 +75,8 @@ PanelWindow {
     // window would otherwise claim its width and push the other windows aside.
     exclusionMode: ExclusionMode.Ignore
     margins {
-        left: Theme.barMargin - shadowRoom
-        right: Theme.barMargin - shadowRoom
+        left: Theme.notificationMargin - shadowRoom
+        right: Theme.notificationMargin - shadowRoom
     }
     implicitWidth: Theme.notificationWidth + 2 * shadowRoom
     color: "transparent"
@@ -131,7 +131,7 @@ PanelWindow {
         // as it grows: a new card comes from below the screen edge and
         // pushes the older ones up. Not before the window is on screen: the
         // stack takes its place unseen, then slides in from the side.
-        y: toasts.atTop ? Theme.barMargin + Theme.barHeight + Theme.popupGap : Math.round(parent.height - Theme.barMargin - height)
+        y: toasts.atTop ? Theme.barMargin + Theme.barHeight + Theme.popupGap : Math.round(parent.height - Theme.notificationMargin - height)
         spacing: Theme.notificationGap
 
         Behavior on y {
