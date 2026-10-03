@@ -13,4 +13,8 @@ Singleton {
         {icon: 0xf0904, text: "Suspend", command: "systemctl suspend"},
         {icon: 0xf0709, text: "Reboot", command: "systemctl reboot", color: Theme.peach}
     ]
+
+    function run(command) {
+        Quickshell.execDetached(["sh", "-c", command]);
+    }
 }

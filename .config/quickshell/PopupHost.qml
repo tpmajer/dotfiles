@@ -70,9 +70,7 @@ Item {
     // resizes a 1 px region inside the bar, which sends the whole region anew.
     property int blurResend: 0
     onPopupOpenChanged: {
-        if (popupOpen) {
-            action.pending = "";
-        } else {
+        if (!popupOpen) {
             blurResendTimer.left = 4;
             blurResendTimer.start();
         }
@@ -185,18 +183,6 @@ Item {
             pendingOwner = null;
             showTimer.stop();
         }
-    }
-
-    // Closes the popup and runs the command only once it is gone, see
-    // DeferredAction.
-    function runAction(command) {
-        action.pending = command;
-        popupOpen = false;
-    }
-
-    DeferredAction {
-        id: action
-        openness: root.openness
     }
 
     function showPopup(module) {

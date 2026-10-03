@@ -52,7 +52,8 @@ PanelWindow {
 
     // For the key handler and the power popup.
     function runAction(command) {
-        popups.runAction(command);
+        popups.popupOpen = false;
+        Power.run(command);
     }
 
     Item {

@@ -30,18 +30,9 @@ PanelWindow {
         keyHandler.forceActiveFocus();
     }
 
-    // Closes the menu and runs the command only once it is gone, see
-    // DeferredAction.
     function runAction(command) {
-        action.pending = command;
         shown = false;
-    }
-    onShownChanged: if (shown)
-        action.pending = ""
-
-    DeferredAction {
-        id: action
-        openness: pop.openness
+        Power.run(command);
     }
 
     screen: Quickshell.screens.find(s => s.name === Niri.focusedOutput) ?? Quickshell.screens[0]
