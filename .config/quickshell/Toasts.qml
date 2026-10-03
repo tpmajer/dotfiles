@@ -280,14 +280,31 @@ PanelWindow {
                     width: parent.width - x - Theme.popupPadding - Theme.popupTextInset + 3
                     spacing: 4
 
-                    PopupText {
+                    // The summary, and when it came in the top right corner.
+                    Item {
                         width: parent.width
-                        text: card.notification.summary
-                        textFormat: Text.PlainText
-                        font.bold: true
-                        wrapMode: Text.Wrap
-                        maximumLineCount: 2
-                        elide: Text.ElideRight
+                        height: summary.height
+
+                        PopupText {
+                            id: summary
+                            width: parent.width - (arrival.text !== "" ? arrival.width + Theme.popupColumnGap : 0)
+                            text: card.notification.summary
+                            textFormat: Text.PlainText
+                            font.bold: true
+                            wrapMode: Text.Wrap
+                            maximumLineCount: 2
+                            elide: Text.ElideRight
+                        }
+
+                        PopupText {
+                            id: arrival
+                            anchors.right: parent.right
+                            // On the summary's first line.
+                            anchors.baseline: summary.baseline
+                            text: Notifications.arrival(card.notification)
+                            color: Theme.subtext0
+                            font.pixelSize: Theme.fontSize - 2
+                        }
                     }
 
                     PopupText {

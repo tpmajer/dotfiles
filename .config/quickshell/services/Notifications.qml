@@ -30,6 +30,24 @@ Singleton {
         }
     }
 
+    // When a notification came, as on its card: "14:05". The server does not
+    // tell, so it is noted here as each one arrives.
+    function arrival(notification) {
+        const time = arrivals[notification.id];
+        return time ? Qt.formatTime(new Date(time), "HH:mm") : "";
+    }
+
+    // Notification id -> when it came, in ms.
+    readonly property var arrivals: JSON.parse(state.arrivals)
+
+    // Survives a reload of the configuration, as the notifications do. As
+    // JSON: an object does not make it to the reloaded configuration.
+    PersistentProperties {
+        id: state
+        reloadableId: "notifications"
+        property string arrivals: "{}"
+    }
+
     NotificationServer {
         id: server
         bodySupported: true
@@ -45,6 +63,14 @@ Singleton {
                         old.dismiss();
                 }
             }
+            // Those of the notifications still there, and this one's.
+            const arrivals = {};
+            for (const old of server.trackedNotifications.values) {
+                if (old.id in root.arrivals)
+                    arrivals[old.id] = root.arrivals[old.id];
+            }
+            arrivals[n.id] = Date.now();
+            state.arrivals = JSON.stringify(arrivals);
             n.tracked = true;
         }
     }
