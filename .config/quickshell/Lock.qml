@@ -429,7 +429,9 @@ Scope {
     }
 
     // Asked at startup, every half a minute and at every lock: awww does not
-    // tell when the wallpaper changes. The lock does not wait for it: a surface
+    // tell when the wallpaper changes. What changes it does, where it can (the
+    // `wallpaper` IPC), so the new image is here and decoded before the next
+    // lock, not swapped in under it. The lock does not wait for it: a surface
     // is plain until its image is there, and stays plain if awww shows none.
     Process {
         id: wallpaperQuery
@@ -936,6 +938,11 @@ Scope {
         // The compositor has locked the session and the lock is drawn.
         function isLocked(): bool {
             return sessionLock.secure;
+        }
+
+        // The wallpaper has changed: the scripts behind Mod+S and Mod+X, wp.
+        function wallpaper(): void {
+            wallpaperQuery.running = true;
         }
 
         // hypridle's after_sleep_cmd.

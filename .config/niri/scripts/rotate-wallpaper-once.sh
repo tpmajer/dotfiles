@@ -29,5 +29,7 @@ RANDOM_IMAGE="${IMAGES[RANDOM % ${#IMAGES[@]}]}"
 
 # Set the wallpaper
 awww img "$RANDOM_IMAGE" --transition-step 255 --transition-fps 120  --transition-type "$TRANSITION_TYPE" --transition-duration "$TRANSITION_DURATION" --transition-angle "$TRANSITION_ANGLE" --resize crop
+# The lock screen shows the wallpaper too: tell it now, not at its next poll.
+qs ipc call lock wallpaper 2>/dev/null
 notify-send "Wallpaper changed" "$RANDOM_IMAGE"
 
