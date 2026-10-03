@@ -35,9 +35,6 @@ input {
         accel-speed 0.2
         scroll-factor 1.6
     }
-
-    trackpoint {
-    }
 }
 
 // Find more information on the wiki:
@@ -96,9 +93,6 @@ layout {
         color "#1792998c"
     }
 
-    struts {
-    }
-
     // Set transparent workspace background color.
     background-color "transparent"
 }
@@ -119,9 +113,6 @@ recent-windows {
 }
 
 spawn-at-startup "~/.config/niri/scripts/flatpak-gtk-theme.sh"
-
-environment {
-}
 
 cursor {
     // Change the theme and size of the cursor as well as set the
