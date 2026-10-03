@@ -1,14 +1,30 @@
 # dotfiles
 
-Personal dotfiles for my daily Linux setup. Currently built around the [Catppuccin Mocha](https://catppuccin.com) color scheme, the [Niri](https://github.com/niri-wm/niri) scrolling compositor, and [Ghostty](https://ghostty.org) terminal.
+Personal dotfiles for my daily Linux setup. Currently built around the [Catppuccin](https://catppuccin.com) color scheme (mostly Mocha), the [Niri](https://github.com/niri-wm/niri) scrolling compositor, and [Ghostty](https://ghostty.org) terminal.
 
-Includes configuration for: [Niri](https://github.com/niri-wm/niri) · [Ghostty](https://ghostty.org) · [Fish](https://fishshell.com) · [Nushell](https://www.nushell.sh) · [Quickshell](https://quickshell.org) · [Fuzzel](https://codeberg.org/dnkl/fuzzel) · [MPV](https://mpv.io) · [uosc](https://github.com/tomasklaen/uosc) · [micro](https://github.com/zyedidia/micro) · [Helix](https://helix-editor.com) · [lazygit](https://github.com/jesseduffield/lazygit) · [Git](https://git-scm.com) · [btop](https://github.com/aristocratos/btop) · [bat](https://github.com/sharkdp/bat) · [cava](https://github.com/karlstav/cava) · [fastfetch](https://github.com/fastfetch-cli/fastfetch) · [starship](https://starship.rs) · [hyprlock](https://github.com/hyprwm/hyprlock/) · [hypridle](https://github.com/hyprwm/hypridle) · [networkmanager-dmenu](https://github.com/firecat53/networkmanager-dmenu) · GTK 3/4
+Includes configuration for: [Niri](https://github.com/niri-wm/niri) · [Ghostty](https://ghostty.org) · [Fish](https://fishshell.com) · [Nushell](https://www.nushell.sh) · [Quickshell](https://quickshell.org) · [Fuzzel](https://codeberg.org/dnkl/fuzzel) · [MPV](https://mpv.io) · [uosc](https://github.com/tomasklaen/uosc) · [micro](https://github.com/zyedidia/micro) · [Helix](https://helix-editor.com) · [lazygit](https://github.com/jesseduffield/lazygit) · [Git](https://git-scm.com) · [btop](https://github.com/aristocratos/btop) · [bat](https://github.com/sharkdp/bat) · [cava](https://github.com/karlstav/cava) · [fastfetch](https://github.com/fastfetch-cli/fastfetch) · [starship](https://starship.rs) · [hypridle](https://github.com/hyprwm/hypridle) · [networkmanager-dmenu](https://github.com/firecat53/networkmanager-dmenu) · GTK 3/4
 
 #
 
 <img src="assets/screenshot.png" width="800" alt="My desktop">
 
 #
+
+## Quickshell
+
+One Quickshell configuration is the bar with its popups, the notifications,
+the volume and brightness OSD, the power menu and the session lock. The lock
+checks the password and the fingerprint through PAM services set up outside
+this repo (`hyprlock` and `gdm-fingerprint`), and is driven over IPC:
+
+```sh
+qs ipc call lock lock        # lock, with the fade (hypridle's lock_cmd)
+qs ipc call lock lockNow     # lock at once, before a suspend
+qs ipc call lock woke        # after a suspend: the fingerprint reader anew
+qs ipc call lock wallpaper   # the wallpaper has changed
+qs ipc call lock unlock      # a way out from a TTY
+qs ipc call power toggle     # the power menu
+```
 
 ## Installation
 
