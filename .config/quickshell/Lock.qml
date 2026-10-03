@@ -330,6 +330,22 @@ Scope {
         }
     }
 
+    // After a suspend. The conversation that slept through it is lost: fprintd
+    // is stopped on resume (NixOS, resumeCommands) and PAM takes seconds to say
+    // so, then the retry waits its turn. Dropped here, and a new one started
+    // once the old fprintd has had the moment it needs to go, the reader waits
+    // for a finger a second after the wake, not five. No icon until it does.
+    function woke() {
+        if (!state.locked || unlocking)
+            return;
+        if (finger.active)
+            finger.abort();
+        fingerBad.stop();
+        fingerState = "";
+        fingerRetry.interval = 300;
+        fingerRetry.restart();
+    }
+
     // Whether the reader asked for a finger in this conversation: it does not
     // when there is no reader.
     property bool fingerPrompted: false
@@ -920,6 +936,11 @@ Scope {
         // The compositor has locked the session and the lock is drawn.
         function isLocked(): bool {
             return sessionLock.secure;
+        }
+
+        // hypridle's after_sleep_cmd.
+        function woke(): void {
+            root.woke();
         }
 
         function unlock(): void {
