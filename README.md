@@ -54,6 +54,12 @@ find ~/.config -maxdepth 4 -xtype l  # dangling links
 Note that `stow -d ~ -t ~ .dotfiles` does **not** work: with the stow directory
 equal to the target, stow skips it and plans no operations at all.
 
+## Private files
+
+`niri/config.kdl` includes `block-screen-capture.kdl`, window rules that are
+kept out of the repo (`.gitignore`). The include is optional: without the file
+niri logs a warning and starts with everything else.
+
 ## Checking for keybinding conflicts
 
 `check_keybinds.py` scans the declarative keybinding files in this repo and
