@@ -1,0 +1,28 @@
+# https://editorconfig.org
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.{yml,css}]
+indent_size = 2
+
+# Two trailing spaces are a line break.
+[*.md]
+trim_trailing_whitespace = false
+
+# Tabs, as git and fastfetch write them.
+[.config/{git/config,fastfetch/config.jsonc}]
+indent_style = tab
+
+# Other people's files, kept as they came.
+[.config/{ghostty/shaders,cava/shaders,niri/animations,bat/themes,btop/themes,helix/themes,micro/colorschemes}/**]
+indent_style = unset
+indent_size = unset
+trim_trailing_whitespace = unset
+insert_final_newline = unset
