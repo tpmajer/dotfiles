@@ -893,9 +893,10 @@ Scope {
         }
     }
 
-    // `unlock` is for testing the prototype and for getting out when the
-    // password does not work. Any program of this user can call it, which is
-    // what `pkill -USR1 hyprlock` allows too.
+    // `unlock` is for getting out, from a TTY, when neither the password nor
+    // the finger works. Any program of this user can call it; one that can
+    // could as well write it into this file, which is loaded anew when it
+    // changes.
     IpcHandler {
         target: "lock"
 
