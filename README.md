@@ -39,6 +39,18 @@ stow .
 Run the same command again to link files added later. On a conflict it aborts
 with a list of what is in the way and changes nothing.
 
+A file removed from the repo leaves its link behind in `~`, pointing at
+nothing: `stow .` only adds. Restow to have such links pruned, or list them
+and remove them by hand:
+
+```sh
+stow -R .                            # unlink everything, link again
+find ~/.config -maxdepth 4 -xtype l  # dangling links
+```
+
+`find` also lists the lock files some applications keep as dangling links
+(`SingletonLock` and the like); only links into `.dotfiles` are stow's.
+
 Note that `stow -d ~ -t ~ .dotfiles` does **not** work: with the stow directory
 equal to the target, stow skips it and plans no operations at all.
 
