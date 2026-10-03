@@ -19,7 +19,7 @@ blur {
 }
 
 input {
-    
+
     keyboard {
         xkb {
             // You can set rules, model, layout, variant and options.
@@ -35,13 +35,13 @@ input {
         }
 
         // Enable numlock on startup, omitting this setting disables it.
-        numlock    
+        numlock
     }
 
     // Next sections include libinput settings.
     // Omitting settings disables them, or leaves them at their default values.
     // All commented-out settings here are examples, not defaults.
-    
+
     touchpad {
         // off
         tap
@@ -295,7 +295,7 @@ recent-windows {
         padding 30
     }
     previews {
-        max-height 700	
+        max-height 700
         max-scale 1.0
     }
     // Even an empty binds {} section will remove all default binds.
@@ -490,7 +490,7 @@ window-rule {
     geometry-corner-radius 6
     clip-to-geometry true
     draw-border-with-background false
-    opacity 1.0	
+    opacity 1.0
 }
 
 // Open the Firefox Picture-in-Picture window at the bottom-left corner of the screen
@@ -839,7 +839,7 @@ binds {
     Mod+Shift+K     { focus-monitor-up; }
     Mod+Shift+L     { focus-monitor-right; }
 
-    Mod+Shift+Ctrl+Left  { move-column-to-monitor-left; }	
+    Mod+Shift+Ctrl+Left  { move-column-to-monitor-left; }
     Mod+Shift+Ctrl+Down  { move-column-to-monitor-down; }
     Mod+Shift+Ctrl+Up    { move-column-to-monitor-up; }
     Mod+Shift+Ctrl+Right { move-column-to-monitor-right; }
@@ -877,7 +877,7 @@ binds {
     Mod+Shift+V { switch-focus-between-floating-and-tiling; }
     Mod+V       { toggle-window-floating; }
     Mod+0 		{ toggle-window-rule-opacity; }
-    
+
     // You can refer to workspaces by index. However, keep in mind that
     // niri is a dynamic workspace system, so these commands are kind of
     // "best effort". Trying to refer to a workspace index bigger than
