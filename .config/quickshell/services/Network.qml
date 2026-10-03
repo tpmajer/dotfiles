@@ -92,7 +92,9 @@ Singleton {
     property var previous: ({})   // interface -> {rx, tx, time}
 
     function readTraffic() {
+        // Without the wait, text() is still the previous read's.
         netDev.reload();
+        netDev.waitForJob();
         const counters = {};
         for (const line of netDev.text().split("\n").slice(2)) {
             const [name, data] = line.split(":");

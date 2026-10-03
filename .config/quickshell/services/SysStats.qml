@@ -4,7 +4,9 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// CPU (every 1 s) and memory (every 5 s) usage read from /proc.
+// CPU (every 1 s) and memory (every 5 s) usage read from /proc. reload() only
+// starts a read: without the wait, text() is still the previous content, a
+// whole interval old.
 Singleton {
     id: root
 
@@ -84,8 +86,10 @@ Singleton {
         triggeredOnStart: true
         onTriggered: {
             stat.reload();
+            stat.waitForJob();
             root.parseStat(stat.text());
             loadavg.reload();
+            loadavg.waitForJob();
             root.loadAvg = loadavg.text().split(" ").slice(0, 3).join("  ");
         }
     }
@@ -97,6 +101,7 @@ Singleton {
         triggeredOnStart: true
         onTriggered: {
             meminfo.reload();
+            meminfo.waitForJob();
             root.parseMeminfo(meminfo.text());
         }
     }
