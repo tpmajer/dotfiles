@@ -19,7 +19,6 @@ PanelWindow {
         shown: menu.shown
         mapped: menu.backingWindowVisible
     }
-    readonly property real openness: pop.openness
 
     function toggle() {
         if (shown) {
@@ -35,25 +34,16 @@ PanelWindow {
     // without it has been drawn: hyprlock (Lock, and Suspend via hypridle)
     // screenshots the screen right away and would otherwise capture the
     // closing menu.
-    property string pendingAction: ""
     function runAction(command) {
-        pendingAction = command;
+        action.pending = command;
         shown = false;
     }
-    onOpennessChanged: if (openness <= 0 && pendingAction !== "")
-        actionTimer.restart()
     onShownChanged: if (shown)
-        pendingAction = ""
+        action.pending = ""
 
-    Timer {
-        id: actionTimer
-        interval: Theme.actionDelay
-        onTriggered: {
-            const command = menu.pendingAction;
-            menu.pendingAction = "";
-            if (command !== "")
-                Quickshell.execDetached(["sh", "-c", command]);
-        }
+    DeferredAction {
+        id: action
+        openness: pop.openness
     }
 
     screen: Quickshell.screens.find(s => s.name === Niri.focusedOutput) ?? Quickshell.screens[0]

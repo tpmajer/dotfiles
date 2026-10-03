@@ -71,7 +71,7 @@ Item {
     property int blurResend: 0
     onPopupOpenChanged: {
         if (popupOpen) {
-            pendingAction = "";
+            action.pending = "";
         } else {
             blurResendTimer.left = 4;
             blurResendTimer.start();
@@ -191,23 +191,14 @@ Item {
     // without it has been drawn: hyprlock (Lock, and Suspend via hypridle)
     // screenshots the screen right away and would otherwise capture the
     // closing popup.
-    property string pendingAction: ""
     function runAction(command) {
-        pendingAction = command;
+        action.pending = command;
         popupOpen = false;
     }
-    onOpennessChanged: if (openness <= 0 && pendingAction !== "")
-        actionTimer.restart()
 
-    Timer {
-        id: actionTimer
-        interval: Theme.actionDelay
-        onTriggered: {
-            const command = root.pendingAction;
-            root.pendingAction = "";
-            if (command !== "")
-                Quickshell.execDetached(["sh", "-c", command]);
-        }
+    DeferredAction {
+        id: action
+        openness: root.openness
     }
 
     function showPopup(module) {
