@@ -9,7 +9,6 @@ include optional=true "block-screen-capture.kdl"
 include "animations/prism-glide.kdl"
 
 blur {
-    // off
     passes 2
     offset 3
     noise 0.02
@@ -20,47 +19,25 @@ input {
     keyboard {
         xkb {
             layout "pl"
-            // options "grp:win_space_toggle,compose:ralt,ctrl:nocaps"
         }
 
         numlock
     }
 
     touchpad {
-        // off
         tap
         dwt
-        // dwtp
-        // drag false
-        // drag-lock
         natural-scroll
         accel-speed 0.4
-        // accel-profile "flat"
-        // scroll-method "two-finger"
-        // disabled-on-external-mouse
     }
 
     mouse {
-        // off
-        // natural-scroll
         accel-speed 0.2
-        // accel-profile "flat"
-        // scroll-method "no-scroll"
         scroll-factor 1.6
     }
 
     trackpoint {
-        // off
-        // natural-scroll
-        // accel-speed 0.2
-        // accel-profile "flat"
-        // scroll-method "on-button-down"
-        // scroll-button 273
-        // scroll-button-lock
-        // middle-emulation
     }
-
-    // warp-mouse-to-focus
 
     // focus-follows-mouse max-scroll-amount="40%"
 }
@@ -68,8 +45,6 @@ input {
 // Find more information on the wiki:
 // https://yalter.github.io/niri/Configuration:-Outputs
 output "eDP-1" {
-    // off
-
     mode "2880x1920@120.000"
     variable-refresh-rate   // re-enabled 2026-09-05: disproved as hang cause (3rd hang happened with VRR off)
 
@@ -93,18 +68,11 @@ layout {
         proportion 0.33333
         proportion 0.5
         proportion 0.66667
-
-        // fixed 1920
     }
 
-    // preset-window-heights { }
-
     default-column-width { proportion 0.5; }
-    // default-column-width {}
 
     focus-ring {
-        // off
-
         width 2
 
         // active-color "#7fc8ff"
@@ -113,7 +81,6 @@ layout {
 
         active-gradient from="#74c7ec" to="#a6e3a1" angle=45 relative-to="window"
 
-        // inactive-gradient from="#505050" to="#808080" angle=45 relative-to="workspace-view"
         inactive-color "#181825b3"
     }
 
@@ -125,14 +92,10 @@ layout {
         inactive-color "#7f849cb3"
 
         // urgent-color "#9b0000"
-
-        // inactive-gradient from="#505050" to="#808080" angle=45 relative-to="workspace-view"
     }
 
     shadow {
         on
-
-        // draw-behind-window true
 
         softness 20
 
@@ -144,10 +107,6 @@ layout {
     }
 
     struts {
-        // left 64
-        // right 64
-        // top 64
-        // bottom 64
     }
 
     // Set transparent workspace background color.
@@ -506,8 +465,6 @@ binds {
 
     Mod+J     { focus-window-or-workspace-down; }
     Mod+K     { focus-window-or-workspace-up; }
-    // Mod+Ctrl+J     { move-window-down-or-to-workspace-down; }
-    // Mod+Ctrl+K     { move-window-up-or-to-workspace-up; }
 
     Mod+Home { focus-column-first; }
     Mod+End  { focus-column-last; }
@@ -532,10 +489,6 @@ binds {
     Mod+Shift+Ctrl+K     { move-column-to-monitor-up; }
     Mod+Shift+Ctrl+L     { move-column-to-monitor-right; }
 
-    // Mod+Shift+Ctrl+Left  { move-window-to-monitor-left; }
-
-    // Mod+Shift+Ctrl+Left  { move-workspace-to-monitor-left; }
-
     Mod+Page_Down      { focus-workspace-down; }
     Mod+Page_Up        { focus-workspace-up; }
     Mod+U              { focus-workspace-down; }
@@ -544,8 +497,6 @@ binds {
     Mod+Ctrl+Page_Up   { move-column-to-workspace-up; }
     Mod+Ctrl+U         { move-column-to-workspace-down; }
     Mod+Ctrl+I         { move-column-to-workspace-up; }
-
-    // Mod+Ctrl+Page_Down { move-window-to-workspace-down; }
 
     Mod+Shift+Page_Down { move-workspace-down; }
     Mod+Shift+Page_Up   { move-workspace-up; }
@@ -575,8 +526,6 @@ binds {
     Mod+Ctrl+8 { move-column-to-workspace 8; }
     Mod+Ctrl+9 { move-column-to-workspace 9; }
 
-    // Mod+Ctrl+1 { move-window-to-workspace 1; }
-
     Mod+Comma  { consume-window-into-column; }
     Mod+Period { expel-window-from-column; }
 
@@ -596,9 +545,6 @@ binds {
 
     Mod+Shift+Minus { set-window-height "-10%"; }
     Mod+Shift+Equal { set-window-height "+10%"; }
-
-    // Mod+Space       { switch-layout "next"; }
-    // Mod+Shift+Space { switch-layout "prev"; }
 
     Print { screenshot; }
     Ctrl+Print { screenshot-screen; }
