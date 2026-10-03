@@ -46,6 +46,7 @@
 
 | Function | Usage | Description |
 |----------|-------|-------------|
+| `eza` | `eza [args]` | Wrapper for `eza` — always with `--hyperlink`, so the functions below get it too |
 | `e` | `e [args]` | Alias for `eza --hyperlink` |
 | `ez` | `ez [args]` | `eza -al` — detailed listing including hidden files |
 | `etree` | `etree [args]` | `eza -aT` — directory tree |
