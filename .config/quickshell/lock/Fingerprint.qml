@@ -50,14 +50,17 @@ Scope {
     // is stopped on resume (NixOS, resumeCommands) and PAM takes seconds to say
     // so, then the retry waits its turn. Dropped here, and a new one started
     // once the old fprintd has had the moment it needs to go, the reader waits
-    // for a finger a second after the wake, not five. No icon until it does.
+    // for a finger a second after the wake, not five. An icon that was there
+    // before the suspend stays through that second: taken away until the new
+    // prompt, it would blink on the first frames after the wake.
     function woke() {
         if (!watching)
             return;
         if (pam.active)
             pam.abort();
         bad.stop();
-        mark = "";
+        if (mark === "bad")
+            mark = "waiting";
         retry.interval = 300;
         retry.restart();
     }
