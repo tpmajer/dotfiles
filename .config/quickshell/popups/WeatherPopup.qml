@@ -5,7 +5,7 @@ import qs.widgets
 
 Column {
     spacing: 4
-    PopupText { text: "Warsaw " + Weather.temperatureText }
+    PopupText { text: Weather.place + " " + Weather.temperatureText }
     PopupText {
         text: Weather.description
         color: Theme.subtext0

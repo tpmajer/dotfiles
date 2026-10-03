@@ -12,6 +12,8 @@ import qs
 Singleton {
     id: root
 
+    // Where, and what the popup calls it.
+    readonly property string place: "Warsaw"
     readonly property real latitude: 52.23
     readonly property real longitude: 21.01
 
