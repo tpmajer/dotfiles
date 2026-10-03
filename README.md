@@ -1,6 +1,6 @@
 # dotfiles
 
-Personal dotfiles for my daily Linux setup. Currently built around the [Catppuccin](https://catppuccin.com) color scheme (mostly Mocha), the [Niri](https://github.com/niri-wm/niri) scrolling compositor, and [Ghostty](https://ghostty.org) terminal.
+Personal dotfiles for my daily Linux setup. Currently built around the [Catppuccin Mocha](https://catppuccin.com) color scheme, the [Niri](https://github.com/niri-wm/niri) scrolling compositor, and [Ghostty](https://ghostty.org) terminal.
 
 Includes configuration for: [Niri](https://github.com/niri-wm/niri) · [Ghostty](https://ghostty.org) · [Fish](https://fishshell.com) · [Nushell](https://www.nushell.sh) · [Quickshell](https://quickshell.org) · [Fuzzel](https://codeberg.org/dnkl/fuzzel) · [MPV](https://mpv.io) · [uosc](https://github.com/tomasklaen/uosc) · [micro](https://github.com/zyedidia/micro) · [Helix](https://helix-editor.com) · [lazygit](https://github.com/jesseduffield/lazygit) · [Git](https://git-scm.com) · [btop](https://github.com/aristocratos/btop) · [bat](https://github.com/sharkdp/bat) · [cava](https://github.com/karlstav/cava) · [fastfetch](https://github.com/fastfetch-cli/fastfetch) · [starship](https://starship.rs) · [hypridle](https://github.com/hyprwm/hypridle) · [networkmanager-dmenu](https://github.com/firecat53/networkmanager-dmenu) · GTK 3/4
 
