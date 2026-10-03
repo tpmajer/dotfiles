@@ -20,9 +20,8 @@ trim_trailing_whitespace = false
 [.config/{git/config,fastfetch/config.jsonc}]
 indent_style = tab
 
-# Other people's files, kept as they came.
+# Other people's files, kept as they came: nothing is rewritten on save. Not
+# `unset`, which micro's plugin reports as an unknown value.
 [.config/{ghostty/shaders,cava/shaders,niri/animations,bat/themes,btop/themes,helix/themes,micro/colorschemes}/**]
-indent_style = unset
-indent_size = unset
-trim_trailing_whitespace = unset
-insert_final_newline = unset
+trim_trailing_whitespace = false
+insert_final_newline = false
