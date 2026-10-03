@@ -62,7 +62,7 @@ input {
         accel-speed 0.2
         // accel-profile "flat"
         // scroll-method "no-scroll"
-		scroll-factor 1.6
+        scroll-factor 1.6
     }
 
     trackpoint {
@@ -102,11 +102,11 @@ output "eDP-1" {
     // If the mode is omitted altogether or is invalid, niri will pick one automatically.
     // Run `niri msg outputs` while inside a niri instance to list all outputs and their modes.
     mode "2880x1920@120.000"
-	variable-refresh-rate   // re-enabled 2026-09-05: disproved as hang cause (3rd hang happened with VRR off)
+    variable-refresh-rate   // re-enabled 2026-09-05: disproved as hang cause (3rd hang happened with VRR off)
 
     // You can use integer or fractional scale, for example use 1.5 for 150% scale.
     // scale 1.6666666269302368
-	scale 1.6
+    scale 1.6
 
     // Transform allows to rotate the output counter-clockwise, valid values are:
     // normal, 90, 180, 270, flipped, flipped-90, flipped-180 and flipped-270.
@@ -121,8 +121,8 @@ output "eDP-1" {
     // so to put another output directly adjacent to it on the right, set its x to 1920.
     // If the position is unset or results in an overlap, the output is instead placed
     // automatically.
-	// position x=1280 y=0
-	position x=0 y=0
+    // position x=1280 y=0
+    position x=0 y=0
 }
 
 // Settings that influence how windows are positioned and sized.
@@ -201,14 +201,14 @@ layout {
         // You can use any CSS linear-gradient tool on the web to set these up.
         // Changing the color space is also supported, check the wiki for more info.
         //
-		active-gradient from="#74c7ec" to="#a6e3a1" angle=45 relative-to="window"
+        active-gradient from="#74c7ec" to="#a6e3a1" angle=45 relative-to="window"
 
         // You can also color the gradient relative to the entire view
         // of the workspace, rather than relative to just the window itself.
         // To do that, set relative-to="workspace-view".
         //
         // inactive-gradient from="#505050" to="#808080" angle=45 relative-to="workspace-view"
-		inactive-color "#181825b3"
+        inactive-color "#181825b3"
     }
 
     // You can also add a border. It's similar to the focus ring, but always visible.
@@ -281,34 +281,34 @@ layout {
         // bottom 64
     }
 
-	// Set transparent workspace background color.
+    // Set transparent workspace background color.
     background-color "transparent"
 }
 
 recent-windows {
-	// Round the corners on the highlight.
-	open-delay-ms 0
-	highlight {
-		corner-radius 6
-		active-color "#74c7ec"
-		urgent-color "#f38ba8"
-		padding 30
+    // Round the corners on the highlight.
+    open-delay-ms 0
+    highlight {
+        corner-radius 6
+        active-color "#74c7ec"
+        urgent-color "#f38ba8"
+        padding 30
     }
-	previews {
-		max-height 700	
-		max-scale 1.0
-	}
-	// Even an empty binds {} section will remove all default binds.
+    previews {
+        max-height 700	
+        max-scale 1.0
+    }
+    // Even an empty binds {} section will remove all default binds.
     /-binds {
-       	Alt+Tab         { next-window; }
-       	Alt+Shift+Tab   { previous-window; }
-       	Alt+grave       { next-window     filter="app-id"; }
-       	Alt+Shift+grave { previous-window filter="app-id"; }
+        Alt+Tab         { next-window; }
+        Alt+Shift+Tab   { previous-window; }
+        Alt+grave       { next-window     filter="app-id"; }
+        Alt+Shift+grave { previous-window filter="app-id"; }
 
-       	Mod+Tab         { next-window; }
-       	Mod+Shift+Tab   { previous-window; }
-       	Mod+grave       { next-window     filter="app-id"; }
-       	Mod+Shift+grave { previous-window filter="app-id"; }
+        Mod+Tab         { next-window; }
+        Mod+Shift+Tab   { previous-window; }
+        Mod+grave       { next-window     filter="app-id"; }
+        Mod+Shift+grave { previous-window filter="app-id"; }
     }
 }
 
@@ -323,7 +323,7 @@ spawn-at-startup "~/.config/niri/scripts/flatpak-gtk-theme.sh"
 // You can override environment variables for processes spawned by niri.
 environment {
     // Set a variable like this:
-	// QT_QPA_PLATFORM "wayland;xcb"
+    // QT_QPA_PLATFORM "wayland;xcb"
 
     // Remove a variable by using null as the value:
     // DISPLAY ":1"
@@ -490,7 +490,7 @@ window-rule {
     geometry-corner-radius 6
     clip-to-geometry true
     draw-border-with-background false
-	opacity 1.0	
+    opacity 1.0	
 }
 
 // Open the Firefox Picture-in-Picture window at the bottom-left corner of the screen
@@ -509,7 +509,7 @@ window-rule {
         xray false
     }
     default-floating-position x=0 y=600 relative-to="top"
-	// geometry-corner-radius 18
+    // geometry-corner-radius 18
 }
 
 // Make inactive windows more transparent.
@@ -527,11 +527,11 @@ window-rule {
 }
 window-rule {
     match app-id="ghostty" is-active=true
-	match app-id="org.gnome.Nautilus" is-active=true
-	match app-id="de.haeckerfelix.Fragments" is-active=true
-	match app-id="org.gnome.Logs" is-active=true
-	match app-id="org.gnome.baobab" is-active=true
-	match app-id="org.gnome.font-viewer" is-active=true
+    match app-id="org.gnome.Nautilus" is-active=true
+    match app-id="de.haeckerfelix.Fragments" is-active=true
+    match app-id="org.gnome.Logs" is-active=true
+    match app-id="org.gnome.baobab" is-active=true
+    match app-id="org.gnome.font-viewer" is-active=true
     opacity 0.95
     background-effect {
         blur true
@@ -540,11 +540,11 @@ window-rule {
 }
 window-rule {
     match app-id="ghostty" is-active=false
-	match app-id="org.gnome.Nautilus" is-active=false
-	match app-id="de.haeckerfelix.Fragments" is-active=false
-	match app-id="org.gnome.Logs" is-active=false
+    match app-id="org.gnome.Nautilus" is-active=false
+    match app-id="de.haeckerfelix.Fragments" is-active=false
+    match app-id="org.gnome.Logs" is-active=false
     match app-id="org.gnome.baobab" is-active=false
-	match app-id="org.gnome.font-viewer" is-active=false
+    match app-id="org.gnome.font-viewer" is-active=false
     opacity 0.90
 }
 
@@ -562,11 +562,11 @@ window-rule {
     match app-id="google-chrome"
     match app-id="obsidian"
     match app-id="Godot"
-	match app-id="REAPER"
-	match app-id="RapidRAW"
-	match app-id="electron"
-	match app-id="art.graphite.Graphite"
-	open-maximized true
+    match app-id="REAPER"
+    match app-id="RapidRAW"
+    match app-id="electron"
+    match app-id="art.graphite.Graphite"
+    open-maximized true
 //  default-column-width { proportion 1.0; }
 }
 // Width 0.8
@@ -581,9 +581,9 @@ window-rule {
 }
 
 window-rule {
-	match app-id="firefox" is-active=true
-	match app-id="firefox-nightly" is-active=true
-	draw-border-with-background true
+    match app-id="firefox" is-active=true
+    match app-id="firefox-nightly" is-active=true
+    draw-border-with-background true
 }
 //Picture-in-Picture
 window-rule {
@@ -611,31 +611,31 @@ window-rule {
 }
 // MPV
 window-rule {
-	match app-id="mpv" is-floating=true
-	opacity 0.99
+    match app-id="mpv" is-floating=true
+    opacity 0.99
 }
 // Reaper
 window-rule {
-	match app-id="REAPER"
-	default-floating-position x=80 y=300 relative-to="top"
+    match app-id="REAPER"
+    default-floating-position x=80 y=300 relative-to="top"
 }
 window-rule {
-	match app-id="REAPER" title="Open project"
-	match app-id="REAPER" title="REAPER Preferences"
-	match app-id="REAPER" title="Save Project"
-	default-column-width { proportion 0.6; }
+    match app-id="REAPER" title="Open project"
+    match app-id="REAPER" title="REAPER Preferences"
+    match app-id="REAPER" title="Save Project"
+    default-column-width { proportion 0.6; }
 }
 
 // Floating windows
 window-rule {
     match app-id="resolve" title="resolve"
     match app-id="resolve" title="Create New Project"
-	match app-id="firefox" title="About Mozilla Firefox"
-	match app-id="firefox" title="Library"
-	match app-id="firefox-nightly" title="About Firefox Nightly"
-	match app-id="firefox-nightly" title="Library"
+    match app-id="firefox" title="About Mozilla Firefox"
+    match app-id="firefox" title="Library"
+    match app-id="firefox-nightly" title="About Firefox Nightly"
+    match app-id="firefox-nightly" title="Library"
     match app-id="thunderbird" title="About Mozilla Thunderbird"
-	match app-id="com.network.manager"
+    match app-id="com.network.manager"
     open-floating true
 }
 
@@ -648,11 +648,11 @@ layer-rule {
     opacity 0.85
     // Fuzzel defaults to 10 px rounded corners.
     geometry-corner-radius 10
-	baba-is-float false
-	background-effect {
-	    blur true
-	    xray false
-	}
+    baba-is-float false
+    background-effect {
+        blur true
+        xray false
+    }
 }
 
 layer-rule {
@@ -763,11 +763,11 @@ binds {
     Mod+T hotkey-overlay-title="Open terminal" { spawn-sh "ghostty +new-window || ghostty"; }
     Mod+Space hotkey-overlay-title="Open fuzzel" { spawn "fuzzel"; }
     Mod+B hotkey-overlay-title="Open Firefox" { spawn "firefox"; }
-	Mod+N hotkey-overlay-title="Open Firefox in Private Mode" { spawn-sh "firefox --private-window"; }
-	Mod+P hotkey-overlay-title="Open Nautilus" { spawn-sh "nautilus -w"; }
+    Mod+N hotkey-overlay-title="Open Firefox in Private Mode" { spawn-sh "firefox --private-window"; }
+    Mod+P hotkey-overlay-title="Open Nautilus" { spawn-sh "nautilus -w"; }
     // Mod+Alt+L hotkey-overlay-title="Lock screen" { spawn "swaylock" "--screenshots" "--key-hl-color" "FF8941" "--indicator" "--indicator-radius" "150" "--clock" "--fade-in" "0.2" "--effect-vignette" "0.7:0.7" "--ring-color" "FFC041" "--effect-blur" "10x6"; }
-	Mod+L hotkey-overlay-title="Lock screen" allow-when-locked=false { spawn-sh "loginctl lock-session"; }
-	Mod+Escape hotkey-overlay-title="Power menu" allow-when-locked=false { spawn "qs" "ipc" "call" "power" "toggle"; }
+    Mod+L hotkey-overlay-title="Lock screen" allow-when-locked=false { spawn-sh "loginctl lock-session"; }
+    Mod+Escape hotkey-overlay-title="Power menu" allow-when-locked=false { spawn "qs" "ipc" "call" "power" "toggle"; }
     Mod+S hotkey-overlay-title="Shuffle wallpaper" { spawn "~/.config/niri/scripts/wallpaper.sh"; }
     Mod+X hotkey-overlay-title="Shuffle wallpaper, second set" { spawn-sh "~/.config/niri/scripts/wallpaper.sh ~/Pictures/.Wallpapers2 random"; }
     Mod+M hotkey-overlay-title="Open MPV" { spawn-sh "mpv --player-operation-mode=pseudo-gui"; }
@@ -876,8 +876,8 @@ binds {
 
     Mod+Shift+V { switch-focus-between-floating-and-tiling; }
     Mod+V       { toggle-window-floating; }
-	Mod+0 		{ toggle-window-rule-opacity; }
-	
+    Mod+0 		{ toggle-window-rule-opacity; }
+    
     // You can refer to workspaces by index. However, keep in mind that
     // niri is a dynamic workspace system, so these commands are kind of
     // "best effort". Trying to refer to a workspace index bigger than
@@ -954,7 +954,7 @@ binds {
     // If you want to skip the confirmation dialog, set the flag like so:
     // Mod+Shift+E { quit skip-confirmation=true; }
     Mod+Shift+E { quit; }
-	Ctrl+Alt+Delete { quit; }
+    Ctrl+Alt+Delete { quit; }
 
     // Powers off the monitors. To turn them back on, do any input like
     // moving the mouse or pressing any other key.
