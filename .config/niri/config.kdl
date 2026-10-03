@@ -38,8 +38,6 @@ input {
 
     trackpoint {
     }
-
-    // focus-follows-mouse max-scroll-amount="40%"
 }
 
 // Find more information on the wiki:
@@ -48,12 +46,10 @@ output "eDP-1" {
     mode "2880x1920@120.000"
     variable-refresh-rate   // re-enabled 2026-09-05: disproved as hang cause (3rd hang happened with VRR off)
 
-    // scale 1.6666666269302368
     scale 1.6
 
     transform "normal"
 
-    // position x=1280 y=0
     position x=0 y=0
 }
 
@@ -75,10 +71,6 @@ layout {
     focus-ring {
         width 2
 
-        // active-color "#7fc8ff"
-
-        // inactive-color "#505050"
-
         active-gradient from="#74c7ec" to="#a6e3a1" angle=45 relative-to="window"
 
         inactive-color "#181825b3"
@@ -90,8 +82,6 @@ layout {
         width 0
         active-color "#181825b3"
         inactive-color "#7f849cb3"
-
-        // urgent-color "#9b0000"
     }
 
     shadow {
@@ -128,13 +118,9 @@ recent-windows {
     }
 }
 
-// spawn-at-startup "signal-desktop"
 spawn-at-startup "~/.config/niri/scripts/flatpak-gtk-theme.sh"
 
 environment {
-    // QT_QPA_PLATFORM "wayland;xcb"
-
-    // DISPLAY ":1"
 }
 
 cursor {
@@ -154,7 +140,6 @@ hotkey-overlay {
 }
 
 window-rule {
-    // match app-id=r#"^org\.wezfurlong\.wezterm$"#
     default-column-width { proportion 0.5; }
     geometry-corner-radius 6
     clip-to-geometry true
@@ -178,7 +163,6 @@ window-rule {
         xray false
     }
     default-floating-position x=0 y=600 relative-to="top"
-    // geometry-corner-radius 18
 }
 
 // Make inactive windows more transparent.
@@ -236,7 +220,6 @@ window-rule {
     match app-id="electron"
     match app-id="art.graphite.Graphite"
     open-maximized true
-//  default-column-width { proportion 1.0; }
 }
 // Width 0.8
 window-rule {
@@ -419,13 +402,11 @@ binds {
     Mod+B hotkey-overlay-title="Open Firefox" { spawn "firefox"; }
     Mod+N hotkey-overlay-title="Open Firefox in Private Mode" { spawn-sh "firefox --private-window"; }
     Mod+P hotkey-overlay-title="Open Nautilus" { spawn-sh "nautilus -w"; }
-    // Mod+Alt+L hotkey-overlay-title="Lock screen" { spawn "swaylock" "--screenshots" "--key-hl-color" "FF8941" "--indicator" "--indicator-radius" "150" "--clock" "--fade-in" "0.2" "--effect-vignette" "0.7:0.7" "--ring-color" "FFC041" "--effect-blur" "10x6"; }
     Mod+L hotkey-overlay-title="Lock screen" allow-when-locked=false { spawn-sh "loginctl lock-session"; }
     Mod+Escape hotkey-overlay-title="Power menu" allow-when-locked=false { spawn "qs" "ipc" "call" "power" "toggle"; }
     Mod+S hotkey-overlay-title="Shuffle wallpaper" { spawn "~/.config/niri/scripts/wallpaper.sh"; }
     Mod+X hotkey-overlay-title="Shuffle wallpaper, second set" { spawn-sh "~/.config/niri/scripts/wallpaper.sh ~/Pictures/.Wallpapers2 random"; }
     Mod+M hotkey-overlay-title="Open MPV" { spawn-sh "mpv --player-operation-mode=pseudo-gui"; }
-    // Mod+M hotkey-overlay-title="Open MPV" { spawn "umpv"; }
 
     XF86AudioRaiseVolume 	allow-when-locked=true { spawn "~/.config/niri/scripts/volume.sh" "up"; }
     XF86AudioLowerVolume 	allow-when-locked=true { spawn "~/.config/niri/scripts/volume.sh" "down"; }
@@ -449,9 +430,6 @@ binds {
     Mod+Up    { focus-window-up; }
     Mod+Right { focus-column-right; }
     Mod+H     { focus-column-left; }
-    // Mod+J     { focus-window-down; }
-    // Mod+K     { focus-window-up; }
-    // Mod+L     { focus-column-right; }
     Mod+W { toggle-column-tabbed-display; }
 
     Mod+Ctrl+Left  { move-column-left; }
@@ -550,7 +528,6 @@ binds {
     Ctrl+Print { screenshot-screen; }
     Alt+Print { screenshot-window; }
 
-    // Mod+Shift+E { quit skip-confirmation=true; }
     Mod+Shift+E { quit; }
     Ctrl+Alt+Delete { quit; }
 
