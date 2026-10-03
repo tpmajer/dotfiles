@@ -11,7 +11,7 @@ Singleton {
     readonly property color subtext1: "#bac2de"
     readonly property color subtext0: "#a6adc8"
     readonly property color white: "#ffffff"
-    readonly property color pink: "#ea76cb"
+    readonly property color pink: "#f5c2e7"
 
     readonly property color blue: "#89b4fa"
     readonly property color sky: "#89dceb"
@@ -21,8 +21,8 @@ Singleton {
     readonly property color yellow: "#f9e2af"
     readonly property color peach: "#fab387"
     readonly property color red: "#f38ba8"
-    readonly property color maroon: "#e64553"
-    readonly property color lavender: "#8caaee"
+    readonly property color maroon: "#eba0ac"
+    readonly property color lavender: "#b4befe"
     readonly property color mauve: "#cba6f7"
 
     readonly property string font: "JetBrainsMono Nerd Font Propo"
