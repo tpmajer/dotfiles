@@ -50,11 +50,8 @@ Singleton {
     // false: popups float below the bar with a gap and all corners rounded.
     readonly property bool popupAttached: false
     readonly property int popupGap: 8
+    // A popup changing its size or moving to another module, in ms.
     readonly property int popupDuration: 180
-    // "grow": the popup grows down out of the bar. "niri": like niri's window
-    // open/close in animations/prism-glide.kdl (fade, slight slide and scale).
-    // "pop": a popover scaling up from its module with a slight overshoot.
-    readonly property string popupAnimation: "pop"
 
     // On-screen display for volume and brightness: distance from the bottom
     // edge of the screen, and how long it stays.

@@ -4,7 +4,7 @@ import Quickshell
 import qs
 import qs.widgets
 
-// The bar's background and the popup that grows out of it: which module's popup
+// The bar's background and the popup that opens from it: which module's popup
 // is open, its animation and paddings, the bar and the popup drawn as one shape
 // with a shadow, and the regions the window takes input in and gets blurred in.
 // The modules are its children and sit on top of the bar.
@@ -44,8 +44,8 @@ Item {
 
         Region {
             x: popupBody.x
-            readonly property bool shown: popupBody.visible && (!root.fadeAnimation || root.openness > 0.5)
-            y: root.popupTop + root.animShift
+            readonly property bool shown: popupBody.visible && root.openness > 0.5
+            y: root.popupTop
             width: shown ? popupBody.width : 0
             height: shown ? root.popupVisibleHeight : 0
             topLeftRadius: Theme.popupAttached ? 0 : Theme.popupRadius
@@ -60,7 +60,13 @@ Item {
     property Item popupOwner: null
     property Item pendingOwner: null
     property bool popupOpen: false
-    property real openness: popupOpen ? 1 : 0
+    readonly property real openness: pop.openness
+
+    // Scaled from its top edge, towards the module.
+    Pop {
+        id: pop
+        shown: root.popupOpen
+    }
 
     // With Qt's threaded render loop (the one that runs animations at the
     // screen's refresh rate) a new blur region sometimes goes out right after a
@@ -86,35 +92,6 @@ Item {
                 stop();
         }
     }
-    readonly property bool niriAnimation: Theme.popupAnimation === "niri"
-    readonly property bool popAnimation: Theme.popupAnimation === "pop"
-    // Both show the popup whole and fade it, instead of growing it.
-    readonly property bool fadeAnimation: niriAnimation || popAnimation
-    Behavior on openness {
-        // The target is already set when this starts, so popupOpen tells open from close.
-        // "niri": prism-glide.kdl's window-open/close timings and curves, times its
-        // slowdown 1.3. "pop": quick with a slight overshoot in, quicker out.
-        NumberAnimation {
-            duration: root.niriAnimation ? (root.popupOpen ? 260 * 1.3 : 120 * 1.3) : root.popAnimation ? (root.popupOpen ? 220 : 120) : Theme.popupDuration
-            easing.type: root.niriAnimation ? Easing.BezierSpline : root.popAnimation ? (root.popupOpen ? Easing.OutBack : Easing.InQuad) : Easing.OutCubic
-            easing.bezierCurve: root.popupOpen ? [0.22, 1.0, 0.36, 1.0, 1, 1] : [0.32, 0.0, 0.67, 0.0, 1, 1]
-            easing.overshoot: 1.2
-        }
-    }
-
-    // prism-glide: opening slides up 60 px-ish into place and scales from 0.985,
-    // closing slides 40 px-ish down and scales to 0.988. Its shader shifts by
-    // px / width in height units, hence the height / width factor.
-    // pop: scales from 0.9 at the top edge (towards the module) and back to 0.95.
-    readonly property real animShift: niriAnimation ? (1 - openness) * (popupOpen ? 60 : 40) * popupHeight / Math.max(popupWidth, 1) : 0
-    readonly property real animScale: {
-        if (niriAnimation)
-            return popupOpen ? 0.985 + 0.015 * openness : 1 - 0.012 * (1 - openness);
-        if (popAnimation)
-            return popupOpen ? 0.9 + 0.1 * openness : 0.95 + 0.05 * openness;
-        return 1;
-    }
-    readonly property bool scaleFromTop: popAnimation
 
     readonly property real popupContentWidth: popupLoader.item ? popupLoader.item.implicitWidth : 0
     readonly property real popupContentHeight: popupLoader.item ? popupLoader.item.implicitHeight : 0
@@ -131,8 +108,8 @@ Item {
             easing.type: Easing.OutCubic
         }
     }
-    // "grow" reveals the popup gradually; "niri" shows it whole and fades it.
-    readonly property real popupVisibleHeight: fadeAnimation ? (openness > 0.001 ? popupHeight : 0) : popupHeight * openness
+    // The popup is there whole for as long as it shows at all.
+    readonly property real popupVisibleHeight: openness > 0.001 ? popupHeight : 0
     // Where the popup starts: right at the bar's bottom edge, or below a gap.
     readonly property real popupTop: barRect.y + barRect.height + (Theme.popupAttached ? 0 : Theme.popupGap)
 
@@ -248,16 +225,12 @@ Item {
             color: Theme.base
             topLeftRadius: topRadius
             topRightRadius: topRadius
-            opacity: root.fadeAnimation ? root.openness : 1
-            transform: [
-                Scale {
-                    origin.x: popupBody.width / 2
-                    origin.y: root.scaleFromTop ? 0 : popupBody.height / 2
-                    xScale: root.animScale
-                    yScale: root.animScale
-                },
-                Translate { y: root.animShift }
-            ]
+            opacity: root.openness
+            transform: Scale {
+                origin.x: popupBody.width / 2
+                xScale: pop.scale
+                yScale: pop.scale
+            }
             bottomLeftRadius: Math.min(Theme.popupRadius, root.popupVisibleHeight / 2)
             bottomRightRadius: Math.min(Theme.popupRadius, root.popupVisibleHeight / 2)
 
@@ -364,15 +337,11 @@ Item {
         id: popupClip
         x: popupBody.x
         y: root.popupTop
-        transform: [
-            Scale {
-                origin.x: popupClip.width / 2
-                origin.y: root.scaleFromTop ? 0 : popupClip.height / 2
-                xScale: root.animScale
-                yScale: root.animScale
-            },
-            Translate { y: root.animShift }
-        ]
+        transform: Scale {
+            origin.x: popupClip.width / 2
+            xScale: pop.scale
+            yScale: pop.scale
+        }
         width: popupBody.width
         height: root.popupVisibleHeight
         clip: true
@@ -382,8 +351,7 @@ Item {
             id: popupLoader
             // The content's origin on a whole device pixel too.
             x: Theme.snap(popupClip.x + root.popupPadH, root.devicePixelRatio) - popupClip.x
-            // Slides down with the popup instead of being revealed in place.
-            y: Theme.snap(popupClip.y + root.popupPadV, root.devicePixelRatio) - popupClip.y - (root.popupHeight - root.popupVisibleHeight)
+            y: Theme.snap(popupClip.y + root.popupPadV, root.devicePixelRatio) - popupClip.y
             opacity: root.openness
         }
 
