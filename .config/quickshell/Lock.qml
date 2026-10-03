@@ -313,7 +313,7 @@ Scope {
         onError: error => {
             root.checking = false;
             root.buffer = "";
-            root.status = "Authentication error: " + PamError.toString(error);
+            root.status = "authentication error: " + PamError.toString(error);
         }
     }
 
@@ -368,7 +368,7 @@ Scope {
                 return;
             root.fingerPrompted = true;
             if (messageIsError) {
-                root.status = "Fingerprint not recognised";
+                root.status = "fingerprint not recognised";
                 root.fingerState = "bad";
                 fingerBad.restart();
             } else if (root.fingerState !== "bad") {
@@ -396,7 +396,7 @@ Scope {
         if (tooMany) {
             fingerBad.stop();
             fingerState = "";
-            status = "Too many fingerprint attempts";
+            status = "too many fingerprint attempts";
             fingerRetry.interval = 30000;
         } else if (fingerPrompted) {
             // Timed out: the icon stays, the reader is back in a moment.
@@ -414,7 +414,7 @@ Scope {
         interval: 1500
         onTriggered: {
             root.fingerState = finger.active ? "waiting" : "";
-            if (root.status === "Fingerprint not recognised")
+            if (root.status === "fingerprint not recognised")
                 root.status = "";
         }
     }
@@ -422,7 +422,7 @@ Scope {
     Timer {
         id: fingerRetry
         onTriggered: {
-            if (root.status === "Too many fingerprint attempts")
+            if (root.status === "too many fingerprint attempts")
                 root.status = "";
             root.watchFinger();
         }
@@ -799,7 +799,7 @@ Scope {
                 // Caps Lock, which matters while typing, else what the
                 // reader or PAM had to say. Keeps its line when empty, so
                 // nothing moves.
-                text: root.capsLock ? "Caps Lock is on" : root.status !== "" ? root.status : " "
+                text: root.capsLock ? "caps lock is on" : root.status !== "" ? root.status : " "
                 color: root.capsLock ? Theme.peach : Theme.red
                 font.pixelSize: Theme.fontSize - 2
             }
