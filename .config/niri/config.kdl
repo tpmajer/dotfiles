@@ -768,8 +768,8 @@ binds {
     // Mod+Alt+L hotkey-overlay-title="Lock screen" { spawn "swaylock" "--screenshots" "--key-hl-color" "FF8941" "--indicator" "--indicator-radius" "150" "--clock" "--fade-in" "0.2" "--effect-vignette" "0.7:0.7" "--ring-color" "FFC041" "--effect-blur" "10x6"; }
 	Mod+L hotkey-overlay-title="Lock screen" allow-when-locked=false { spawn-sh "loginctl lock-session"; }
 	Mod+Escape hotkey-overlay-title="Power menu" allow-when-locked=false { spawn "qs" "ipc" "call" "power" "toggle"; }
-    Mod+S hotkey-overlay-title="Shuffle wallpaper" { spawn "~/.config/niri/scripts/rotate-wallpaper-once.sh"; }
-    Mod+X hotkey-overlay-title="Shuffle wallpaper" { spawn "~/.config/niri/scripts/rotate-wallpaper-once2.sh"; }
+    Mod+S hotkey-overlay-title="Shuffle wallpaper" { spawn "~/.config/niri/scripts/wallpaper.sh"; }
+    Mod+X hotkey-overlay-title="Shuffle wallpaper, second set" { spawn-sh "~/.config/niri/scripts/wallpaper.sh ~/Pictures/.Wallpapers2 random"; }
     Mod+M hotkey-overlay-title="Open MPV" { spawn-sh "mpv --player-operation-mode=pseudo-gui"; }
     // Mod+M hotkey-overlay-title="Open MPV" { spawn "umpv"; }
 

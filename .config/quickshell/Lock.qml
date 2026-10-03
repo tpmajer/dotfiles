@@ -486,7 +486,7 @@ Scope {
             return sessionLock.secure;
         }
 
-        // The wallpaper has changed: the scripts behind Mod+S and Mod+X, wp.
+        // The wallpaper has changed: niri's scripts/wallpaper.sh, fish's wp.
         function wallpaper(): void {
             wallpapers.refresh();
         }
