@@ -1,4 +1,4 @@
 function e --wraps=eza --description 'alias e=eza'
-  eza $argv
+    eza $argv
 
 end
