@@ -145,7 +145,7 @@ PanelWindow {
                 host: popups
                 text: !win ? "" : alt ? (win.app_id || "") : (win.title || "")
                 iconSource: entry ? Quickshell.iconPath(entry.icon, true) : ""
-                maxTextWidth: Math.max(0, clock.x - leftRow.x - windowModule.x - 80)
+                maxTextWidth: Math.max(0, weatherModule.x - leftRow.x - windowModule.x - 80)
                 onClicked: alt = !alt
             }
         }
@@ -169,37 +169,40 @@ PanelWindow {
             }
         }
 
-        // weather, next to the clock; not there until it is known
+        // weather, left of the clock; not there until it is known
         Module {
-            anchors.left: clock.right
+            id: weatherModule
+            anchors.right: clock.left
             host: popups
             text: Weather.known ? Weather.icon + " " + Weather.temperatureText : ""
             color: Theme.sky
             popup: WeatherPopup {}
         }
 
+        // notifications, right of the clock: how many wait in the center,
+        // which is its popup; a click switches do not disturb, a right click
+        // clears
+        Module {
+            id: bellModule
+            anchors.left: clock.right
+            host: popups
+            text: Theme.glyph(Notifications.dnd ? 0xf009b : 0xf009a) + (Notifications.missedCount > 0 ? " " + Notifications.missedCount : "")
+            color: !Notifications.dnd && Notifications.missedCount > 0 ? Theme.pink : Theme.subtext0
+            popup: NotificationsPopup {
+                host: bar
+            }
+            onClicked: m => {
+                if (m.button === Qt.RightButton)
+                    Notifications.clear();
+                else if (m.button === Qt.LeftButton)
+                    Notifications.toggleDnd();
+            }
+        }
+
         Row {
             id: rightRow
             anchors.right: parent.right
             height: parent.height
-
-            // notifications: how many wait in the center, which is its
-            // popup; a click switches do not disturb, a right click clears
-            Module {
-                id: bellModule
-                host: popups
-                text: Theme.glyph(Notifications.dnd ? 0xf009b : 0xf009a) + (Notifications.missedCount > 0 ? " " + Notifications.missedCount : "")
-                color: !Notifications.dnd && Notifications.missedCount > 0 ? Theme.pink : Theme.subtext0
-                popup: NotificationsPopup {
-                    host: bar
-                }
-                onClicked: m => {
-                    if (m.button === Qt.RightButton)
-                        Notifications.clear();
-                    else if (m.button === Qt.LeftButton)
-                        Notifications.toggleDnd();
-                }
-            }
 
             // custom/idle-inhibit
             Module {
