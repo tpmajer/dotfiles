@@ -79,6 +79,12 @@ Column {
         }
     }
     PopupText {
+        visible: text !== ""
+        x: 12
+        text: Network.offline
+        color: Theme.red
+    }
+    PopupText {
         visible: Network.wired && Network.slowUsb
         x: 12
         text: Network.usbName

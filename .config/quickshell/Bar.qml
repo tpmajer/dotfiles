@@ -252,7 +252,8 @@ PanelWindow {
                 prefix: Network.wiredText
                 prefixColor: Network.slowUsb ? Theme.maroon : Theme.teal
                 text: Network.text
-                color: Theme.teal
+                // Red with no internet, or on Wi-Fi alone with nearly no signal.
+                color: Network.alarm ? Theme.red : Theme.teal
                 popup: NetworkPopup {
                     host: popups
                 }

@@ -24,6 +24,39 @@ Singleton {
 
     readonly property string ssid: wifiNetwork ? wifiNetwork.name : ""
     readonly property int signal: wifiNetwork ? Math.round(wifiNetwork.signalStrength * 100) : 0
+    // 0 a signal that will do, 1 weak (under 40%), 2 nearly none (under 20%).
+    // A level is left 5 points above where it is entered: the signal wavers.
+    property int signalLevel: 0
+    onSignalChanged: {
+        if (!wifiNetwork)
+            signalLevel = 0;
+        else if (signal < 20 || (signalLevel === 2 && signal < 25))
+            signalLevel = 2;
+        else if (signal < 40 || (signalLevel >= 1 && signal < 45))
+            signalLevel = 1;
+        else
+            signalLevel = 0;
+    }
+
+    // Connected to a network that does not lead to the internet, by
+    // NetworkManager's own check: "" while it does, or while that is not known.
+    readonly property string offline: {
+        if (!wired && !wifiNetwork)
+            return "";
+        switch (Networking.connectivity) {
+        case NetworkConnectivity.None:
+            return "No internet";
+        case NetworkConnectivity.Limited:
+            return "Limited connectivity";
+        case NetworkConnectivity.Portal:
+            return "Sign-in needed";
+        default:
+            return "";
+        }
+    }
+    // For the bar: no internet, or on Wi-Fi alone with nearly no signal.
+    readonly property bool alarm: offline !== "" || (!wired && signalLevel === 2)
+
     property bool vpn: false
     property string frequency: ""
     property var rates: ({})      // interface -> {down, up}
