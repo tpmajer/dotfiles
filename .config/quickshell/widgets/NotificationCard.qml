@@ -32,7 +32,7 @@ Item {
     // have its own way, such as fading the card out first.
     property var close: () => card.notification.dismiss()
 
-    readonly property color accent: notification.urgency === NotificationUrgency.Critical ? Theme.red : notification.urgency === NotificationUrgency.Low ? Theme.subtext0 : Theme.teal
+    readonly property color accent: Notifications.urgencyColor(notification.urgency)
     readonly property var extraActions: notification.actions.filter(a => a.identifier !== "default")
 
     implicitWidth: Theme.notificationWidth

@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Notifications
+import qs
 
 // The notification daemon (org.freedesktop.Notifications): which
 // notifications are on screen as toasts and for how long, which wait in the
@@ -23,6 +24,14 @@ Singleton {
     // to see once the lock is gone, the toasts not being shown over it. A
     // critical one stays a toast, and so would not be among the missed.
     readonly property int waitingCount: tracked.values.filter(n => !root.isToast(n) || !root.isTransient(n)).length
+
+    // The most urgent of those waiting in the center; low with none.
+    readonly property int missedUrgency: missed.reduce((u, n) => Math.max(u, n.urgency), NotificationUrgency.Low)
+
+    // An urgency's color: the line on a notification's card.
+    function urgencyColor(urgency) {
+        return urgency === NotificationUrgency.Critical ? Theme.red : urgency === NotificationUrgency.Low ? Theme.subtext0 : Theme.teal;
+    }
 
     // Do not disturb: a notification gets no toast and goes straight to the
     // center, unless it is critical.

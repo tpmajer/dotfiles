@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import Quickshell.Services.Notifications
 import Quickshell.Wayland
 import Quickshell.Bluetooth
 import qs.popups
@@ -192,10 +193,11 @@ PanelWindow {
             // width, and its popup its place, as do not disturb is switched.
             prefixWidth: Math.ceil(Math.max(bellMetrics.advanceWidth(Theme.glyph(0xf009a)), bellMetrics.advanceWidth(Theme.glyph(0xf009b))))
             text: Notifications.missedCount > 0 ? String(Notifications.missedCount) : ""
-            // Gray only under do not disturb: with nothing in the center
-            // the bell is white, brighter than plain text, to tell the two
-            // apart.
-            color: Notifications.dnd ? Theme.subtext0 : Notifications.missedCount > 0 ? Theme.pink : Theme.white
+            // Gray only under do not disturb. Else in the color of the
+            // most urgent notification in the center, as the line on its
+            // card; with none there, or only low ones, whose line is gray,
+            // the bell is white, brighter than plain text.
+            color: Notifications.dnd ? Theme.subtext0 : Notifications.missedUrgency === NotificationUrgency.Low ? Theme.white : Notifications.urgencyColor(Notifications.missedUrgency)
             popup: NotificationsPopup {
                 host: bar
             }
