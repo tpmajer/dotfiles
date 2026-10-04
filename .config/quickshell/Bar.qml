@@ -192,7 +192,10 @@ PanelWindow {
             // width, and its popup its place, as do not disturb is switched.
             prefixWidth: Math.ceil(Math.max(bellMetrics.advanceWidth(Theme.glyph(0xf009a)), bellMetrics.advanceWidth(Theme.glyph(0xf009b))))
             text: Notifications.missedCount > 0 ? String(Notifications.missedCount) : ""
-            color: !Notifications.dnd && Notifications.missedCount > 0 ? Theme.pink : Theme.subtext0
+            // Gray only under do not disturb: with nothing in the center
+            // the bell is white, brighter than plain text, to tell the two
+            // apart.
+            color: Notifications.dnd ? Theme.subtext0 : Notifications.missedCount > 0 ? Theme.pink : Theme.white
             popup: NotificationsPopup {
                 host: bar
             }
