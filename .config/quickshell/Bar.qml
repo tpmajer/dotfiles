@@ -270,7 +270,8 @@ PanelWindow {
                 readonly property var adapter: Bluetooth.defaultAdapter
                 host: popups
                 text: !adapter || adapter.state === BluetoothAdapterState.Blocked ? "" : Theme.glyph(adapter.enabled ? 0xf00af : 0xf00b2)
-                color: Theme.sapphire
+                // Gray while bluetooth is off, as its row in the popup.
+                color: adapter && adapter.enabled ? Theme.sapphire : Theme.subtext0
                 popup: BluetoothPopup {}
                 onClicked: Quickshell.execDetached(["ghostty", "-e", "bluetui"])
             }
