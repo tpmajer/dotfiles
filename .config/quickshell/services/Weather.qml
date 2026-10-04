@@ -5,9 +5,12 @@ import Quickshell
 import Quickshell.Io
 import qs
 
-// The current weather in Lublin from Open-Meteo (no key), every half an hour,
-// with what the popup lists: how it feels, the wind, the day's sun, when it
-// is to rain, and the week from today.
+// The weather in Lublin: the forecast from Open-Meteo (no key), every half an
+// hour, and the air as IMGW's station measures it, every ten minutes, with
+// what the popup lists: how it feels, the wind, the day's sun, when it is to
+// rain, and the week from today.
+// The forecast's "now" is a model's, and can be degrees off: it stands in
+// only when the station has not answered or its measurement is old.
 // Unknown when it has not been fetched for three hours: offline, it is not
 // shown rather than shown stale. The half hours are by the wall clock, checked
 // every minute: a Timer's own does not run during a suspend.
@@ -18,8 +21,18 @@ Singleton {
     readonly property string place: "Lublin"
     readonly property real latitude: 51.25
     readonly property real longitude: 22.57
+    // IMGW's Lublin-Radawiec.
+    readonly property string station: "351220495"
 
-    property real temperature: NaN
+    // The air now, as the forecast's model has it and as the station measured
+    // it: { time: of the measurement, in ms; temperature, apparent; humidity,
+    // in %; windSpeed, in km/h; windDirection, in degrees, where it blows
+    // from }, null when there is none.
+    property var modelled: null
+    property var measured: null
+    readonly property var air: measured && clock.date.getTime() - measured.time < 2 * 3600 * 1000 ? measured : modelled
+
+    readonly property real temperature: air ? air.temperature : NaN
     property int code: -1
     property bool day: true
     property real fetchedAt: 0
@@ -27,10 +40,10 @@ Singleton {
 
     readonly property string temperatureText: known ? Math.round(temperature) + "°" : ""
 
-    property real apparent: NaN
-    property int humidity: 0
-    property real windSpeed: 0       // km/h
-    property int windDirection: 0    // degrees, where it blows from
+    readonly property real apparent: air ? air.apparent : NaN
+    readonly property int humidity: air ? Math.round(air.humidity) : 0
+    readonly property real windSpeed: air ? air.windSpeed : 0
+    readonly property int windDirection: air ? air.windDirection : 0
     // Today's.
     property real sunrise: 0         // ms
     property real sunset: 0
@@ -77,11 +90,22 @@ Singleton {
         return rows;
     }
     property real attemptedAt: 0
+    property real observedAt: 0
 
     // After a suspend, say: the lock refreshes it before it shows.
     function refreshIfStale() {
-        if (!fetch.running && Date.now() - fetchedAt >= 30 * 60 * 1000)
+        const now = Date.now();
+        if (!fetch.running && now - fetchedAt >= 30 * 60 * 1000)
             fetch.running = true;
+        if (!observe.running && now - observedAt >= 10 * 60 * 1000)
+            observe.running = true;
+    }
+
+    // How it feels in the shade, by Steadman's formula: the temperature in
+    // °C, the humidity in %, the wind in km/h.
+    function feelsLike(temperature, humidity, wind) {
+        const vapour = humidity / 100 * 6.105 * Math.exp(17.27 * temperature / (237.7 + temperature));
+        return temperature + 0.33 * vapour - 0.7 * wind / 3.6 - 4;
     }
 
     readonly property string description: {
@@ -150,13 +174,16 @@ Singleton {
                     const current = answer.current;
                     const hourly = answer.hourly;
                     const daily = answer.daily;
-                    root.temperature = current.temperature_2m;
+                    root.modelled = {
+                        time: current.time * 1000,
+                        temperature: current.temperature_2m,
+                        apparent: current.apparent_temperature,
+                        humidity: current.relative_humidity_2m,
+                        windSpeed: current.wind_speed_10m,
+                        windDirection: current.wind_direction_10m
+                    };
                     root.code = current.weather_code;
                     root.day = current.is_day === 1;
-                    root.apparent = current.apparent_temperature;
-                    root.humidity = current.relative_humidity_2m;
-                    root.windSpeed = current.wind_speed_10m;
-                    root.windDirection = current.wind_direction_10m;
                     // The first day is today, by the place's own time.
                     root.sunrise = daily.sunrise[0] * 1000;
                     root.sunset = daily.sunset[0] * 1000;
@@ -180,8 +207,43 @@ Singleton {
         }
     }
 
-    // Every half an hour since the last answer, every two minutes since the
-    // last try while there is none.
+    // The station's last measurements, each with its own time, in UTC; its
+    // wind is in m/s.
+    Process {
+        id: observe
+        onStarted: root.observedAt = Date.now()
+        command: ["curl", "-sf", "--max-time", "15", `https://danepubliczne.imgw.pl/api/data/meteo/id/${root.station}`]
+        running: true
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    const answer = JSON.parse(text)[0];
+                    const temperature = parseFloat(answer.temperatura_powietrza);
+                    const humidity = parseFloat(answer.wilgotnosc_wzgledna);
+                    const windSpeed = parseFloat(answer.wiatr_srednia_predkosc) * 3.6;
+                    const windDirection = parseFloat(answer.wiatr_kierunek);
+                    const time = new Date(answer.temperatura_powietrza_data.replace(" ", "T") + "Z").getTime();
+                    if ([temperature, humidity, windSpeed, windDirection, time].some(isNaN))
+                        return;
+                    root.measured = {
+                        time: time,
+                        temperature: temperature,
+                        apparent: root.feelsLike(temperature, humidity, windSpeed),
+                        humidity: humidity,
+                        windSpeed: windSpeed,
+                        windDirection: windDirection
+                    };
+                } catch (e) {
+                    // Offline or a bad answer: the last one stands while it
+                    // is fresh, then the model's.
+                }
+            }
+        }
+    }
+
+    // The forecast every half an hour since the last answer, every two
+    // minutes since the last try while there is none; the station every ten
+    // minutes.
     Timer {
         interval: 60 * 1000
         running: true
@@ -190,6 +252,8 @@ Singleton {
             const now = Date.now();
             if (!fetch.running && now - root.fetchedAt >= 30 * 60 * 1000 && now - root.attemptedAt >= 2 * 60 * 1000)
                 fetch.running = true;
+            if (!observe.running && now - root.observedAt >= 10 * 60 * 1000)
+                observe.running = true;
         }
     }
 }
