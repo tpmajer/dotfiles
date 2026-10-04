@@ -234,7 +234,13 @@ PanelWindow {
                 }
                 Component.onDestruction: toasts.cards = toasts.cards.filter(c => c !== card)
 
+                // Replaced by its sender: its time starts anew.
+                readonly property real arrivedAt: Notifications.time(notification)
+                onArrivedAtChanged: if (timeLeft.running)
+                    timeLeft.restart()
+
                 Timer {
+                    id: timeLeft
                     interval: Notifications.timeout(card.notification)
                     running: card.toastIndex >= 0 && interval > 0 && !hover.hovered && !toasts.locked
                     onTriggered: Notifications.timedOut(card.notification)
