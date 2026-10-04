@@ -8,7 +8,9 @@ import qs.widgets
 // newest at the bottom. A card stays for a time set by its urgency (not while
 // the pointer is over it), then goes to the notification center in the bar; a
 // left click runs its default action and closes it, a right click only closes
-// it. A card whose sender takes a reply has a field for it, and stays while
+// it. A card whose time is up, or closed with a right click, fades out before
+// the others close ranks; one closed by its action or its sender is gone at
+// once. A card whose sender takes a reply has a field for it, and stays while
 // one is being written. Only the newest few are shown; the rest fold into a
 // row at the top that unfolds them on a click. None goes while the session is
 // locked: they are all there, for their whole time, once it is not.
@@ -21,7 +23,11 @@ PanelWindow {
     readonly property int shadowRoom: 30
     property var cards: []
     readonly property int count: Notifications.toasts.length
-    readonly property int hiddenCount: Math.max(0, count - Theme.notificationsVisible)
+    // The cards fading out: no longer toasts, still in the stack. They count
+    // against the visible ones, so that none unfolds into the stack before
+    // they are gone.
+    readonly property int fading: cards.filter(c => c.fading === true).length
+    readonly property int hiddenCount: Math.max(0, count + fading - Theme.notificationsVisible)
     property bool expanded: false
     // The session is locked: the lock is over the cards, nobody sees them.
     property bool locked: false
@@ -83,7 +89,12 @@ PanelWindow {
     }
     implicitWidth: Theme.notificationWidth + 2 * shadowRoom
     color: "transparent"
-    visible: count > 0
+    // There while a card is: not by count and fading, which change one
+    // after the other when the last toast's time is up. Between the two the
+    // window would go, and come back sliding in from the side. By the
+    // cards' present, not their visible: that one is false for everything
+    // in a window that is not there, which would then never come back.
+    visible: cards.some(c => c.present)
 
     WlrLayershell.namespace: "quickshell-notifications"
     WlrLayershell.layer: WlrLayer.Overlay
@@ -104,7 +115,8 @@ PanelWindow {
         regions: toasts.cards.filter(c => c.visible).map(c => c.inputRegion)
     }
     BackgroundEffect.blurRegion: Region {
-        regions: toasts.cards.filter(c => c.visible).map(c => c.blurRegion)
+        // Not under a card half faded out, as with the OSD.
+        regions: toasts.cards.filter(c => c.visible && (c.openness ?? 1) > 0.5).map(c => c.blurRegion)
     }
 
     Item {
@@ -126,7 +138,9 @@ PanelWindow {
                 height: modelData.height
                 radius: Theme.barRadius
                 color: Theme.base
-                opacity: modelData.opacity
+                // The fold row has neither: it is just there.
+                opacity: modelData.openness ?? 1
+                scale: modelData.popScale ?? 1
             }
         }
     }
@@ -194,7 +208,8 @@ PanelWindow {
                 radius: Theme.barRadius
             }
 
-            visible: toasts.hiddenCount > 0
+            readonly property bool present: toasts.hiddenCount > 0
+            visible: present
             width: Theme.notificationWidth
             height: foldLabel.implicitHeight + 2 * Theme.popupPaddingV
             radius: Theme.barRadius
@@ -244,17 +259,53 @@ PanelWindow {
                     radius: Theme.barRadius
                 }
                 property bool appeared: false
+                // Among the cards shown: a toast, and not folded.
+                readonly property bool shown: toastIndex >= 0 && (toasts.expanded || toastIndex >= toasts.hiddenCount)
+                // What is to be done to the notification once its card has
+                // faded out: closing it after a right click, or when the time
+                // of a transient one is up. Both take the card with them.
+                property var leave: null
+                readonly property bool leaving: leave !== null
+                // To be seen whole; in a top corner a new card fades in
+                // instead of sliding in.
+                readonly property bool open: shown && !leaving && (appeared || !toasts.atTop)
+                // Its time is up or it is being closed: still there, fading.
+                readonly property bool fading: (toastIndex < 0 || leaving) && openness > 0
+                onOpennessChanged: if (leaving && openness === 0)
+                    leave()
 
-                visible: toastIndex >= 0 && (toasts.expanded || toastIndex >= toasts.hiddenCount)
+                // 1 with the card there, 0 with it gone. It goes as the OSD
+                // and the bar's popups do (widgets/Pop.qml): quickly, down
+                // to 0.95 of its size while it fades. In a bottom corner it
+                // comes at once, and so does an unfolded card. By the value
+                // it goes to, which is set by the time the animation starts;
+                // what the card's own properties say then is not certain.
+                property real openness: open ? 1 : 0
+                Behavior on openness {
+                    id: fade
+                    NumberAnimation {
+                        duration: fade.targetValue === 0 ? 120 : toasts.atTop ? Theme.hoverDuration : 0
+                        easing.type: fade.targetValue === 0 ? Easing.InQuad : Easing.Linear
+                    }
+                }
+                readonly property real popScale: open ? 1 : 0.95 + 0.05 * openness
+
+                // A folded card is gone at once: it went into the row above.
+                // One no longer a toast, or being closed, stays until it has
+                // faded. Told from toastIndex here, not from shown and
+                // fading: those change one after the other, and the card
+                // would be gone between the two.
+                readonly property bool present: toastIndex >= 0 && !leaving ? toasts.expanded || toastIndex >= toasts.hiddenCount : openness > 0
+                visible: present
                 width: Theme.notificationWidth
                 height: body.implicitHeight
                 radius: Theme.barRadius
                 color: "transparent"   // the background is drawn below, with the shadow
-                // In a top corner it fades in instead.
-                opacity: appeared || !toasts.atTop ? 1 : 0
-                Behavior on opacity {
-                    NumberAnimation { duration: Theme.hoverDuration }
-                }
+                // What is on the card fades out twice as fast as its
+                // background, drawn below: bright text on a nearly faded
+                // card reads as the content outliving it.
+                opacity: open ? openness : Math.max(0, 2 * openness - 1)
+                scale: popScale
 
                 Component.onCompleted: {
                     appeared = true;
@@ -271,7 +322,13 @@ PanelWindow {
                     id: timeLeft
                     interval: Notifications.timeout(card.notification)
                     running: card.toastIndex >= 0 && interval > 0 && !hover.hovered && !body.replying && !toasts.locked
-                    onTriggered: Notifications.timedOut(card.notification)
+                    // A transient one is closed by this, so it fades first.
+                    onTriggered: {
+                        if (Notifications.isTransient(card.notification))
+                            card.leave = () => Notifications.timedOut(card.notification);
+                        else
+                            Notifications.timedOut(card.notification);
+                    }
                 }
 
                 HoverHandler {
@@ -285,6 +342,7 @@ PanelWindow {
                     windowX: stack.x + card.x
                     devicePixelRatio: toasts.devicePixelRatio
                     replyEnabled: true
+                    close: () => card.leave = () => card.notification.dismiss()
                     onReplyClosed: {
                         toasts.releasing = true;
                         releaseTimer.restart();

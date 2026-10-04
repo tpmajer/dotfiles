@@ -28,6 +28,9 @@ Item {
     readonly property bool replying: hasReply && (reply.activeFocus || reply.text !== "")
     // The reply is sent or given up: the keyboard is no longer needed.
     signal replyClosed
+    // Closes the notification on a right click. What the card is in may
+    // have its own way, such as fading the card out first.
+    property var close: () => card.notification.dismiss()
 
     readonly property color accent: notification.urgency === NotificationUrgency.Critical ? Theme.red : notification.urgency === NotificationUrgency.Low ? Theme.subtext0 : Theme.teal
     readonly property var extraActions: notification.actions.filter(a => a.identifier !== "default")
@@ -42,7 +45,7 @@ Item {
             if (m.button === Qt.LeftButton)
                 Notifications.activate(card.notification);
             else
-                card.notification.dismiss();
+                card.close();
         }
     }
 
