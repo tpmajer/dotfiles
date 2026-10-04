@@ -6,13 +6,15 @@ import qs
 import Quickshell.Io
 
 // BAT1 read from sysfs every 5 s and on power_supply udev events. Capacity is
-// scaled so the 80% charge threshold reads as 100%, with notify-send on low
+// scaled so the battery's charge limit reads as 100%, with notify-send on low
 // battery and when charging reaches full. For the popup: the power going out
 // or in, and how worn the battery is.
 Singleton {
     id: root
 
-    readonly property int fullAt: 80
+    // The charge limit, in percent of the whole battery: read with the rest,
+    // this until then and if the battery has none.
+    property int fullAt: 80
     readonly property string sysfs: "/sys/class/power_supply/BAT1/"
 
     property int capacity: 0
@@ -75,6 +77,9 @@ Singleton {
         const chargeFull = Number(read(chargeFullFile));
         const current = Number(read(currentFile));
         const design = Number(read(chargeDesignFile));
+        const limit = Number(read(limitFile));
+        if (limit > 0 && limit <= 100)
+            fullAt = limit;
         status = read(statusFile);
         capacity = Math.min(100, Math.round(raw * 100 / fullAt));
         // Microamperes by microvolts.
@@ -112,6 +117,7 @@ Singleton {
     FileView { id: currentFile; path: root.sysfs + "current_now"; blockLoading: true }
     FileView { id: voltageFile; path: root.sysfs + "voltage_now"; blockLoading: true }
     FileView { id: chargeDesignFile; path: root.sysfs + "charge_full_design"; blockLoading: true }
+    FileView { id: limitFile; path: root.sysfs + "charge_control_end_threshold"; blockLoading: true }
     FileView { id: cyclesFile; path: root.sysfs + "cycle_count"; blockLoading: true }
 
     // Plug/unplug shows up immediately instead of on the next poll.
