@@ -7,7 +7,8 @@ import Quickshell.Services.Pipewire
 import qs
 
 // Audio outputs (sinks) and how the bar shows them: the volume level icon,
-// a headphone icon for bluetooth headphones, a muted icon.
+// a headphone icon for bluetooth headphones, a muted icon. Also the programs
+// playing sound.
 Singleton {
     id: root
 
@@ -15,6 +16,9 @@ Singleton {
     readonly property var defaultSource: Pipewire.defaultAudioSource   // the microphone
     // The default sink first, the rest in PipeWire's order.
     readonly property var sinks: Pipewire.nodes.values.filter(n => n.isSink && !n.isStream && n.audio).sort((a, b) => (b === defaultSink) - (a === defaultSink))
+
+    // Programs playing sound, in PipeWire's order.
+    readonly property var streams: Pipewire.nodes.values.filter(n => n.isStream && n.isSink && n.audio)
 
     // Devices whose BlueZ type is wrong, by address. The Mu-so Qb is a speaker
     // but reports itself as a headset.
@@ -66,6 +70,11 @@ Singleton {
         return node.description || node.nickname || node.name;
     }
 
+    // A stream is called after its program.
+    function appName(node) {
+        return (node.properties && node.properties["application.name"]) || name(node);
+    }
+
     // Makes the output the default one: what plays moves to it.
     function setDefault(node) {
         Pipewire.preferredDefaultAudioSink = node;
@@ -78,5 +87,9 @@ Singleton {
 
     PwObjectTracker {
         objects: [root.defaultSource]
+    }
+
+    PwObjectTracker {
+        objects: root.streams
     }
 }

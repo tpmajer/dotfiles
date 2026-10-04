@@ -6,7 +6,8 @@ import qs.widgets
 // Every audio output with its volume or mute, the default one (the one the
 // module controls) first, in brighter text with a yellow icon. Clicking a row
 // mutes or unmutes that output, scrolling over it changes its volume, a right
-// click makes it the default. Below them, the same for Spotify while it runs.
+// click makes it the default. Below them, the same for Spotify while it runs
+// and for every program that plays.
 Column {
     id: sinkList
     readonly property bool hasRows: true
@@ -24,6 +25,10 @@ Column {
         return w;
     }
 
+    function level(node) {
+        return node.audio.muted ? "muted" : Audio.volume(node) + "%";
+    }
+
     Repeater {
         model: Audio.sinks
 
@@ -36,7 +41,7 @@ Column {
             iconColor: isDefault ? Theme.yellow : Theme.subtext0
             bright: isDefault
             text: Audio.name(modelData)
-            value: modelData.audio && modelData.audio.muted ? "muted" : Audio.volume(modelData) + "%"
+            value: sinkList.level(modelData)
             onTriggered: Audio.toggleMute(modelData)
             onSecondaryTriggered: Audio.setDefault(modelData)
             onScrolled: steps => Audio.changeVolume(modelData, steps)
@@ -57,6 +62,23 @@ Column {
             value: Spotify.muted ? "muted" : Spotify.volume + "%"
             onTriggered: Spotify.toggleMute()
             onScrolled: steps => Spotify.changeVolume(steps)
+        }
+    }
+
+    // The programs playing. Spotify has its row above.
+    Repeater {
+        model: Audio.streams.filter(n => !(Spotify.ready && /^spotify$/i.test(Audio.appName(n))))
+
+        PopupAction {
+            required property var modelData
+            labelWidth: sinkList.nameWidth
+            valueWidth: sinkList.valueWidth
+            icon: Theme.glyph(modelData.audio.muted ? 0xf075f : 0xf0387)
+            iconColor: Theme.subtext0
+            text: Audio.appName(modelData)
+            value: sinkList.level(modelData)
+            onTriggered: Audio.toggleMute(modelData)
+            onScrolled: steps => Audio.changeVolume(modelData, steps)
         }
     }
 }
