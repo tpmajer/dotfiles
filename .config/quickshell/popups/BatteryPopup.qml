@@ -50,12 +50,9 @@ Column {
             rows: Battery.details
         }
     }
-    // The battery icon of that level: four fifths, or full.
     PopupAction {
         id: limit
         labelWidth: popup.wide - limit.chromeWidth - valueImplicitWidth
-        icon: Theme.glyph(Battery.defaultIcons[Math.min(9, Math.floor(Battery.fullAt / 10) - 1)])
-        iconColor: Theme.subtext0
         text: "Charge limit"
         value: Battery.fullAt + "%"
         onTriggered: Battery.toggleLimit()
