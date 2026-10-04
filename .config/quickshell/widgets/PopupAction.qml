@@ -4,7 +4,7 @@ import qs
 // A clickable row in a popup: icon + label and an optional value on the right,
 // Surface 0 highlight on hover or when selected from the keyboard. The label is
 // dim unless the row is active or bright (what it shows is on). An optional
-// detail follows the label, always dim.
+// detail follows the label, always dim. An alarm turns the value red.
 Rectangle {
     id: root
 
@@ -14,6 +14,7 @@ Rectangle {
     property string value: ""
     property color iconColor: Theme.text
     property bool bright: false
+    property bool alarm: false
     property bool highlighted: false
     readonly property bool hovered: mouse.containsMouse
     readonly property bool active: hovered || highlighted
@@ -71,7 +72,7 @@ Rectangle {
             leftPadding: Theme.popupColumnGap - Theme.popupIconGap
             horizontalAlignment: Text.AlignRight
             text: root.value
-            color: label.color
+            color: root.alarm ? Theme.red : label.color
         }
     }
 

@@ -75,6 +75,11 @@ Singleton {
         return Theme.glyph(Battery.defaultIcons[Math.min(9, Math.floor(percent / 10))]) + " " + percent + "%";
     }
 
+    // Low from 20% down: the bluetooth popup shows such a battery in red.
+    function batteryLow(device) {
+        return !!device && device.batteryAvailable && Math.round(device.battery * 100) <= 20;
+    }
+
     function icon(node) {
         if (!node || !node.audio)
             return "";

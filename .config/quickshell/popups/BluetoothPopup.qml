@@ -75,6 +75,7 @@ Column {
             bright: modelData.connected
             text: modelData.name
             value: modelData.state === BluetoothDeviceState.Connecting ? "connecting…" : modelData.state === BluetoothDeviceState.Disconnecting ? "disconnecting…" : modelData.connected ? Audio.batteryText(modelData) : ""
+            alarm: !busy && modelData.connected && Audio.batteryLow(modelData)
             onTriggered: {
                 if (busy)
                     return;
