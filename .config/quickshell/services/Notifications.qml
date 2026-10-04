@@ -4,18 +4,32 @@ import QtQuick
 import Quickshell
 import Quickshell.Services.Notifications
 
-// The notification daemon (org.freedesktop.Notifications): what is on screen
-// and how long each notification stays.
+// The notification daemon (org.freedesktop.Notifications): which
+// notifications are on screen as toasts and for how long, which wait in the
+// notification center, and do not disturb. A notification whose toast timed
+// out is not closed: it waits in the center until it is dismissed.
 Singleton {
     id: root
 
-    // Oldest first.
-    readonly property var list: server.trackedNotifications
+    // Every notification not closed yet, oldest first.
+    readonly property var tracked: server.trackedNotifications
+    // Those on screen as toasts, oldest first.
+    readonly property var toasts: tracked.values.filter(n => root.isToast(n))
+    // Those waiting in the center, newest first.
+    readonly property var missed: tracked.values.filter(n => !root.isToast(n)).sort((a, b) => root.time(b) - root.time(a))
+    readonly property int missedCount: missed.length
+
+    // Do not disturb: a notification gets no toast and goes straight to the
+    // center, unless it is critical.
+    readonly property bool dnd: state.dnd
 
     // A new notification in one of these categories replaces the previous one.
     readonly property var replacedCategories: ["mpd"]
+    // A notification in one of these is closed when its toast times out,
+    // as is one its sender marked transient.
+    readonly property var transientCategories: ["mpd"]
 
-    // How long a notification stays, in ms, by urgency; 0 keeps it until it is
+    // How long a toast stays, in ms, by urgency; 0 keeps it until it is
     // dismissed. The timeout the sender asked for is ignored.
     function timeout(notification) {
         if (notification.hints.category === "mpd")
@@ -30,22 +44,96 @@ Singleton {
         }
     }
 
-    // When a notification came, as on its card: "14:05". The server does not
-    // tell, so it is noted here as each one arrives.
-    function arrival(notification) {
-        const time = arrivals[notification.id];
-        return time ? Qt.formatTime(new Date(time), "HH:mm") : "";
+    function isToast(notification) {
+        return entries[notification.id]?.toast === true;
     }
 
-    // Notification id -> when it came, in ms.
-    readonly property var arrivals: JSON.parse(state.arrivals)
+    // When a notification came, in ms; 0 if that is not known.
+    function time(notification) {
+        return entries[notification.id]?.time ?? 0;
+    }
+
+    // The same, as on its card: "14:05".
+    function arrival(notification) {
+        const ms = time(notification);
+        return ms ? Qt.formatTime(new Date(ms), "HH:mm") : "";
+    }
+
+    // A toast's time is up.
+    function timedOut(notification) {
+        if (notification.transient || transientCategories.includes(notification.hints.category))
+            notification.expire();
+        else
+            hide(notification);
+    }
+
+    // Off the screen, into the center.
+    function hide(notification) {
+        store(notification, {
+            time: time(notification),
+            toast: false
+        });
+    }
+
+    function hideAll() {
+        const kept = {};
+        for (const n of tracked.values)
+            kept[n.id] = {
+                time: time(n),
+                toast: false
+            };
+        state.entries = JSON.stringify(kept);
+    }
+
+    // The default action, if there is one, and the notification is closed.
+    function activate(notification) {
+        const action = notification.actions.find(a => a.identifier === "default");
+        if (action)
+            action.invoke();
+        notification.dismiss();
+    }
+
+    // Closes what waits in the center; the toasts stay.
+    function clear() {
+        for (const n of [...missed])
+            n.dismiss();
+    }
+
+    function toggleDnd() {
+        state.dnd = !state.dnd;
+    }
+
+    // Just come, or just replaced by its sender: a toast with the time it is
+    // now, or straight to the center under do not disturb.
+    function arrived(notification) {
+        store(notification, {
+            time: Date.now(),
+            toast: !state.dnd || notification.urgency === NotificationUrgency.Critical
+        });
+    }
+
+    // Writes a notification's entry, and drops those of the closed ones.
+    function store(notification, entry) {
+        const kept = {};
+        for (const n of tracked.values) {
+            if (n.id in entries)
+                kept[n.id] = entries[n.id];
+        }
+        kept[notification.id] = entry;
+        state.entries = JSON.stringify(kept);
+    }
+
+    // Notification id -> { time: when it came, in ms; toast: it is on screen }.
+    // The server tells neither.
+    readonly property var entries: JSON.parse(state.entries)
 
     // Survives a reload of the configuration, as the notifications do. As
     // JSON: an object does not make it to the reloaded configuration.
     PersistentProperties {
         id: state
         reloadableId: "notifications"
-        property string arrivals: "{}"
+        property string entries: "{}"
+        property bool dnd: false
     }
 
     NotificationServer {
@@ -63,15 +151,28 @@ Singleton {
                         old.dismiss();
                 }
             }
-            // Those of the notifications still there, and this one's.
-            const arrivals = {};
-            for (const old of server.trackedNotifications.values) {
-                if (old.id in root.arrivals)
-                    arrivals[old.id] = root.arrivals[old.id];
-            }
-            arrivals[n.id] = Date.now();
-            state.arrivals = JSON.stringify(arrivals);
+            // One carried over a reload of the configuration comes here
+            // again: it is as it was.
+            if (!n.lastGeneration)
+                root.arrived(n);
             n.tracked = true;
+        }
+    }
+
+    // A sender replacing its notification changes it in place, without the
+    // server's signal: only what it shows changes.
+    Instantiator {
+        model: server.trackedNotifications
+
+        Connections {
+            required property var modelData
+            target: modelData
+            function onSummaryChanged() {
+                root.arrived(modelData);
+            }
+            function onBodyChanged() {
+                root.arrived(modelData);
+            }
         }
     }
 }

@@ -6,10 +6,11 @@ import qs.widgets
 
 // Notifications: a stack of cards in a corner of the focused output, the
 // newest at the bottom. A card stays for a time set by its urgency (not while
-// the pointer is over it); a left click runs its default action and closes it,
-// a right click only closes it. Only the newest few are shown; the rest fold
-// into a row at the top that unfolds them on a click. None goes while the
-// session is locked: they are all there, for their whole time, once it is not.
+// the pointer is over it), then goes to the notification center in the bar; a
+// left click runs its default action and closes it, a right click only closes
+// it. Only the newest few are shown; the rest fold into a row at the top that
+// unfolds them on a click. None goes while the session is locked: they are
+// all there, for their whole time, once it is not.
 PanelWindow {
     id: toasts
 
@@ -18,7 +19,7 @@ PanelWindow {
     // Room around the cards for their shadow.
     readonly property int shadowRoom: 30
     property var cards: []
-    readonly property int count: Notifications.list.values.length
+    readonly property int count: Notifications.toasts.length
     readonly property int hiddenCount: Math.max(0, count - Theme.notificationsVisible)
     property bool expanded: false
     // The session is locked: the lock is over the cards, nobody sees them.
@@ -190,14 +191,17 @@ PanelWindow {
         }
 
         Repeater {
-            model: Notifications.list
+            // Every notification, so that a card and its timer are not made
+            // anew as the others come and go; those not toasts are hidden.
+            model: Notifications.tracked
 
             Rectangle {
                 id: card
 
                 required property var modelData
-                required property int index
                 readonly property var notification: modelData
+                // Its place among the toasts; -1 once it waits in the center.
+                readonly property int toastIndex: Notifications.toasts.indexOf(notification)
                 readonly property Region inputRegion: Region {
                     x: stack.x + card.x
                     y: stack.y + card.y
@@ -213,7 +217,7 @@ PanelWindow {
                 }
                 property bool appeared: false
 
-                visible: toasts.expanded || index >= toasts.hiddenCount
+                visible: toastIndex >= 0 && (toasts.expanded || toastIndex >= toasts.hiddenCount)
                 width: Theme.notificationWidth
                 height: body.implicitHeight
                 radius: Theme.barRadius
@@ -232,8 +236,8 @@ PanelWindow {
 
                 Timer {
                     interval: Notifications.timeout(card.notification)
-                    running: interval > 0 && !hover.hovered && !toasts.locked
-                    onTriggered: card.notification.expire()
+                    running: card.toastIndex >= 0 && interval > 0 && !hover.hovered && !toasts.locked
+                    onTriggered: Notifications.timedOut(card.notification)
                 }
 
                 HoverHandler {

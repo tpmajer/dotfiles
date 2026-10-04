@@ -27,10 +27,10 @@ Item {
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         onClicked: m => {
-            const action = card.notification.actions.find(a => a.identifier === "default");
-            if (m.button === Qt.LeftButton && action)
-                action.invoke();
-            card.notification.dismiss();
+            if (m.button === Qt.LeftButton)
+                Notifications.activate(card.notification);
+            else
+                card.notification.dismiss();
         }
     }
 
