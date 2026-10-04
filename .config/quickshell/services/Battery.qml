@@ -7,7 +7,8 @@ import Quickshell.Io
 
 // BAT1 read from sysfs every 5 s and on power_supply udev events. Capacity is
 // scaled so the 80% charge threshold reads as 100%, with notify-send on low
-// battery and when charging reaches full.
+// battery and when charging reaches full. For the popup: the power going out
+// or in, and how worn the battery is.
 Singleton {
     id: root
 
@@ -19,6 +20,11 @@ Singleton {
     readonly property bool charging: status === "Charging"
     readonly property bool discharging: status === "Discharging"
     property real hoursLeft: -1
+    // What the battery gives or takes, in watts; 0 while it does neither.
+    property real watts: 0
+    // What is left of the capacity it was made with, in percent.
+    property int health: 0
+    property int cycles: 0
 
     // States by capacity: good up to 100, normal 94, warning 25, critical 15
     readonly property string state: capacity <= 15 ? "critical" : capacity <= 25 ? "warning" : capacity <= 94 ? "normal" : "good"
@@ -38,6 +44,21 @@ Singleton {
         return `${Math.floor(minutes / 60)} h ${minutes % 60} min`;
     }
 
+    // The popup's rows: a label and a value.
+    readonly property var details: {
+        const list = [];
+        if (timeText !== "")
+            list.push({label: charging ? "Full in" : "Empty in", value: timeText});
+        if (watts > 0)
+            list.push({label: charging ? "Charging" : "Power", value: watts.toFixed(1) + " W"});
+        list.push({label: "Charge limit", value: fullAt + "%"});
+        if (health > 0)
+            list.push({label: "Health", value: health + "%"});
+        if (cycles > 0)
+            list.push({label: "Cycles", value: String(cycles)});
+        return list;
+    }
+
     property string lastEvent: ""
 
     // reload() only starts the read; without the wait, text() is still the
@@ -53,8 +74,13 @@ Singleton {
         const chargeNow = Number(read(chargeNowFile));
         const chargeFull = Number(read(chargeFullFile));
         const current = Number(read(currentFile));
+        const design = Number(read(chargeDesignFile));
         status = read(statusFile);
         capacity = Math.min(100, Math.round(raw * 100 / fullAt));
+        // Microamperes by microvolts.
+        watts = charging || discharging ? current * Number(read(voltageFile)) / 1e12 : 0;
+        health = design > 0 ? Math.round(chargeFull * 100 / design) : 0;
+        cycles = Number(read(cyclesFile)) || 0;
 
         if (current > 0 && discharging)
             hoursLeft = chargeNow / current;
@@ -84,6 +110,9 @@ Singleton {
     FileView { id: chargeNowFile; path: root.sysfs + "charge_now"; blockLoading: true }
     FileView { id: chargeFullFile; path: root.sysfs + "charge_full"; blockLoading: true }
     FileView { id: currentFile; path: root.sysfs + "current_now"; blockLoading: true }
+    FileView { id: voltageFile; path: root.sysfs + "voltage_now"; blockLoading: true }
+    FileView { id: chargeDesignFile; path: root.sysfs + "charge_full_design"; blockLoading: true }
+    FileView { id: cyclesFile; path: root.sysfs + "cycle_count"; blockLoading: true }
 
     // Plug/unplug shows up immediately instead of on the next poll.
     Process {
