@@ -72,12 +72,17 @@ Item {
     // older commit and keeps blurring a closed popup until the region changes
     // again. So change it a few more times once a popup closes: each bump
     // resizes a 1 px region inside the bar, which sends the whole region anew.
+    // The same the other way round: the region with the popup in it can go
+    // out like that as the popup opens, or moves to another module, and the
+    // popup then stays without its blur. That region is only sent halfway
+    // through the opening, hence the longer run of bumps.
     property int blurResend: 0
-    onPopupOpenChanged: {
-        if (!popupOpen) {
-            blurResendTimer.left = 4;
-            blurResendTimer.start();
-        }
+    onPopupOpenChanged: resendBlur(popupOpen ? 8 : 4)
+    onPopupOwnerChanged: if (popupOpen)
+        resendBlur(8)
+    function resendBlur(times) {
+        blurResendTimer.left = times;
+        blurResendTimer.restart();
     }
     Timer {
         id: blurResendTimer
