@@ -63,21 +63,18 @@ Singleton {
         const battery = batteryText(bluetoothDevice(node));
         if (battery)
             parts.push(battery);
-        return parts.join("  ");
+        return parts.join("&nbsp;&nbsp;");
     }
 
     // A bluetooth device's battery, the way every popup shows it: the laptop
-    // battery's icon for that level and the percent. Empty when unknown.
+    // battery's icon for that level and the percent, red from 20% down. Empty
+    // when unknown. Styled text, for the color.
     function batteryText(device) {
         if (!device || !device.batteryAvailable)
             return "";
         const percent = Math.round(device.battery * 100);
-        return Theme.glyph(Battery.defaultIcons[Math.min(9, Math.floor(percent / 10))]) + " " + percent + "%";
-    }
-
-    // Low from 20% down: the bluetooth popup shows such a battery in red.
-    function batteryLow(device) {
-        return !!device && device.batteryAvailable && Math.round(device.battery * 100) <= 20;
+        const text = Theme.glyph(Battery.defaultIcons[Math.min(9, Math.floor(percent / 10))]) + " " + percent + "%";
+        return percent <= 20 ? "<font color=\"" + Theme.red + "\">" + text + "</font>" : text;
     }
 
     function icon(node) {
