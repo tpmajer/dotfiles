@@ -21,7 +21,9 @@ PanelWindow {
         left: true
         right: true
     }
-    implicitHeight: 480
+    // The tallest popup is the notification center: its list, and 96 px for
+    // its header, the popup's paddings and the shadow below it.
+    implicitHeight: Theme.barMargin + Theme.barHeight + Theme.popupGap + Theme.centerMaxHeight + 96
     exclusiveZone: Theme.barMargin + Theme.barHeight
     color: "transparent"
 
@@ -175,6 +177,22 @@ PanelWindow {
             id: rightRow
             anchors.right: parent.right
             height: parent.height
+
+            // notifications: how many wait in the center, which is its
+            // popup; a click switches do not disturb, a right click clears
+            Module {
+                id: bellModule
+                host: popups
+                text: Theme.glyph(Notifications.dnd ? 0xf009b : 0xf009a) + (Notifications.missedCount > 0 ? " " + Notifications.missedCount : "")
+                color: !Notifications.dnd && Notifications.missedCount > 0 ? Theme.pink : Theme.subtext0
+                popup: NotificationsPopup {}
+                onClicked: m => {
+                    if (m.button === Qt.RightButton)
+                        Notifications.clear();
+                    else if (m.button === Qt.LeftButton)
+                        Notifications.toggleDnd();
+                }
+            }
 
             // custom/idle-inhibit
             Module {

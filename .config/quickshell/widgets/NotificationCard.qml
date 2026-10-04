@@ -16,6 +16,8 @@ Item {
     // the urgency line goes on whole device pixels.
     property real windowX: 0
     property real devicePixelRatio: 1
+    // The action buttons' color: one that shows on the card's background.
+    property color actionColor: Theme.surface0
 
     readonly property color accent: notification.urgency === NotificationUrgency.Critical ? Theme.red : notification.urgency === NotificationUrgency.Low ? Theme.subtext0 : Theme.teal
     readonly property var extraActions: notification.actions.filter(a => a.identifier !== "default")
@@ -106,7 +108,7 @@ Item {
                     width: label.implicitWidth + 20
                     height: label.implicitHeight + 8
                     radius: Theme.moduleRadius
-                    color: buttonMouse.containsMouse ? Theme.surface0 : Qt.rgba(Theme.surface0.r, Theme.surface0.g, Theme.surface0.b, 0.5)
+                    color: buttonMouse.containsMouse ? card.actionColor : Qt.rgba(card.actionColor.r, card.actionColor.g, card.actionColor.b, 0.5)
 
                     PopupText {
                         id: label

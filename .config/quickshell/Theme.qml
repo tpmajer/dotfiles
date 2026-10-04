@@ -7,6 +7,7 @@ import Quickshell
 Singleton {
     readonly property color base: "#1e1e2e"
     readonly property color surface0: "#313244"
+    readonly property color surface1: "#45475a"
     readonly property color text: "#cdd6f4"
     readonly property color subtext1: "#bac2de"
     readonly property color subtext0: "#a6adc8"
@@ -67,6 +68,8 @@ Singleton {
     readonly property int notificationSlide: 250   // ms, cards sliding in and closing ranks
     // More than this many are folded into a "+N more" row; a click unfolds them.
     readonly property int notificationsVisible: 5
+    // The notification center in the bar lists this much, and scrolls the rest.
+    readonly property int centerMaxHeight: 560
 
     // Thin colored lines: a module's underline, a notification's urgency.
     // 2.5 px is 4 whole device pixels at scale 1.6.
