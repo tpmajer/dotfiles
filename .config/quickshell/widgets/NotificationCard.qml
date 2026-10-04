@@ -122,6 +122,9 @@ Item {
                     height: label.implicitHeight + 8
                     radius: Theme.moduleRadius
                     color: buttonMouse.containsMouse ? card.actionColor : Qt.rgba(card.actionColor.r, card.actionColor.g, card.actionColor.b, 0.5)
+                    Behavior on color {
+                        ColorAnimation { duration: Theme.hoverDuration }
+                    }
 
                     PopupText {
                         id: label
