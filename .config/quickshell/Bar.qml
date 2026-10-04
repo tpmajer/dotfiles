@@ -199,7 +199,7 @@ PanelWindow {
             // the bell is white, brighter than plain text.
             color: Notifications.dnd ? Theme.subtext0 : Notifications.missedUrgency === NotificationUrgency.Low ? Theme.white : Notifications.urgencyColor(Notifications.missedUrgency)
             popup: NotificationsPopup {
-                host: bar
+                panel: bar
             }
             onClicked: m => {
                 if (m.button === Qt.RightButton)
@@ -311,7 +311,7 @@ PanelWindow {
                 color: Theme.subtext0
                 rightMargin: 6
                 popup: PowerPopup {
-                    host: bar
+                    panel: bar
                 }
                 onClicked: popups.showPopup(this)
             }

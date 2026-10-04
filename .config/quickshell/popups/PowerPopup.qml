@@ -9,7 +9,7 @@ import qs.widgets
 PopupList {
     id: actionList
 
-    required property var host   // the Bar
+    required property var panel   // the Bar
     // The row selected from the keyboard.
     property int selected: 0
 
@@ -28,7 +28,7 @@ PopupList {
         case Qt.Key_Return:
         case Qt.Key_Enter:
         case Qt.Key_Space:
-            host.runAction(Power.actions[selected].command);
+            panel.runAction(Power.actions[selected].command);
             break;
         default:
             return;
@@ -38,9 +38,9 @@ PopupList {
 
     // Opened from the keyboard anew: from the first row.
     Connections {
-        target: actionList.host
+        target: actionList.panel
         function onKeyboardModeChanged() {
-            if (actionList.host.keyboardMode)
+            if (actionList.panel.keyboardMode)
                 actionList.selected = 0;
         }
     }
@@ -56,10 +56,10 @@ PopupList {
             iconColor: modelData.color || Theme.text
             text: modelData.text
             // With the keyboard, one row is selected; the mouse moves the selection.
-            highlighted: actionList.host.keyboardMode && index === actionList.selected
+            highlighted: actionList.panel.keyboardMode && index === actionList.selected
             onHoveredChanged: if (hovered)
                 actionList.selected = index
-            onTriggered: actionList.host.runAction(modelData.command)
+            onTriggered: actionList.panel.runAction(modelData.command)
         }
     }
 }

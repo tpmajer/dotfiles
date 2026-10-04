@@ -12,7 +12,7 @@ import qs.widgets
 Column {
     id: center
 
-    required property var host   // the Bar
+    required property var panel   // the Bar
     readonly property bool hasRows: true
     readonly property var list: Notifications.missed
     // The card selected from the keyboard.
@@ -69,9 +69,9 @@ Column {
 
     // Opened from the keyboard anew: from the newest.
     Connections {
-        target: center.host
+        target: center.panel
         function onKeyboardModeChanged() {
-            if (center.host.keyboardMode) {
+            if (center.panel.keyboardMode) {
                 center.selected = 0;
                 flick.contentY = 0;
             }
@@ -154,7 +154,7 @@ Column {
                     // With the keyboard, the selected card alone, even with
                     // the pointer resting on another; the mouse moves the
                     // selection.
-                    readonly property bool active: center.host.keyboardMode ? index === center.selected : hover.hovered
+                    readonly property bool active: center.panel.keyboardMode ? index === center.selected : hover.hovered
 
                     width: Theme.notificationWidth
                     height: body.implicitHeight
