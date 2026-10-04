@@ -23,7 +23,9 @@ Singleton {
     // States by capacity: good up to 100, normal 94, warning 25, critical 15
     readonly property string state: capacity <= 15 ? "critical" : capacity <= 25 ? "warning" : capacity <= 94 ? "normal" : "good"
 
-    readonly property color color: charging || state === "good" ? Theme.green : (state === "warning" || state === "critical") ? Theme.maroon : Theme.red
+    // Green, but while it runs low: peach as a warning, then red, the colors
+    // the CPU, the memory and the Wi-Fi signal warn in.
+    readonly property color color: !discharging ? Theme.green : state === "critical" ? Theme.red : state === "warning" ? Theme.peach : Theme.green
 
     readonly property var chargingIcons: [0xf089c, 0xf0086, 0xf0087, 0xf0088, 0xf089d, 0xf0089, 0xf089e, 0xf008a, 0xf008b, 0xf0085]
     readonly property var defaultIcons: [0xf007a, 0xf007b, 0xf007c, 0xf007d, 0xf007e, 0xf007f, 0xf0080, 0xf0081, 0xf0082, 0xf0079]
