@@ -86,7 +86,7 @@ Column {
             id: title
             x: Theme.popupTextInset
             anchors.verticalCenter: parent.verticalCenter
-            text: Notifications.dnd ? "Notifications · Do not disturb" : "Notifications"
+            text: "Notifications"
             font.bold: true
         }
 
