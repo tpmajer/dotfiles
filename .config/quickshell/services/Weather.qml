@@ -5,7 +5,9 @@ import Quickshell
 import Quickshell.Io
 import qs
 
-// The current weather in Warsaw from Open-Meteo (no key), every half an hour.
+// The current weather in Warsaw from Open-Meteo (no key), every half an hour,
+// with what the popup lists: how it feels, the wind, the day's sun, and when
+// it is to rain.
 // Unknown when it has not been fetched for three hours: offline, it is not
 // shown rather than shown stale. The half hours are by the wall clock, checked
 // every minute: a Timer's own does not run during a suspend.
@@ -24,6 +26,53 @@ Singleton {
     readonly property bool known: !isNaN(temperature) && clock.date.getTime() - fetchedAt < 3 * 3600 * 1000
 
     readonly property string temperatureText: known ? Math.round(temperature) + "°" : ""
+
+    property real apparent: NaN
+    property int humidity: 0
+    property real windSpeed: 0       // km/h
+    property int windDirection: 0    // degrees, where it blows from
+    // Today's.
+    property real sunrise: 0         // ms
+    property real sunset: 0
+    // Today's hours and tomorrow's: [{ time: its start, in ms; chance: of
+    // precipitation, in %; code: the weather's }].
+    property var hours: []
+
+    // The first hour of the next twelve, the current one included, in which
+    // it is more likely to rain or snow than not; null if there is none.
+    readonly property var wetHour: {
+        const now = clock.date.getTime();
+        return hours.find(h => h.time + 3600 * 1000 > now && h.time < now + 12 * 3600 * 1000 && h.chance >= 50) ?? null;
+    }
+
+    function isSnow(c) {
+        return (c >= 71 && c <= 77) || c === 85 || c === 86;
+    }
+
+    // The popup's rows: a label, a value and the value's color.
+    readonly property var details: {
+        if (!known)
+            return [];
+        const row = (label, value, color) => ({
+                    label: label,
+                    value: value,
+                    color: color ?? Theme.text
+                });
+        const hm = ms => Qt.formatTime(new Date(ms), "HH:mm");
+        const compass = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"][Math.round(windDirection / 45) % 8];
+        const wet = wetHour;
+        const rows = [];
+        if (wet)
+            rows.push(row(isSnow(wet.code) ? "Snow" : "Rain", (wet.time <= clock.date.getTime() ? "now" : hm(wet.time)) + ", " + wet.chance + "%", Theme.sky));
+        else if (hours.length > 0)
+            rows.push(row("Rain", "none for 12 h"));
+        rows.push(row("Feels like", Math.round(apparent) + "°"));
+        rows.push(row("Wind", Math.round(windSpeed) + " km/h " + compass));
+        rows.push(row("Humidity", humidity + "%"));
+        if (sunrise > 0 && sunset > 0)
+            rows.push(row("Daylight", hm(sunrise) + " – " + hm(sunset)));
+        return rows;
+    }
     property real attemptedAt: 0
 
     // After a suspend, say: the lock refreshes it before it shows.
@@ -88,15 +137,30 @@ Singleton {
     Process {
         id: fetch
         onStarted: root.attemptedAt = Date.now()
-        command: ["curl", "-sf", "--max-time", "15", `https://api.open-meteo.com/v1/forecast?latitude=${root.latitude}&longitude=${root.longitude}&current=temperature_2m,weather_code,is_day`]
+        command: ["curl", "-sf", "--max-time", "15", `https://api.open-meteo.com/v1/forecast?latitude=${root.latitude}&longitude=${root.longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,weather_code,is_day&hourly=precipitation_probability,weather_code&daily=sunrise,sunset&timezone=auto&timeformat=unixtime&forecast_days=2`]
         running: true
         stdout: StdioCollector {
             onStreamFinished: {
                 try {
-                    const current = JSON.parse(text).current;
+                    const answer = JSON.parse(text);
+                    const current = answer.current;
+                    const hourly = answer.hourly;
+                    const daily = answer.daily;
                     root.temperature = current.temperature_2m;
                     root.code = current.weather_code;
                     root.day = current.is_day === 1;
+                    root.apparent = current.apparent_temperature;
+                    root.humidity = current.relative_humidity_2m;
+                    root.windSpeed = current.wind_speed_10m;
+                    root.windDirection = current.wind_direction_10m;
+                    // The first day is today, by the place's own time.
+                    root.sunrise = daily.sunrise[0] * 1000;
+                    root.sunset = daily.sunset[0] * 1000;
+                    root.hours = hourly.time.map((t, i) => ({
+                                time: t * 1000,
+                                chance: hourly.precipitation_probability[i] ?? 0,
+                                code: hourly.weather_code[i]
+                            }));
                     root.fetchedAt = Date.now();
                 } catch (e) {
                     // Offline or a bad answer: tried again sooner, see below.
