@@ -9,22 +9,8 @@ import qs.widgets
 // scrolling over it changes its volume, a right click makes it the default.
 // Below them, the same for Spotify while it runs and for every program that
 // plays, then the microphone and the programs recording from it.
-Column {
+PopupList {
     id: sinkList
-    readonly property bool hasRows: true
-    // Columns line up across rows.
-    readonly property real nameWidth: widest(i => i.labelImplicitWidth)
-    readonly property real valueWidth: widest(i => i.valueImplicitWidth)
-    spacing: 2
-
-    function widest(width) {
-        let w = 0;
-        for (const item of children) {
-            if (item instanceof PopupAction)
-                w = Math.max(w, width(item));
-        }
-        return w;
-    }
 
     function level(node) {
         return node.audio.muted ? "muted" : Audio.volume(node) + "%";

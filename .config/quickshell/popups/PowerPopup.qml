@@ -6,16 +6,12 @@ import qs.widgets
 // Power menu: lock, logout, shutdown, suspend, reboot. With the bar in its
 // keyboard mode one row is selected and the bar passes the keys on here;
 // running a command stays in the Bar.
-Column {
+PopupList {
     id: actionList
 
     required property var host   // the Bar
-    readonly property bool hasRows: true
-    // Rows share the width of the widest one.
-    property real rowWidth: 0
     // The row selected from the keyboard.
     property int selected: 0
-    spacing: 2
 
     function keyPressed(event) {
         const count = Power.actions.length;
@@ -55,8 +51,7 @@ Column {
         PopupAction {
             required property var modelData
             required property int index
-            width: actionList.rowWidth
-            Component.onCompleted: actionList.rowWidth = Math.max(actionList.rowWidth, implicitWidth)
+            labelWidth: actionList.nameWidth
             icon: Theme.glyph(modelData.icon)
             iconColor: modelData.color || Theme.text
             text: modelData.text

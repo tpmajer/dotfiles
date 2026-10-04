@@ -4,27 +4,13 @@ import qs
 import qs.services
 import qs.widgets
 
-Column {
+PopupList {
     id: btList
     readonly property var adapter: Bluetooth.defaultAdapter
     // Paired devices, the connected ones first, then by name; clicking one
     // connects or disconnects it.
     readonly property var devices: Bluetooth.devices.values.filter(d => d.paired || d.connected).sort((a, b) => b.connected - a.connected || a.name.localeCompare(b.name))
-    readonly property bool hasRows: !!adapter
-    // Columns line up across rows.
-    readonly property real nameWidth: widest(i => i.labelImplicitWidth)
-    readonly property real valueWidth: widest(i => i.valueImplicitWidth)
-    spacing: 2
-
-    function widest(width) {
-        let w = width(power);
-        for (let i = 0; i < btRows.count; i++) {
-            const item = btRows.itemAt(i);
-            if (item)
-                w = Math.max(w, width(item));
-        }
-        return w;
-    }
+    hasRows: !!adapter
 
     PopupText {
         visible: !btList.adapter
@@ -62,7 +48,6 @@ Column {
     }
 
     Repeater {
-        id: btRows
         model: power.on ? btList.devices : []
 
         PopupAction {
