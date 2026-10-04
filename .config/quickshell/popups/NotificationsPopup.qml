@@ -87,7 +87,6 @@ Column {
             x: Theme.popupTextInset
             anchors.verticalCenter: parent.verticalCenter
             text: "Notifications"
-            font.bold: true
         }
 
         // Highlighted on hover as a popup's clickable row is.
