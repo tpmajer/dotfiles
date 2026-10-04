@@ -7,7 +7,22 @@ import qs.widgets
 Column {
     spacing: 8
 
-    PopupText { text: "Load " + SysStats.loadAvg }
+    // The load on the left, the temperature at the right end of the grid.
+    Item {
+        width: grid.width
+        height: load.height
+
+        PopupText {
+            id: load
+            text: "Load " + SysStats.loadAvg
+        }
+        PopupText {
+            anchors.right: parent.right
+            visible: SysStats.cpuTemp > 0
+            text: Math.round(SysStats.cpuTemp) + "°C"
+            color: SysStats.cpuTempLevel === 2 ? Theme.red : SysStats.cpuTempLevel === 1 ? Theme.peach : Theme.text
+        }
+    }
 
     // The widest core number, so the grid starts flush with the line above.
     TextMetrics {

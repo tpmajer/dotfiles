@@ -229,7 +229,9 @@ PanelWindow {
             Module {
                 host: popups
                 text: "CPU " + SysStats.cpuUsage + "%"
-                color: Theme.lavender
+                // Red while the CPU is hot; warm shows only in the popup,
+                // with the temperature.
+                color: SysStats.cpuTempLevel === 2 ? Theme.red : Theme.lavender
                 popup: CpuPopup {}
                 onClicked: Quickshell.execDetached(["ghostty", "-e", "btop"])
             }

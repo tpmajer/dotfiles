@@ -4,15 +4,30 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// CPU (every 1 s) and memory (every 5 s) usage read from /proc. reload() only
-// starts a read: without the wait, text() is still the previous content, a
-// whole interval old.
+// CPU (every 1 s) and memory (every 5 s) usage read from /proc, and the CPU's
+// temperature (every 1 s) from its sensor in /sys. reload() only starts a
+// read: without the wait, text() is still the previous content, a whole
+// interval old.
 Singleton {
     id: root
 
     property int cpuUsage: 0
     property var coreUsages: []
     property string loadAvg: ""
+    // In °C; 0 until the sensor is found, or if there is none.
+    property real cpuTemp: 0
+    // 0 as it should be, 1 warm (from 80 °C), 2 hot (from 95 °C, close to
+    // where the CPU throttles itself, at 100). A level is left 3 °C below
+    // where it is entered: the reading moves a degree or two every second.
+    property int cpuTempLevel: 0
+
+    function tempLevel(temp, level) {
+        if (temp >= 95 || (level === 2 && temp >= 92))
+            return 2;
+        if (temp >= 80 || (level >= 1 && temp >= 77))
+            return 1;
+        return 0;
+    }
 
     property int memPercent: 0
     property real memUsedGiB: 0
@@ -73,6 +88,19 @@ Singleton {
         path: "/proc/loadavg"
         blockLoading: true
     }
+    // The CPU's sensor is the hwmon device named k10temp (AMD) or coretemp
+    // (Intel). Its number changes from boot to boot, so it is looked up once.
+    FileView {
+        id: temp
+        blockLoading: true
+    }
+    Process {
+        running: true
+        command: ["sh", "-c", "for h in /sys/class/hwmon/hwmon*; do case $(cat $h/name) in k10temp|coretemp) echo $h/temp1_input; break;; esac; done"]
+        stdout: StdioCollector {
+            onStreamFinished: temp.path = text.trim()
+        }
+    }
     FileView {
         id: meminfo
         path: "/proc/meminfo"
@@ -91,6 +119,12 @@ Singleton {
             loadavg.reload();
             loadavg.waitForJob();
             root.loadAvg = loadavg.text().split(" ").slice(0, 3).join("  ");
+            if (temp.path != "") {
+                temp.reload();
+                temp.waitForJob();
+                root.cpuTemp = Number(temp.text()) / 1000;
+                root.cpuTempLevel = root.tempLevel(root.cpuTemp, root.cpuTempLevel);
+            }
         }
     }
 
