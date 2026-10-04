@@ -59,9 +59,14 @@ Singleton {
         return ms ? Qt.formatTime(new Date(ms), "HH:mm") : "";
     }
 
+    // Only ever a toast: there is nothing of it to keep in the center.
+    function isTransient(notification) {
+        return notification.transient || transientCategories.includes(notification.hints.category);
+    }
+
     // A toast's time is up.
     function timedOut(notification) {
-        if (notification.transient || transientCategories.includes(notification.hints.category))
+        if (isTransient(notification))
             notification.expire();
         else
             hide(notification);
@@ -75,14 +80,10 @@ Singleton {
         });
     }
 
+    // The toasts leave the screen as if their time were up.
     function hideAll() {
-        const kept = {};
-        for (const n of tracked.values)
-            kept[n.id] = {
-                time: time(n),
-                toast: false
-            };
-        state.entries = JSON.stringify(kept);
+        for (const n of [...toasts])
+            timedOut(n);
     }
 
     // The default action, if there is one, and the notification is closed.
@@ -108,12 +109,17 @@ Singleton {
     }
 
     // Just come, or just replaced by its sender: a toast with the time it is
-    // now, or straight to the center under do not disturb.
+    // now, or straight to the center under do not disturb. False for one
+    // that is to be neither: a transient one under do not disturb.
     function arrived(notification) {
+        const toast = !state.dnd || notification.urgency === NotificationUrgency.Critical;
+        if (!toast && isTransient(notification))
+            return false;
         store(notification, {
             time: Date.now(),
-            toast: !state.dnd || notification.urgency === NotificationUrgency.Critical
+            toast: toast
         });
+        return true;
     }
 
     // Writes a notification's entry, and drops those of the closed ones.
@@ -156,9 +162,9 @@ Singleton {
                 }
             }
             // One carried over a reload of the configuration comes here
-            // again: it is as it was.
-            if (!n.lastGeneration)
-                root.arrived(n);
+            // again: it is as it was. One not tracked is closed.
+            if (!n.lastGeneration && !root.arrived(n))
+                return;
             n.tracked = true;
         }
     }
@@ -172,10 +178,12 @@ Singleton {
             required property var modelData
             target: modelData
             function onSummaryChanged() {
-                root.arrived(modelData);
+                if (!root.arrived(modelData))
+                    modelData.expire();
             }
             function onBodyChanged() {
-                root.arrived(modelData);
+                if (!root.arrived(modelData))
+                    modelData.expire();
             }
         }
     }
