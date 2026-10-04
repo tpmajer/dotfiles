@@ -285,7 +285,7 @@ PanelWindow {
             Module {
                 property bool alt: false
                 host: popups
-                text: Battery.icon + " " + (alt ? Battery.timeText : Battery.capacity + "%")
+                text: Battery.icon + " " + (alt && Battery.timeText !== "" ? Battery.timeText : Battery.capacity + "%")
                 color: Battery.color
                 popup: BatteryPopup {}
                 onClicked: alt = !alt
