@@ -121,11 +121,8 @@ Item {
                         id: buttonMouse
                         anchors.fill: parent
                         hoverEnabled: true
-                        onClicked: {
-                            button.modelData.invoke();
-                            if (!card.notification.resident)
-                                card.notification.dismiss();
-                        }
+                        // Invoking it closes a notification that is not resident.
+                        onClicked: button.modelData.invoke()
                     }
                 }
             }
