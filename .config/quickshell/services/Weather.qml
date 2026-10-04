@@ -6,8 +6,8 @@ import Quickshell.Io
 import qs
 
 // The current weather in Warsaw from Open-Meteo (no key), every half an hour,
-// with what the popup lists: how it feels, the wind, the day's sun, and when
-// it is to rain.
+// with what the popup lists: how it feels, the wind, the day's sun, when it
+// is to rain, and the week from today.
 // Unknown when it has not been fetched for three hours: offline, it is not
 // shown rather than shown stale. The half hours are by the wall clock, checked
 // every minute: a Timer's own does not run during a suspend.
@@ -34,9 +34,12 @@ Singleton {
     // Today's.
     property real sunrise: 0         // ms
     property real sunset: 0
-    // Today's hours and tomorrow's: [{ time: its start, in ms; chance: of
+    // The hours from today's first on: [{ time: its start, in ms; chance: of
     // precipitation, in %; code: the weather's }].
     property var hours: []
+    // Today and the six days after it: [{ time: its start, in ms; code:
+    // the weather's; low, high; chance: of precipitation, in % }].
+    property var days: []
 
     // The first hour of the next twelve, the current one included, in which
     // it is more likely to rain or snow than not; null if there is none.
@@ -104,9 +107,10 @@ Singleton {
         return "";
     }
 
+    readonly property string icon: glyphFor(code, day)
+
     // WMO weather codes, as Open-Meteo gives them.
-    readonly property string icon: {
-        const c = code;
+    function glyphFor(c, day) {
         let glyph;
         if (c === 0)
             glyph = day ? 0xf0599 : 0xf0594;            // clear
@@ -137,7 +141,7 @@ Singleton {
     Process {
         id: fetch
         onStarted: root.attemptedAt = Date.now()
-        command: ["curl", "-sf", "--max-time", "15", `https://api.open-meteo.com/v1/forecast?latitude=${root.latitude}&longitude=${root.longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,weather_code,is_day&hourly=precipitation_probability,weather_code&daily=sunrise,sunset&timezone=auto&timeformat=unixtime&forecast_days=2`]
+        command: ["curl", "-sf", "--max-time", "15", `https://api.open-meteo.com/v1/forecast?latitude=${root.latitude}&longitude=${root.longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,weather_code,is_day&hourly=precipitation_probability,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&timezone=auto&timeformat=unixtime&forecast_days=7`]
         running: true
         stdout: StdioCollector {
             onStreamFinished: {
@@ -160,6 +164,13 @@ Singleton {
                                 time: t * 1000,
                                 chance: hourly.precipitation_probability[i] ?? 0,
                                 code: hourly.weather_code[i]
+                            }));
+                    root.days = daily.time.map((t, i) => ({
+                                time: t * 1000,
+                                code: daily.weather_code[i],
+                                low: daily.temperature_2m_min[i],
+                                high: daily.temperature_2m_max[i],
+                                chance: daily.precipitation_probability_max[i] ?? 0
                             }));
                     root.fetchedAt = Date.now();
                 } catch (e) {

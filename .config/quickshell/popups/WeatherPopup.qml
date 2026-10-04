@@ -4,34 +4,69 @@ import qs
 import qs.services
 import qs.widgets
 
-Column {
-    spacing: 4
-    PopupText { text: Weather.place + " " + Weather.temperatureText }
-    PopupText {
-        text: Weather.description
-        color: Theme.subtext0
+// The weather now on the left, the week on the right, row by row: both have
+// the same spacing, and seven rows each.
+Row {
+    spacing: 32
+
+    Column {
+        spacing: 4
+        PopupText { text: Weather.place + " " + Weather.temperatureText }
+        PopupText {
+            text: Weather.description
+            color: Theme.subtext0
+        }
+        // A label and a value to a row, as in the network popup: when it
+        // is to rain, how it feels, the wind and the sun.
+        GridLayout {
+            visible: Weather.details.length > 0
+            columns: 2
+            columnSpacing: 16
+            rowSpacing: 4
+
+            Repeater {
+                model: Weather.details
+
+                delegate: Repeater {
+                    id: detail
+                    required property var modelData
+                    model: 2
+
+                    PopupText {
+                        required property int index
+                        text: index === 0 ? detail.modelData.label : detail.modelData.value
+                        color: index === 0 ? Theme.subtext0 : detail.modelData.color
+                        Layout.alignment: index === 0 ? Qt.AlignLeft : Qt.AlignRight
+                    }
+                }
+            }
+        }
     }
-    // A label and a value to a row, as in the network popup: when it is to
-    // rain, how it feels, the wind and the sun.
+
+    // A day to a row, today first and in bold: its name, its weather, in
+    // the rain's color on a day more likely wet than not, and its range.
     GridLayout {
-        visible: Weather.details.length > 0
-        columns: 2
+        visible: Weather.days.length > 0
+        columns: 3
         columnSpacing: 16
         rowSpacing: 4
 
         Repeater {
-            model: Weather.details
+            model: Weather.days
 
             delegate: Repeater {
-                id: detail
+                id: day
                 required property var modelData
-                model: 2
+                required property int index
+                readonly property bool today: index === 0
+                model: 3
 
                 PopupText {
                     required property int index
-                    text: index === 0 ? detail.modelData.label : detail.modelData.value
-                    color: index === 0 ? Theme.subtext0 : detail.modelData.color
-                    Layout.alignment: index === 0 ? Qt.AlignLeft : Qt.AlignRight
+                    text: index === 0 ? Qt.formatDate(new Date(day.modelData.time), "ddd") : index === 1 ? Weather.glyphFor(day.modelData.code, true) : Math.round(day.modelData.low) + "° / " + Math.round(day.modelData.high) + "°"
+                    color: index === 1 && day.modelData.chance >= 50 ? Theme.sky : index === 0 && !day.today ? Theme.subtext0 : Theme.text
+                    font.bold: day.today
+                    Layout.alignment: index === 2 ? Qt.AlignRight : Qt.AlignLeft
                 }
             }
         }
