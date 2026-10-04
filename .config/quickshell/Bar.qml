@@ -186,8 +186,18 @@ PanelWindow {
             id: bellModule
             anchors.left: clock.right
             host: popups
-            text: Theme.glyph(Notifications.dnd ? 0xf009b : 0xf009a) + (Notifications.missedCount > 0 ? " " + Notifications.missedCount : "")
+            prefix: Theme.glyph(Notifications.dnd ? 0xf009b : 0xf009a)
+            // Both bells in the wider one's width: the module keeps its
+            // width, and its popup its place, as do not disturb is switched.
+            prefixWidth: Math.ceil(Math.max(bellMetrics.advanceWidth(Theme.glyph(0xf009a)), bellMetrics.advanceWidth(Theme.glyph(0xf009b))))
+            text: Notifications.missedCount > 0 ? String(Notifications.missedCount) : ""
             color: !Notifications.dnd && Notifications.missedCount > 0 ? Theme.pink : Theme.subtext0
+
+            FontMetrics {
+                id: bellMetrics
+                font.family: Theme.font
+                font.pixelSize: Theme.fontSize
+            }
             popup: NotificationsPopup {
                 host: bar
             }

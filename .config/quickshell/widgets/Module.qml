@@ -13,6 +13,9 @@ Item {
     // Optional text before the main one, in its own color (e.g. a warning icon).
     property string prefix: ""
     property color prefixColor: color
+    // A width for the prefix, which is centered in it: for an icon that
+    // changes, so that the module keeps its width. Its own width otherwise.
+    property real prefixWidth: -1
     property bool bold: false
     property int fontSize: Theme.fontSize
     property string iconSource: ""
@@ -87,6 +90,8 @@ Item {
                 color: root.prefixColor
                 font.family: Theme.font
                 font.pixelSize: root.fontSize
+                width: root.prefixWidth > 0 ? root.prefixWidth : implicitWidth
+                horizontalAlignment: Text.AlignHCenter
                 anchors.verticalCenter: parent.verticalCenter
             }
 
