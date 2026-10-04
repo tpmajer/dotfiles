@@ -84,7 +84,7 @@ Rectangle {
         Rectangle {
             anchors.fill: parent
             color: Theme.base
-            opacity: 0.6
+            opacity: 0.7
         }
     }
 
