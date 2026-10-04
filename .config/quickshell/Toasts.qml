@@ -114,9 +114,40 @@ PanelWindow {
     mask: Region {
         regions: toasts.cards.filter(c => c.visible).map(c => c.inputRegion)
     }
+    // Not under a card half faded out, as with the OSD.
+    readonly property var blurred: cards.filter(c => c.visible && (c.openness ?? 1) > 0.5)
     BackgroundEffect.blurRegion: Region {
-        // Not under a card half faded out, as with the OSD.
-        regions: toasts.cards.filter(c => c.visible && (c.openness ?? 1) > 0.5).map(c => c.blurRegion)
+        regions: toasts.blurred.map(c => c.blurRegion).concat(toasts.blurred.length > 0 ? [toasts.blurBump] : [])
+    }
+
+    // A new blur region can reach niri with a commit older than itself, and
+    // is then not applied until the region changes again (see PopupHost): a
+    // card stays without its blur, or the blur stays without its card. So
+    // the region is sent a few more times after the cards change, past the
+    // end of their slide: each bump resizes a 1 px region inside the first
+    // card, which blurs nothing new.
+    property int blurResend: 0
+    readonly property Region blurBump: Region {
+        readonly property var card: toasts.blurred[0] ?? null
+        x: card ? stack.x + card.x + Theme.barRadius : 0
+        y: card ? stack.y + card.y + Theme.barRadius : 0
+        width: 1
+        height: 1 + toasts.blurResend % 2
+    }
+    onBlurredChanged: {
+        blurResendTimer.left = 10;
+        blurResendTimer.restart();
+    }
+    Timer {
+        id: blurResendTimer
+        property int left: 0
+        interval: 48
+        repeat: true
+        onTriggered: {
+            toasts.blurResend++;
+            if (--left <= 0)
+                stop();
+        }
     }
 
     Item {
