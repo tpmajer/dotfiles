@@ -15,6 +15,9 @@ Singleton {
     // The charge limit, in percent of the whole battery: read with the rest,
     // this until then and if the battery has none.
     property int fullAt: 80
+    // What the limit is kept at, and what the popup's switch goes back to.
+    readonly property int limitedAt: 80
+    readonly property bool limited: fullAt < 100
     readonly property string sysfs: "/sys/class/power_supply/BAT1/"
 
     property int capacity: 0
@@ -53,12 +56,24 @@ Singleton {
             list.push({label: charging ? "Full in" : "Empty in", value: timeText});
         if (watts > 0)
             list.push({label: charging ? "Charging" : "Power", value: watts.toFixed(1) + " W"});
-        list.push({label: "Charge limit", value: fullAt + "%"});
         if (health > 0)
             list.push({label: "Health", value: health + "%"});
         if (cycles > 0)
             list.push({label: "Cycles", value: String(cycles)});
         return list;
+    }
+
+    // The limit off, to charge the battery full, or back on. Only root can
+    // write it: battery-charge-limit@.service does, and polkit lets it be
+    // started (~/.nixos, system.nix).
+    function toggleLimit() {
+        limitSwitch.command = ["systemctl", "--no-ask-password", "start", "battery-charge-limit@" + (limited ? 100 : limitedAt) + ".service"];
+        limitSwitch.running = true;
+    }
+
+    Process {
+        id: limitSwitch
+        onExited: root.refresh()
     }
 
     property string lastEvent: ""
