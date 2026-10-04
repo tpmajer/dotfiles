@@ -304,6 +304,10 @@ PanelWindow {
                 readonly property bool fading: (toastIndex < 0 || leaving) && openness > 0
                 onOpennessChanged: if (leaving && openness === 0)
                     leave()
+                // A folded card has faded out already: there is nothing to
+                // wait for, and it would stay a toast nobody sees.
+                onLeavingChanged: if (leaving && openness === 0)
+                    leave()
 
                 // 1 with the card there, 0 with it gone. It goes as the OSD
                 // and the bar's popups do (widgets/Pop.qml): quickly, down
