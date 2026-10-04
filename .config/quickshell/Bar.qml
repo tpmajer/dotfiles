@@ -218,8 +218,9 @@ PanelWindow {
             // custom/idle-inhibit
             Module {
                 host: popups
-                text: Custom.idle.text || ""
-                color: Custom.idle.class === "activated" ? Theme.sky : Theme.subtext0
+                // Idle: the time left until the lock, in a color that tells.
+                text: (Custom.idle.text || "") + (Custom.systemIdle ? " " + Custom.lockCountdown(systemClock.date) : "")
+                color: Custom.idle.class === "activated" ? Theme.sky : Custom.systemIdle ? Theme.peach : Theme.subtext0
                 popup: Custom.idle.tooltip ? idlePopup : null
                 onClicked: Custom.toggleIdle()
             }
