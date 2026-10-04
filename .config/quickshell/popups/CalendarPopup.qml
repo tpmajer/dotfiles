@@ -2,6 +2,10 @@ import QtQuick
 import qs
 import qs.widgets
 
+// The clock's popup: today's date in full, and the month as a grid of weeks
+// starting on Monday. Today is a filled cell, the weekend is dimmer than the
+// working days, and the first and last week are filled up with the days of
+// the months next to this one, fainter still.
 Column {
     id: cal
     readonly property var locale: Qt.locale("en_US")
@@ -9,10 +13,14 @@ Column {
     required property date now
     readonly property int year: now.getFullYear()
     readonly property int month: now.getMonth()
+    // Not now itself in the cells: it changes every second.
+    readonly property int today: now.getDate()
     // Weeks start on Monday: getDay() is 0 for Sunday, so shift it to the end.
     readonly property int firstDay: (new Date(year, month, 1).getDay() + 6) % 7
     readonly property int daysInMonth: new Date(year, month + 1, 0).getDate()
-    spacing: 6
+    // A square that holds two bold digits with room around them.
+    readonly property int cellSize: Math.ceil(Math.max(cell.width, cell.height)) + 8
+    spacing: 8
 
     TextMetrics {
         id: cell
@@ -24,38 +32,53 @@ Column {
 
     PopupText {
         anchors.horizontalCenter: parent.horizontalCenter
-        text: cal.locale.standaloneMonthName(cal.month) + " " + cal.year
+        text: cal.locale.toString(cal.now, "dddd, d MMMM yyyy")
+        font.bold: true
     }
 
     Grid {
+        anchors.horizontalCenter: parent.horizontalCenter
         columns: 7
-        columnSpacing: 10
-        rowSpacing: 4
+        columnSpacing: 2
+        rowSpacing: 2
 
         Repeater {
             model: 7
             PopupText {
                 required property int index
-                width: cell.width
-                horizontalAlignment: Text.AlignRight
+                width: cal.cellSize
+                horizontalAlignment: Text.AlignHCenter
                 text: cal.locale.dayName((index + 1) % 7, Locale.ShortFormat).slice(0, 2)
-                color: Theme.pink
-                font.bold: true
+                color: Theme.subtext0
+                font.pixelSize: Theme.fontSize - 2
+                opacity: index >= 5 ? 0.6 : 1
             }
         }
 
         Repeater {
             model: Math.ceil((cal.firstDay + cal.daysInMonth) / 7) * 7
-            PopupText {
+
+            Rectangle {
+                id: day
                 required property int index
-                readonly property int day: index - cal.firstDay + 1
-                readonly property bool today: day === cal.now.getDate()
-                width: cell.width
-                horizontalAlignment: Text.AlignRight
-                text: day >= 1 && day <= cal.daysInMonth ? day : ""
-                color: today ? Theme.pink : Theme.white
-                font.bold: today
-                font.underline: today
+                // Past either end of the month, the date rolls over into the one next to it.
+                readonly property date date: new Date(cal.year, cal.month, index - cal.firstDay + 1)
+                readonly property bool inMonth: date.getMonth() === cal.month
+                readonly property bool today: inMonth && date.getDate() === cal.today
+                readonly property bool weekend: index % 7 >= 5
+
+                width: cal.cellSize
+                height: cal.cellSize
+                radius: Theme.moduleRadius
+                color: today ? Theme.mauve : "transparent"
+
+                PopupText {
+                    anchors.centerIn: parent
+                    text: day.date.getDate()
+                    color: day.today ? Theme.base : day.weekend ? Theme.subtext0 : Theme.white
+                    font.bold: day.today
+                    opacity: day.inMonth ? 1 : 0.35
+                }
             }
         }
     }
