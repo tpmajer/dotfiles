@@ -158,6 +158,23 @@ PanelWindow {
             }
         }
 
+        // With cards folded, a new one takes the place of the card above it
+        // and the stack does not grow, so it does not slide: the card comes
+        // up from below on its own, as the stack would have brought it. Only
+        // the newest: one unfolded by another's leaving is just there.
+        add: Transition {
+            id: arrive
+            enabled: !toasts.atTop && toasts.live && toasts.hiddenCount > 0 && !toasts.expanded
+            NumberAnimation {
+                // There is no item once the transition is over.
+                readonly property Item item: arrive.ViewTransition.item
+                property: "y"
+                from: arrive.ViewTransition.destination.y + (item && item.toastIndex === toasts.count - 1 ? item.height + Theme.notificationGap : 0)
+                duration: Theme.notificationSlide
+                easing.type: Easing.OutCubic
+            }
+        }
+
         // The folded notifications: "+N more", or "Show less" once unfolded.
         Rectangle {
             id: fold
