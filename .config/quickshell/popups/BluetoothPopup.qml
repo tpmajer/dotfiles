@@ -7,8 +7,9 @@ import qs.widgets
 Column {
     id: btList
     readonly property var adapter: Bluetooth.defaultAdapter
-    // Paired devices by name; clicking one connects or disconnects it.
-    readonly property var devices: Bluetooth.devices.values.filter(d => d.paired || d.connected).sort((a, b) => a.name.localeCompare(b.name))
+    // Paired devices, the connected ones first, then by name; clicking one
+    // connects or disconnects it.
+    readonly property var devices: Bluetooth.devices.values.filter(d => d.paired || d.connected).sort((a, b) => b.connected - a.connected || a.name.localeCompare(b.name))
     readonly property bool hasRows: !!adapter
     // Columns line up across rows.
     readonly property real nameWidth: widest(i => i.labelImplicitWidth)
