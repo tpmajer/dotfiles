@@ -10,9 +10,9 @@ Column {
     required property var host   // the PopupHost, which opens and closes the popup
     readonly property bool hasRows: true
     spacing: 4
-    // The rows below the switches are inset like the switches' text, on
-    // the sides and at the bottom.
-    bottomPadding: Network.rows.length ? Theme.popupTextInsetV : 0
+    // The rows above the switches are inset like the switches' text, on
+    // the sides and at the top.
+    topPadding: trafficGrid.visible ? Theme.popupTextInsetV : 0
 
     Component.onCompleted: Network.refreshWgAuto()
     Connections {
@@ -22,40 +22,27 @@ Column {
                 Network.refreshWgAuto();
         }
     }
+    // The route and the ping to the gateway, while the popup is open.
+    Timer {
+        interval: 5000
+        running: root.visible
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: Network.refreshRoute()
+    }
 
-    // WireGuard switches, side by side: the tunnel by hand, and wg-auto.
-    // They share the popup width evenly.
-    Item {
-        id: wgSwitches
-        readonly property real cell: Math.max(tunnelAction.implicitWidth, wgAutoAction.implicitWidth, (trafficGrid.implicitWidth + 24 - wgActions.spacing) / 2)
-        implicitWidth: 2 * cell + wgActions.spacing
-        implicitHeight: wgActions.implicitHeight
-
-        Row {
-            id: wgActions
-            spacing: 2
-
-            PopupAction {
-                id: tunnelAction
-                width: wgSwitches.cell
-                icon: Theme.glyph(Network.vpn ? 0xf0565 : 0xf099e)
-                iconColor: Network.vpn ? Theme.teal : Theme.subtext0
-                text: "WireGuard " + (Network.vpn ? "on" : "off")
-                onTriggered: Network.toggleTunnel()
-            }
-            PopupAction {
-                id: wgAutoAction
-                width: wgSwitches.cell
-                icon: Theme.glyph(0xf006a)
-                iconColor: Network.wgAuto ? Theme.teal : Theme.subtext0
-                text: "Auto " + (Network.wgAuto ? "on" : "off")
-                onTriggered: Network.toggleWgAuto()
-            }
-        }
+    // One grid: a connection's traffic in two columns of a set width, so
+    // that the popup keeps its width as the rates change, and below them a
+    // label and a value to a row, the value across both columns.
+    TextMetrics {
+        id: rate
+        font.family: Theme.font
+        font.pixelSize: Theme.fontSize
+        text: Network.widestRate
     }
     GridLayout {
         id: trafficGrid
-        visible: Network.rows.length > 0
+        visible: Network.rows.length + Network.details.length > 0
         x: 12
         columns: 3
         columnSpacing: 16
@@ -72,7 +59,25 @@ Column {
                     required property var modelData
                     required property int index
                     text: modelData
-                    // The label left, the two rates right-aligned in their columns.
+                    horizontalAlignment: index === 0 ? Text.AlignLeft : Text.AlignRight
+                    Layout.preferredWidth: index === 0 ? implicitWidth : Math.ceil(rate.width)
+                }
+            }
+        }
+
+        Repeater {
+            model: Network.details
+
+            delegate: Repeater {
+                id: detail
+                required property var modelData
+                model: 2
+
+                PopupText {
+                    required property int index
+                    text: index === 0 ? detail.modelData.label : detail.modelData.value
+                    color: index === 0 ? Theme.subtext0 : detail.modelData.color
+                    Layout.columnSpan: index === 0 ? 1 : 2
                     Layout.alignment: index === 0 ? Qt.AlignLeft : Qt.AlignRight
                 }
             }
@@ -84,10 +89,28 @@ Column {
         text: Network.offline
         color: Theme.red
     }
-    PopupText {
-        visible: Network.wired && Network.slowUsb
-        x: 12
-        text: Network.usbName
-        color: Theme.maroon
+    // WireGuard switches at the bottom: the tunnel by hand at the left end,
+    // wg-auto at the right. Each is as wide as what it shows, so its text
+    // sits under the labels, or ends where the values do.
+    Item {
+        id: wgSwitches
+        implicitWidth: Math.max(tunnelAction.implicitWidth + 2 + wgAutoAction.implicitWidth, trafficGrid.implicitWidth + 24)
+        implicitHeight: tunnelAction.implicitHeight
+
+        PopupAction {
+            id: tunnelAction
+            icon: Theme.glyph(Network.vpn ? 0xf0565 : 0xf099e)
+            iconColor: Network.vpn ? Theme.teal : Theme.subtext0
+            text: "WireGuard " + (Network.vpn ? "on" : "off")
+            onTriggered: Network.toggleTunnel()
+        }
+        PopupAction {
+            id: wgAutoAction
+            anchors.right: parent.right
+            icon: Theme.glyph(0xf006a)
+            iconColor: Network.wgAuto ? Theme.teal : Theme.subtext0
+            text: "Auto " + (Network.wgAuto ? "on" : "off")
+            onTriggered: Network.toggleWgAuto()
+        }
     }
 }

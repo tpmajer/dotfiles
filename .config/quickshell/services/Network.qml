@@ -12,7 +12,9 @@ import Quickshell.Networking
 // /proc/net/dev every 2 s. Only the Wi-Fi frequency still needs nmcli, run on a
 // network change and every 30 s (roaming between bands keeps the SSID). The
 // Wi-Fi scanner is never enabled: this reads what NetworkManager already knows,
-// without triggering rescans.
+// without triggering rescans. What the popup shows of the default route (the
+// address, the gateway and how long it takes to answer) is read only when
+// the popup asks for it.
 Singleton {
     id: root
 
@@ -99,28 +101,50 @@ Singleton {
         return parts.join(" ");
     }
 
-    // Popup rows: a label and the traffic, which the popup right-aligns.
+    // Popup rows, one per connection: its name and the traffic, which the
+    // popup right-aligns in columns of a set width.
     function row(label, device) {
         const r = device ? rates[device.name] : null;
-        return {label, down: "⇣ " + (r ? r.down : "?"), up: "⇡ " + (r ? r.up : "?")};
+        return {label, down: downIcon + " " + (r ? r.down : "?"), up: upIcon + " " + (r ? r.up : "?")};
     }
 
     readonly property var rows: {
         const list = [];
         if (wired)
-            list.push(row("Ethernet" + (wiredDevice.linkSpeed > 0 ? " " + wiredDevice.linkSpeed + " Mb/s" : ""), wiredDevice));
+            list.push(row("Ethernet", wiredDevice));
         if (wifiNetwork)
-            list.push(row(`${frequency} ${signal}%`, wifiDevice));
+            list.push(row("Wi-Fi", wifiDevice));
         return list;
     }
 
+    // Below them, what does not change every other second: a label, a value
+    // and the value's color.
+    readonly property var details: {
+        const list = [];
+        if (wired && wiredDevice.linkSpeed > 0)
+            list.push({label: "Link", value: wiredDevice.linkSpeed + " Mb/s" + (slowUsb ? "  " + usbName : ""), color: slowUsb ? Theme.maroon : Theme.subtext0});
+        if (wifiNetwork)
+            list.push({label: "Signal", value: (frequency !== "" ? frequency + "  " : "") + signal + "%", color: signalLevel === 2 ? Theme.red : signalLevel === 1 ? Theme.peach : Theme.subtext0});
+        if (address !== "")
+            list.push({label: "Address", value: address, color: Theme.subtext0});
+        if (gateway !== "")
+            list.push({label: "Gateway", value: gateway + (latency !== "" ? "  " + latency : ""), color: Theme.subtext0});
+        else if (routeDevice !== "")
+            list.push({label: "Through", value: routeDevice, color: Theme.subtext0});
+        return list;
+    }
+
+    // In two units only, so that a rate is as wide whatever it is: under
+    // half a KiB/s it reads 0.
     function formatRate(bytesPerSecond) {
         if (bytesPerSecond >= 1048576)
             return (bytesPerSecond / 1048576).toFixed(1) + " MiB/s";
-        if (bytesPerSecond >= 1024)
-            return Math.round(bytesPerSecond / 1024) + " KiB/s";
-        return Math.round(bytesPerSecond) + " B/s";
+        return Math.round(bytesPerSecond / 1024) + " KiB/s";
     }
+    // The widest a rate gets, for the popup's columns.
+    readonly property string widestRate: downIcon + " 1023 KiB/s"
+    readonly property string downIcon: Theme.glyph(0xf01da)
+    readonly property string upIcon: Theme.glyph(0xf0552)
 
     property var previous: ({})   // interface -> {rx, tx, time}
 
@@ -171,6 +195,51 @@ Singleton {
         repeat: true
         triggeredOnStart: true
         onTriggered: root.readTraffic()
+    }
+
+    // The default route, for the popup: this machine's address on it, the
+    // interface, the gateway and the time of one ping to it. Asked for by the
+    // popup while it is open; the ping follows the route, as it needs the
+    // gateway. Through wg0 there is no gateway to ping.
+    property string address: ""
+    property string routeDevice: ""
+    property string gateway: ""
+    property string latency: ""
+
+    function refreshRoute() {
+        routeQuery.running = true;
+    }
+
+    Process {
+        id: routeQuery
+        command: ["ip", "-j", "route", "get", "1.1.1.1"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                let route = {};
+                try {
+                    route = JSON.parse(text)[0] ?? {};
+                } catch (e) {}
+                root.address = route.prefsrc ?? "";
+                root.routeDevice = route.dev ?? "";
+                root.gateway = route.gateway ?? "";
+                if (root.gateway === "") {
+                    root.latency = "";
+                } else {
+                    pingQuery.command = ["ping", "-c1", "-W1", root.gateway];
+                    pingQuery.running = true;
+                }
+            }
+        }
+    }
+
+    Process {
+        id: pingQuery
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const m = text.match(/time=([0-9.]+) ms/);
+                root.latency = m ? (Number(m[1]) < 10 ? Number(m[1]).toFixed(1) : Math.round(Number(m[1]))) + " ms" : "no answer";
+            }
+        }
     }
 
     // wg-auto: the NetworkManager dispatcher that brings wg0 up on untrusted
