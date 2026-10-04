@@ -27,6 +27,9 @@ Rectangle {
     readonly property real iconRoom: icon === "" ? 20 + Theme.popupIconGap : 0
     readonly property real labelImplicitWidth: Math.max(0, label.implicitWidth + (detail === "" ? 0 : detailText.implicitWidth) - iconRoom)
     readonly property real valueImplicitWidth: value === "" ? 0 : valueText.implicitWidth
+    // What the row's content has besides its label and value: the icon and
+    // the gaps. For a popup that makes one row as wide as its other content.
+    readonly property real chromeWidth: 20 + 2 * Theme.popupIconGap
 
     signal triggered
     signal secondaryTriggered      // a right click

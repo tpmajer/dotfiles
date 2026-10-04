@@ -12,12 +12,9 @@ Column {
     id: popup
 
     readonly property bool hasRows: true
-    // What a row has besides its label and value, as PopupAction lays them
-    // out: the icon, and a gap on either side of the label.
-    readonly property real rowExtra: 20 + 2 * Theme.popupIconGap
     // The level, the rows below and the switch's text are as wide as the
     // widest of the three.
-    readonly property real wide: Math.max(level.implicitWidth, details.implicitWidth, rowExtra + limit.labelImplicitWidth + limit.valueImplicitWidth)
+    readonly property real wide: Math.max(level.implicitWidth, details.implicitWidth, limit.chromeWidth + limit.labelImplicitWidth + limit.valueImplicitWidth)
     spacing: Theme.popupRowGap
     // What is above the switch is inset like the switch's text, on the sides
     // and at the top.
@@ -56,7 +53,7 @@ Column {
     // The battery icon of that level: four fifths, or full.
     PopupAction {
         id: limit
-        labelWidth: popup.wide - popup.rowExtra - valueImplicitWidth
+        labelWidth: popup.wide - limit.chromeWidth - valueImplicitWidth
         icon: Theme.glyph(Battery.defaultIcons[Math.min(9, Math.floor(Battery.fullAt / 10) - 1)])
         iconColor: Theme.subtext0
         text: "Charge limit"
