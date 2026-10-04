@@ -6,8 +6,8 @@ import qs.services
 import qs.widgets
 
 // What a lock surface and a curtain both show: the clock, the date, the
-// battery and the weather, the password field and the fingerprint icon, over
-// the wallpaper, blurred and dimmed.
+// battery, the weather and the count of notifications, the password field
+// and the fingerprint icon, over the wallpaper, blurred and dimmed.
 Rectangle {
     id: view
 
@@ -110,7 +110,8 @@ Rectangle {
             color: Theme.subtext0
         }
 
-        // The battery, and the weather when it is known.
+        // The battery, the weather when it is known, and the notifications
+        // when there are any.
         Row {
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: 24
@@ -126,6 +127,14 @@ Rectangle {
             PopupText {
                 visible: Weather.known
                 text: Weather.icon + " " + Weather.temperatureText
+                color: Theme.subtext0
+            }
+
+            // How many notifications wait, under the bar's bell; none, and
+            // it is not there.
+            PopupText {
+                visible: Notifications.waitingCount > 0
+                text: Theme.glyph(Notifications.dnd ? 0xf009b : 0xf009a) + " " + Notifications.waitingCount
                 color: Theme.subtext0
             }
         }

@@ -19,6 +19,10 @@ Singleton {
     // Those waiting in the center, newest first.
     readonly property var missed: tracked.values.filter(n => !root.isToast(n)).sort((a, b) => root.time(b) - root.time(a))
     readonly property int missedCount: missed.length
+    // Those in the center and the toasts that are to go there: what there is
+    // to see once the lock is gone, the toasts not being shown over it. A
+    // critical one stays a toast, and so would not be among the missed.
+    readonly property int waitingCount: tracked.values.filter(n => !root.isToast(n) || !root.isTransient(n)).length
 
     // Do not disturb: a notification gets no toast and goes straight to the
     // center, unless it is critical.
