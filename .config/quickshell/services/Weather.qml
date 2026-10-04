@@ -5,7 +5,7 @@ import Quickshell
 import Quickshell.Io
 import qs
 
-// The current weather in Warsaw from Open-Meteo (no key), every half an hour,
+// The current weather in Lublin from Open-Meteo (no key), every half an hour,
 // with what the popup lists: how it feels, the wind, the day's sun, when it
 // is to rain, and the week from today.
 // Unknown when it has not been fetched for three hours: offline, it is not
@@ -15,9 +15,9 @@ Singleton {
     id: root
 
     // Where, and what the popup calls it.
-    readonly property string place: "Warsaw"
-    readonly property real latitude: 52.23
-    readonly property real longitude: 21.01
+    readonly property string place: "Lublin"
+    readonly property real latitude: 51.25
+    readonly property real longitude: 22.57
 
     property real temperature: NaN
     property int code: -1
