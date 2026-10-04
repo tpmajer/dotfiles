@@ -13,8 +13,8 @@ GridLayout {
     property color valueColor: Theme.subtext0
 
     columns: 2
-    columnSpacing: 16
-    rowSpacing: 4
+    columnSpacing: Theme.popupGridGap
+    rowSpacing: Theme.popupRowGap
 
     Repeater {
         model: root.rows

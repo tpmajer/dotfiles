@@ -4,7 +4,7 @@ import qs.services
 import qs.widgets
 
 Column {
-    spacing: 4
+    spacing: Theme.popupRowGap
     PopupText { text: "Battery " + Battery.capacity + "%" }
     PopupText {
         visible: Battery.timeText !== ""

@@ -46,6 +46,11 @@ Singleton {
     // between text columns.
     readonly property int popupIconGap: 8
     readonly property int popupColumnGap: 12
+    // In a grid of text: between its columns, and between its rows, which is
+    // also what lines of text are apart. Between the parts of a popup.
+    readonly property int popupGridGap: 16
+    readonly property int popupRowGap: 4
+    readonly property int popupSectionGap: 8
     readonly property int popupRadius: barRadius
     // Popups float below the bar, with this gap.
     readonly property int popupGap: 8

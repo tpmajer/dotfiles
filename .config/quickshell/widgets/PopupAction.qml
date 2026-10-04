@@ -29,7 +29,7 @@ Rectangle {
     signal secondaryTriggered      // a right click
     signal scrolled(int steps)
 
-    implicitWidth: row.implicitWidth + 24
+    implicitWidth: row.implicitWidth + 2 * Theme.popupTextInset
     implicitHeight: row.implicitHeight + 8
     radius: Theme.moduleRadius
     color: active ? Theme.surface0 : Qt.rgba(Theme.surface0.r, Theme.surface0.g, Theme.surface0.b, 0)
@@ -39,7 +39,7 @@ Rectangle {
 
     Row {
         id: row
-        x: 12
+        x: Theme.popupTextInset
         anchors.verticalCenter: parent.verticalCenter
         spacing: Theme.popupIconGap
 

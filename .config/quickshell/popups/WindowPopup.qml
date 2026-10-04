@@ -15,7 +15,7 @@ Column {
     // Wraps past this.
     readonly property int maxWidth: 480
 
-    spacing: 4
+    spacing: Theme.popupRowGap
 
     PopupText {
         width: Math.min(implicitWidth, popup.maxWidth)

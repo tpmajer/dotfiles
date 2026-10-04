@@ -4,7 +4,7 @@ import qs.services
 import qs.widgets
 
 Column {
-    spacing: 8
+    spacing: Theme.popupSectionGap
 
     // The load on the left, the temperature at the right end of the grid.
     Item {
@@ -35,7 +35,7 @@ Column {
         id: grid
         columns: 4
         columnSpacing: 20
-        rowSpacing: 4
+        rowSpacing: Theme.popupRowGap
 
         Repeater {
             model: SysStats.coreUsages.length

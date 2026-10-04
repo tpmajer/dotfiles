@@ -10,7 +10,7 @@ Row {
     spacing: 32
 
     Column {
-        spacing: 4
+        spacing: Theme.popupRowGap
         PopupText { text: Weather.place + " " + Weather.temperatureText }
         PopupText {
             text: Weather.description
@@ -28,8 +28,8 @@ Row {
     GridLayout {
         visible: Weather.days.length > 0
         columns: 3
-        columnSpacing: 16
-        rowSpacing: 4
+        columnSpacing: Theme.popupGridGap
+        rowSpacing: Theme.popupRowGap
 
         Repeater {
             model: Weather.days

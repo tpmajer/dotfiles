@@ -9,7 +9,7 @@ Column {
 
     required property var host   // the PopupHost, which opens and closes the popup
     readonly property bool hasRows: true
-    spacing: 4
+    spacing: Theme.popupRowGap
     // The rows above the switches are inset like the switches' text, on
     // the sides and at the top.
     topPadding: info.visible ? Theme.popupTextInsetV : 0
@@ -45,16 +45,16 @@ Column {
         id: info
         readonly property real wide: Math.max(trafficGrid.implicitWidth, details.implicitWidth)
         visible: Network.rows.length + Network.details.length > 0
-        x: 12
-        spacing: 4
+        x: Theme.popupTextInset
+        spacing: Theme.popupRowGap
 
         GridLayout {
             id: trafficGrid
             visible: Network.rows.length > 0
             width: info.wide
             columns: 3
-            columnSpacing: 16
-            rowSpacing: 4
+            columnSpacing: Theme.popupGridGap
+            rowSpacing: Theme.popupRowGap
 
             Repeater {
                 model: Network.rows
@@ -83,7 +83,7 @@ Column {
     }
     PopupText {
         visible: text !== ""
-        x: 12
+        x: Theme.popupTextInset
         text: Network.offline
         color: Theme.red
     }
@@ -92,7 +92,7 @@ Column {
     // sits under the labels, or ends where the values do.
     Item {
         id: wgSwitches
-        implicitWidth: Math.max(tunnelAction.implicitWidth + 2 + wgAutoAction.implicitWidth, info.wide + 24)
+        implicitWidth: Math.max(tunnelAction.implicitWidth + 2 + wgAutoAction.implicitWidth, info.wide + 2 * Theme.popupTextInset)
         implicitHeight: tunnelAction.implicitHeight
 
         PopupAction {

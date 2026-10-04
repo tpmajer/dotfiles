@@ -14,7 +14,7 @@ Column {
 
     // [{name, kib}], the largest first: scripts/mem-top.py.
     property var programs: []
-    spacing: 8
+    spacing: Theme.popupSectionGap
 
     function size(kib) {
         return kib >= 1024 * 1024 ? (kib / 1024 / 1024).toFixed(1) + " GiB" : Math.round(kib / 1024) + " MiB";
@@ -44,8 +44,8 @@ Column {
     GridLayout {
         id: levels
         columns: 4
-        columnSpacing: 12
-        rowSpacing: 4
+        columnSpacing: Theme.popupColumnGap
+        rowSpacing: Theme.popupRowGap
 
         Repeater {
             model: [

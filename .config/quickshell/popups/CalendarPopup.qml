@@ -45,7 +45,7 @@ Column {
     readonly property int daysInMonth: new Date(year, month + 1, 0).getDate()
     // A square that holds two bold digits with room around them.
     readonly property int cellSize: Math.ceil(Math.max(cell.width, cell.height)) + 8
-    spacing: 8
+    spacing: Theme.popupSectionGap
 
     TextMetrics {
         id: cell
