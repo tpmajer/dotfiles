@@ -33,7 +33,7 @@ Singleton {
     readonly property int barMargin: 10
     readonly property int barRadius: 6
     readonly property int moduleRadius: 4
-    readonly property int hoverDuration: 200
+    readonly property int hoverDuration: 50
 
     // Popups ("dymki") below the bar.
     // Padding around clickable rows: sides, and top/bottom. Plain text gets the
