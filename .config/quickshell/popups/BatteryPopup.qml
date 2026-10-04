@@ -58,8 +58,7 @@ Column {
         id: limit
         labelWidth: popup.wide - popup.rowExtra - valueImplicitWidth
         icon: Theme.glyph(Battery.defaultIcons[Math.min(9, Math.floor(Battery.fullAt / 10) - 1)])
-        iconColor: Battery.limited ? Theme.subtext0 : Theme.green
-        bright: !Battery.limited
+        iconColor: Theme.subtext0
         text: "Charge limit"
         value: Battery.fullAt + "%"
         onTriggered: Battery.toggleLimit()
