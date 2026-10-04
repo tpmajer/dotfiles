@@ -23,6 +23,7 @@ Rectangle {
     readonly property real valueImplicitWidth: value === "" ? 0 : valueText.implicitWidth
 
     signal triggered
+    signal secondaryTriggered      // a right click
     signal scrolled(int steps)
 
     implicitWidth: row.implicitWidth + 24
@@ -67,7 +68,13 @@ Rectangle {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onClicked: root.triggered()
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        onClicked: m => {
+            if (m.button === Qt.RightButton)
+                root.secondaryTriggered();
+            else
+                root.triggered();
+        }
         onWheel: w => root.scrolled(w.angleDelta.y > 0 ? 1 : w.angleDelta.y < 0 ? -1 : 0)
     }
 }

@@ -66,6 +66,11 @@ Singleton {
         return node.description || node.nickname || node.name;
     }
 
+    // Makes the output the default one: what plays moves to it.
+    function setDefault(node) {
+        Pipewire.preferredDefaultAudioSink = node;
+    }
+
     // Keeps volume/mute of every sink up to date, not only the default one.
     PwObjectTracker {
         objects: root.sinks

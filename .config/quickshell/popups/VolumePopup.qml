@@ -5,8 +5,8 @@ import qs.widgets
 
 // Every audio output with its volume or mute, the default one (the one the
 // module controls) first, in brighter text with a yellow icon. Clicking a row
-// mutes or unmutes that output, scrolling over it changes its volume. Below
-// them, the same for Spotify while it runs.
+// mutes or unmutes that output, scrolling over it changes its volume, a right
+// click makes it the default. Below them, the same for Spotify while it runs.
 Column {
     id: sinkList
     readonly property bool hasRows: true
@@ -38,6 +38,7 @@ Column {
             text: Audio.name(modelData)
             value: modelData.audio && modelData.audio.muted ? "muted" : Audio.volume(modelData) + "%"
             onTriggered: Audio.toggleMute(modelData)
+            onSecondaryTriggered: Audio.setDefault(modelData)
             onScrolled: steps => Audio.changeVolume(modelData, steps)
         }
     }
