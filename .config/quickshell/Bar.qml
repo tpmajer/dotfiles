@@ -35,7 +35,8 @@ PanelWindow {
     mask: popups.inputRegion
     BackgroundEffect.blurRegion: popups.blurRegion
 
-    // ---- a popup driven from the keyboard (qs ipc call power toggleBar) ----------
+    // ---- a popup driven from the keyboard (qs ipc call power toggleBar,
+    // ---- qs ipc call notifications toggle) ---------------------------------------
 
     // The open popup is pinned and gets the keys, through its keyPressed().
     property bool keyboardMode: false
@@ -52,6 +53,10 @@ PanelWindow {
 
     function togglePowerMenu() {
         toggleKeyboardPopup(powerModule);
+    }
+
+    function toggleNotifications() {
+        toggleKeyboardPopup(bellModule);
     }
 
     // For the power popup.
@@ -185,7 +190,9 @@ PanelWindow {
                 host: popups
                 text: Theme.glyph(Notifications.dnd ? 0xf009b : 0xf009a) + (Notifications.missedCount > 0 ? " " + Notifications.missedCount : "")
                 color: !Notifications.dnd && Notifications.missedCount > 0 ? Theme.pink : Theme.subtext0
-                popup: NotificationsPopup {}
+                popup: NotificationsPopup {
+                    host: bar
+                }
                 onClicked: m => {
                     if (m.button === Qt.RightButton)
                         Notifications.clear();
