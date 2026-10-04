@@ -240,7 +240,8 @@ PanelWindow {
             Module {
                 host: popups
                 text: "RAM " + SysStats.memPercent + "%"
-                color: Theme.peach
+                // Red with nearly all of it taken.
+                color: SysStats.memLevel === 2 ? Theme.red : Theme.peach
                 popup: MemoryPopup {}
                 onClicked: Quickshell.execDetached(["ghostty", "-e", "btop"])
             }

@@ -30,6 +30,9 @@ Singleton {
     }
 
     property int memPercent: 0
+    // 0 as it should be, 1 much of it taken (from 80%), 2 nearly all (from
+    // 92%); left 3 points below where it is entered, like cpuTempLevel.
+    property int memLevel: 0
     property real memUsedGiB: 0
     property real memTotalGiB: 0
     property real swapUsedGiB: 0
@@ -72,6 +75,12 @@ Singleton {
         const gib = 1024 * 1024;
         const used = kb.MemTotal - kb.MemAvailable;
         memPercent = Math.round(100 * used / kb.MemTotal);
+        if (memPercent >= 92 || (memLevel === 2 && memPercent >= 89))
+            memLevel = 2;
+        else if (memPercent >= 80 || (memLevel >= 1 && memPercent >= 77))
+            memLevel = 1;
+        else
+            memLevel = 0;
         memUsedGiB = used / gib;
         memTotalGiB = kb.MemTotal / gib;
         swapTotalGiB = kb.SwapTotal / gib;
