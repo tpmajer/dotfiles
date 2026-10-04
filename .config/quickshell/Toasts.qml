@@ -8,9 +8,10 @@ import qs.widgets
 // newest at the bottom. A card stays for a time set by its urgency (not while
 // the pointer is over it), then goes to the notification center in the bar; a
 // left click runs its default action and closes it, a right click only closes
-// it. Only the newest few are shown; the rest fold into a row at the top that
-// unfolds them on a click. None goes while the session is locked: they are
-// all there, for their whole time, once it is not.
+// it. A card whose sender takes a reply has a field for it, and stays while
+// one is being written. Only the newest few are shown; the rest fold into a
+// row at the top that unfolds them on a click. None goes while the session is
+// locked: they are all there, for their whole time, once it is not.
 PanelWindow {
     id: toasts
 
@@ -86,7 +87,17 @@ PanelWindow {
 
     WlrLayershell.namespace: "quickshell-notifications"
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+    // The keyboard only on a click, and only with a reply field to click
+    // on. Taken away for a moment once a reply is closed: the window that
+    // had the keyboard gets it back.
+    readonly property bool hasReply: Notifications.toasts.some(n => n.hasInlineReply)
+    property bool releasing: false
+    Timer {
+        id: releaseTimer
+        interval: 50
+        onTriggered: toasts.releasing = false
+    }
+    WlrLayershell.keyboardFocus: hasReply && !releasing ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     // Only the cards take input and get blurred, not the gaps or the shadow room.
     mask: Region {
@@ -242,7 +253,7 @@ PanelWindow {
                 Timer {
                     id: timeLeft
                     interval: Notifications.timeout(card.notification)
-                    running: card.toastIndex >= 0 && interval > 0 && !hover.hovered && !toasts.locked
+                    running: card.toastIndex >= 0 && interval > 0 && !hover.hovered && !body.replying && !toasts.locked
                     onTriggered: Notifications.timedOut(card.notification)
                 }
 
@@ -256,6 +267,11 @@ PanelWindow {
                     notification: card.notification
                     windowX: stack.x + card.x
                     devicePixelRatio: toasts.devicePixelRatio
+                    replyEnabled: true
+                    onReplyClosed: {
+                        toasts.releasing = true;
+                        releaseTimer.restart();
+                    }
                 }
             }
         }

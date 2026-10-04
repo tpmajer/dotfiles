@@ -5,9 +5,10 @@ import qs.services
 
 // What a notification's card shows, as a toast and in the notification
 // center: the urgency as a line on the left, the summary with the time it
-// came, the body and a button for each action. A left click runs the default
-// action and closes the notification, a right click only closes it. The
-// background is drawn by what the card is in.
+// came, the body, a button for each action and, where the card is told to, a
+// field for the reply its sender takes. A left click runs the default action
+// and closes the notification, a right click only closes it. The background
+// is drawn by what the card is in.
 Item {
     id: card
 
@@ -18,6 +19,15 @@ Item {
     property real devicePixelRatio: 1
     // The action buttons' color: one that shows on the card's background.
     property color actionColor: Theme.surface0
+    // The card is in a window that can take the keyboard, so it shows the
+    // reply field of a notification that has one.
+    property bool replyEnabled: false
+
+    readonly property bool hasReply: replyEnabled && notification.hasInlineReply
+    // A reply is being written: the card is not to go meanwhile.
+    readonly property bool replying: hasReply && (reply.activeFocus || reply.text !== "")
+    // The reply is sent or given up: the keyboard is no longer needed.
+    signal replyClosed
 
     readonly property color accent: notification.urgency === NotificationUrgency.Critical ? Theme.red : notification.urgency === NotificationUrgency.Low ? Theme.subtext0 : Theme.teal
     readonly property var extraActions: notification.actions.filter(a => a.identifier !== "default")
@@ -124,6 +134,66 @@ Item {
                         // Invoking it closes a notification that is not resident.
                         onClicked: button.modelData.invoke()
                     }
+                }
+            }
+        }
+
+        // The reply: Enter sends it, which closes a notification that is not
+        // resident; Escape gives it up.
+        Item {
+            visible: card.hasReply
+            width: parent.width
+            height: field.height + 4
+
+            Rectangle {
+                id: field
+                y: 4
+                width: parent.width
+                height: reply.implicitHeight + 8
+                radius: Theme.moduleRadius
+                color: reply.activeFocus ? card.actionColor : Qt.rgba(card.actionColor.r, card.actionColor.g, card.actionColor.b, 0.5)
+
+                HoverHandler {
+                    cursorShape: Qt.IBeamCursor
+                }
+
+                PopupText {
+                    anchors.fill: reply
+                    visible: reply.text === ""
+                    verticalAlignment: Text.AlignVCenter
+                    text: card.notification.inlineReplyPlaceholder || "Reply"
+                    color: Theme.subtext0
+                    font.pixelSize: Theme.fontSize - 2
+                    elide: Text.ElideRight
+                }
+
+                TextInput {
+                    id: reply
+                    anchors.fill: parent
+                    anchors.leftMargin: 10
+                    anchors.rightMargin: 10
+                    verticalAlignment: TextInput.AlignVCenter
+                    color: Theme.text
+                    selectionColor: Theme.surface1
+                    selectedTextColor: Theme.text
+                    font.family: Theme.font
+                    font.pixelSize: Theme.fontSize - 2
+                    clip: true
+                    selectByMouse: true
+
+                    function close() {
+                        text = "";
+                        focus = false;
+                        card.replyClosed();
+                    }
+
+                    onAccepted: {
+                        if (text.trim() === "")
+                            return;
+                        card.notification.sendInlineReply(text);
+                        close();
+                    }
+                    Keys.onEscapePressed: close()
                 }
             }
         }

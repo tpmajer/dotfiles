@@ -151,6 +151,7 @@ Singleton {
         bodySupported: true
         bodyMarkupSupported: true
         actionsSupported: true
+        inlineReplySupported: true
         keepOnReload: true
 
         onNotification: n => {
