@@ -13,6 +13,8 @@ Singleton {
         {icon: 0xf0904, text: "Suspend", command: "systemctl suspend"},
         {icon: 0xf0709, text: "Reboot", command: "systemctl reboot", color: Theme.peach}
     ]
+    // The action a menu opens on.
+    readonly property int defaultIndex: actions.findIndex(a => a.text === "Shutdown")
 
     function run(command) {
         Quickshell.execDetached(["sh", "-c", command]);

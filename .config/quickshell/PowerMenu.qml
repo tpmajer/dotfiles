@@ -12,7 +12,7 @@ PanelWindow {
     id: menu
 
     property bool shown: false
-    property int index: 0
+    property int index: Power.defaultIndex
 
     Pop {
         id: pop
@@ -25,7 +25,7 @@ PanelWindow {
             shown = false;
             return;
         }
-        index = 0;
+        index = Power.defaultIndex;
         shown = true;
         keyHandler.forceActiveFocus();
     }
