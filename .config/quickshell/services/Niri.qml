@@ -32,6 +32,17 @@ Singleton {
         send({Action: {FocusWorkspace: {reference: {Id: ws.id}}}});
     }
 
+    // Focuses the window of an application, the one focused last if it has
+    // several, on whatever workspace it is. False if it has none.
+    function focusApp(appId) {
+        const stamp = w => w.focus_timestamp ? w.focus_timestamp.secs + w.focus_timestamp.nanos / 1e9 : 0;
+        const own = Object.values(windows).filter(w => w.app_id === appId).sort((a, b) => stamp(b) - stamp(a));
+        if (own.length === 0)
+            return false;
+        send({Action: {FocusWindow: {id: own[0].id}}});
+        return true;
+    }
+
     // niri answers one request per connection, so each request gets its own socket.
     function send(request) {
         ipcSocket.createObject(root, {request: JSON.stringify(request) + "\n"});

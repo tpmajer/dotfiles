@@ -2,6 +2,7 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import Quickshell.Services.Notifications
 
 // The notification daemon (org.freedesktop.Notifications): which
@@ -86,8 +87,57 @@ Singleton {
             timedOut(n);
     }
 
-    // The default action, if there is one, and the notification is closed.
+    // Senders that may be running without a window, by desktop entry: the
+    // unit that runs them so, and what brings their window up. Their default
+    // action has no window to show then. Thunderbird's unit and the wrapper
+    // that swaps it for the window are in ~/.nixos (user-services.nix).
+    readonly property var windowless: ({
+            "thunderbird": {
+                unit: "thunderbird-headless.service",
+                command: ["thunderbird"]
+            }
+        })
+    // The notification activated, while its sender's unit is asked about.
+    property var pending: null
+
+    // A click on a card: the default action, and the notification is closed.
+    // For a sender that may be running without a window the click leads to
+    // its window as well: brought up if there is none, focused if there is
+    // one, since the sender cannot take the focus by itself.
     function activate(notification) {
+        const app = windowless[notification.desktopEntry];
+        if (!app) {
+            activateDefault(notification);
+            return;
+        }
+        pending = notification;
+        unitCheck.command = ["systemctl", "--user", "is-active", "--quiet", app.unit];
+        unitCheck.running = true;
+    }
+
+    Process {
+        id: unitCheck
+        onExited: exitCode => {
+            const notification = root.pending;
+            root.pending = null;
+            // Closed in the meantime.
+            if (!notification || !root.tracked.values.includes(notification))
+                return;
+            if (exitCode !== 0) {
+                const appId = notification.desktopEntry;
+                root.activateDefault(notification);
+                Niri.focusApp(appId);
+                return;
+            }
+            // Through niri, as from the launcher: a child of this service
+            // would go with it when it restarts.
+            Quickshell.execDetached(["niri", "msg", "action", "spawn", "--"].concat(root.windowless[notification.desktopEntry].command));
+            notification.dismiss();
+        }
+    }
+
+    // The default action, if there is one, and the notification is closed.
+    function activateDefault(notification) {
         const action = notification.actions.find(a => a.identifier === "default");
         if (action) {
             action.invoke();
