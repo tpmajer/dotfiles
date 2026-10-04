@@ -5,10 +5,10 @@ import Quickshell
 import qs
 import Quickshell.Io
 
-// BAT1 read from sysfs every 5 s and on power_supply udev events. Capacity is
-// scaled so the battery's charge limit reads as 100%, with notify-send on low
-// battery and when charging reaches full. For the popup: the power going out
-// or in, and how worn the battery is.
+// BAT1 read from sysfs every 5 s and on power_supply udev events, with
+// notify-send on low battery and when charging reaches the charge limit.
+// Capacity is of the whole battery, so at a limit of 80% it stops at 80. For
+// the popup: the power going out or in, and how worn the battery is.
 Singleton {
     id: root
 
@@ -87,7 +87,6 @@ Singleton {
     }
 
     function refresh() {
-        const raw = Number(read(capacityFile));
         const chargeNow = Number(read(chargeNowFile));
         const chargeFull = Number(read(chargeFullFile));
         const current = Number(read(currentFile));
@@ -96,7 +95,7 @@ Singleton {
         if (limit > 0 && limit <= 100)
             fullAt = limit;
         status = read(statusFile);
-        capacity = Math.min(100, Math.round(raw * 100 / fullAt));
+        capacity = Number(read(capacityFile));
         // Microamperes by microvolts.
         watts = charging || discharging ? current * Number(read(voltageFile)) / 1e12 : 0;
         health = design > 0 ? Math.round(chargeFull * 100 / design) : 0;
@@ -112,7 +111,7 @@ Singleton {
         let event = "";
         if (discharging && (state === "warning" || state === "critical"))
             event = "discharging-" + state;
-        else if (charging && capacity >= 100)
+        else if (charging && capacity >= fullAt)
             event = "charging-100";
         if (event !== lastEvent) {
             lastEvent = event;

@@ -6,8 +6,8 @@ import qs.widgets
 
 // The battery as a level with its percent, as the memory popup's, in the
 // module's color. Below it the time left, the power going out or in, the
-// battery's health and its cycles. At the bottom the charge limit, which the
-// percent is of: clicking it charges the battery full, or limits it again.
+// battery's health and its cycles. At the bottom the charge limit, where the
+// percent stops: clicking it charges the battery full, or limits it again.
 Column {
     id: popup
 
