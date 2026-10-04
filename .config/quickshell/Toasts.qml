@@ -25,8 +25,10 @@ PanelWindow {
     readonly property int count: Notifications.toasts.length
     // The cards fading out: no longer toasts, still in the stack. They count
     // against the visible ones, so that none unfolds into the stack before
-    // they are gone.
-    readonly property int fading: cards.filter(c => c.fading === true).length
+    // they are gone. Not one fading before it is closed: still a toast, it
+    // is counted as one, and counted twice it would fold a card for as long
+    // as it fades.
+    readonly property int fading: cards.filter(c => c.fading === true && c.toastIndex < 0).length
     readonly property int hiddenCount: Math.max(0, count + fading - Theme.notificationsVisible)
     property bool expanded: false
     // The session is locked: the lock is over the cards, nobody sees them.
