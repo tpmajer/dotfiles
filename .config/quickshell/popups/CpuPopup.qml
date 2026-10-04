@@ -34,7 +34,7 @@ Column {
     Grid {
         id: grid
         columns: 4
-        columnSpacing: 20
+        columnSpacing: Theme.popupGridGap
         rowSpacing: Theme.popupRowGap
 
         Repeater {

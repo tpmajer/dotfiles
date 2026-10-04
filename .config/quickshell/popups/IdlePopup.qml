@@ -7,7 +7,7 @@ import qs.widgets
 // touched and after how long. Not a countdown: the pointer coming here ends
 // the idle time, so the time left is in the module itself.
 Column {
-    spacing: 6
+    spacing: Theme.popupRowGap
 
     PopupText {
         text: Custom.idle.tooltip || ""
