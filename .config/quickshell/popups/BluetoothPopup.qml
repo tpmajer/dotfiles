@@ -24,8 +24,6 @@ PopupList {
         visible: !!btList.adapter
         labelWidth: btList.nameWidth
         valueWidth: btList.valueWidth
-        icon: Theme.glyph(on ? 0xf00af : 0xf00b2)
-        iconColor: on ? Theme.sapphire : Theme.subtext0
         bright: on
         text: "Bluetooth"
         value: on ? "on" : "off"

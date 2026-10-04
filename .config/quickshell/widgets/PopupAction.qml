@@ -5,7 +5,8 @@ import qs
 // Surface 0 highlight on hover or when selected from the keyboard. The label is
 // dim unless the row is active or bright (what it shows is on). An optional
 // detail follows the label, always dim. The detail and the value are styled
-// text, so that a part of either can be in a color of its own.
+// text, so that a part of either can be in a color of its own. Without an
+// icon the label starts where the icon would, and takes its room.
 Rectangle {
     id: root
 
@@ -22,7 +23,9 @@ Rectangle {
     // Set by a list to line its rows' columns up; the row's own width otherwise.
     property real labelWidth: -1
     property real valueWidth: -1
-    readonly property real labelImplicitWidth: label.implicitWidth + (detail === "" ? 0 : detailText.implicitWidth)
+    // The icon and the gap after it: the label's, in a row without an icon.
+    readonly property real iconRoom: icon === "" ? 20 + Theme.popupIconGap : 0
+    readonly property real labelImplicitWidth: Math.max(0, label.implicitWidth + (detail === "" ? 0 : detailText.implicitWidth) - iconRoom)
     readonly property real valueImplicitWidth: value === "" ? 0 : valueText.implicitWidth
 
     signal triggered
@@ -44,13 +47,14 @@ Rectangle {
         spacing: Theme.popupIconGap
 
         PopupText {
+            visible: root.icon !== ""
             width: 20
             horizontalAlignment: Text.AlignHCenter
             text: root.icon
             color: root.iconColor
         }
         Row {
-            width: root.labelWidth >= 0 ? root.labelWidth : implicitWidth
+            width: root.labelWidth >= 0 ? root.labelWidth + root.iconRoom : implicitWidth
 
             PopupText {
                 id: label
