@@ -63,6 +63,9 @@ Rectangle {
                 id: label
                 text: root.text
                 color: root.active || root.bright ? Theme.text : Theme.subtext0
+                Behavior on color {
+                    ColorAnimation { duration: Theme.hoverDuration }
+                }
             }
             PopupText {
                 id: detailText

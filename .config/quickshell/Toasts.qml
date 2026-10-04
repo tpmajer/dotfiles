@@ -255,6 +255,9 @@ PanelWindow {
                 anchors.centerIn: parent
                 text: toasts.expanded ? "Show less" : "+" + toasts.hiddenCount + " more"
                 color: foldMouse.containsMouse ? Theme.text : Theme.subtext0
+                Behavior on color {
+                    ColorAnimation { duration: Theme.hoverDuration }
+                }
                 font.pixelSize: Theme.fontSize - 2
             }
 

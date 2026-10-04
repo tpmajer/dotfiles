@@ -88,6 +88,9 @@ Item {
                 visible: root.prefix !== ""
                 text: root.prefix
                 color: root.prefixColor
+                Behavior on color {
+                    ColorAnimation { duration: Theme.hoverDuration }
+                }
                 font.family: Theme.font
                 font.pixelSize: root.fontSize
                 width: root.prefixWidth > 0 ? root.prefixWidth : implicitWidth
@@ -99,6 +102,10 @@ Item {
                 visible: root.text !== ""
                 text: root.text
                 color: root.color
+                // With the hover rectangle, for a module whose text brightens on hover.
+                Behavior on color {
+                    ColorAnimation { duration: Theme.hoverDuration }
+                }
                 font.family: Theme.font
                 font.pixelSize: root.fontSize
                 font.bold: root.bold

@@ -168,6 +168,11 @@ PanelWindow {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: tile.modelData.text
                         color: tile.selected ? Theme.text : Theme.subtext0
+                        // With the tile: a label that dims at once flickers
+                        // over a background still fading out.
+                        Behavior on color {
+                            ColorAnimation { duration: Theme.hoverDuration }
+                        }
                     }
                 }
 

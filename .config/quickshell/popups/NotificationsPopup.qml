@@ -107,6 +107,9 @@ Column {
                 anchors.centerIn: parent
                 text: "Clear"
                 color: clearMouse.containsMouse ? Theme.text : Theme.subtext0
+                Behavior on color {
+                    ColorAnimation { duration: Theme.hoverDuration }
+                }
                 font.pixelSize: Theme.fontSize - 2
             }
 
