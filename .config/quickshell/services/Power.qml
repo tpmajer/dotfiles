@@ -4,7 +4,7 @@ import QtQuick
 import Quickshell
 import qs
 
-// The power menus' actions: the bar's popup and the centered menu show the same.
+// The power menu's actions.
 Singleton {
     readonly property var actions: [
         {icon: 0xf033e, text: "Lock", command: "qs ipc call lock lock"},

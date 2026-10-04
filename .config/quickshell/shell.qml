@@ -11,7 +11,9 @@ ShellRoot {
         id: bars
         model: Quickshell.screens
 
-        Bar {}
+        Bar {
+            onPowerMenuRequested: powerMenu.toggle()
+        }
     }
 
     Osd {}
@@ -33,19 +35,12 @@ ShellRoot {
     }
 
     // `qs ipc call power toggle` (Super+Esc in niri): the power menu in the
-    // middle of the focused output. `toggleBar`: the small one on that output's
-    // bar, driven from the keyboard.
+    // middle of the focused output.
     IpcHandler {
         target: "power"
 
         function toggle(): void {
             powerMenu.toggle();
-        }
-
-        function toggleBar(): void {
-            const bar = focusedBar();
-            if (bar)
-                bar.togglePowerMenu();
         }
     }
 

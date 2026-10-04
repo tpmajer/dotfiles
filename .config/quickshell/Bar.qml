@@ -30,14 +30,16 @@ PanelWindow {
 
     WlrLayershell.namespace: "quickshell-bar"
     WlrLayershell.layer: WlrLayer.Top
-    // The keyboard only while the power menu is open from the keyboard.
+    // The keyboard only while a popup is open from the keyboard.
     WlrLayershell.keyboardFocus: keyboardMode ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
     mask: popups.inputRegion
     BackgroundEffect.blurRegion: popups.blurRegion
 
-    // ---- a popup driven from the keyboard (qs ipc call power toggleBar,
-    // ---- qs ipc call notifications toggle) ---------------------------------------
+    // The power module was clicked: the menu itself lives in the shell.
+    signal powerMenuRequested
+
+    // ---- a popup driven from the keyboard (qs ipc call notifications toggle) ----
 
     // The open popup is pinned and gets the keys, through its keyPressed().
     property bool keyboardMode: false
@@ -52,18 +54,8 @@ PanelWindow {
         keyHandler.forceActiveFocus();
     }
 
-    function togglePowerMenu() {
-        toggleKeyboardPopup(powerModule);
-    }
-
     function toggleNotifications() {
         toggleKeyboardPopup(bellModule);
-    }
-
-    // For the power popup.
-    function runAction(command) {
-        popups.popupOpen = false;
-        Power.run(command);
     }
 
     Item {
@@ -305,15 +297,11 @@ PanelWindow {
 
             // custom/power
             Module {
-                id: powerModule
                 host: popups
                 text: Theme.glyph(0xf0906)
                 color: Theme.subtext0
                 rightMargin: 6
-                popup: PowerPopup {
-                    panel: bar
-                }
-                onClicked: popups.showPopup(this)
+                onClicked: bar.powerMenuRequested()
             }
         }
     }
