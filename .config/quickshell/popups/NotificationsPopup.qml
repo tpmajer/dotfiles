@@ -151,8 +151,10 @@ Column {
 
                     required property var modelData
                     required property int index
-                    // With the keyboard, one card is selected; the mouse moves the selection.
-                    readonly property bool active: hover.hovered || (center.host.keyboardMode && index === center.selected)
+                    // With the keyboard, the selected card alone, even with
+                    // the pointer resting on another; the mouse moves the
+                    // selection.
+                    readonly property bool active: center.host.keyboardMode ? index === center.selected : hover.hovered
 
                     width: Theme.notificationWidth
                     height: body.implicitHeight
