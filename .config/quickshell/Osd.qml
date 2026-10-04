@@ -65,12 +65,42 @@ PanelWindow {
     // Clicks go through to whatever is below.
     mask: Region {}
 
+    readonly property bool blurred: pop.openness > 0.5
     BackgroundEffect.blurRegion: Region {
         x: box.x
         y: box.y
-        width: pop.openness > 0.5 ? box.width : 0
-        height: pop.openness > 0.5 ? box.height : 0
+        width: osd.blurred ? box.width : 0
+        height: osd.blurred ? box.height : 0
         radius: Theme.barRadius
+
+        // Inside the pill, so it blurs nothing new; see blurResend.
+        Region {
+            x: box.x + Theme.barRadius
+            y: box.y + Theme.barRadius
+            width: osd.blurred ? 1 : 0
+            height: 1 + osd.blurResend % 2
+        }
+    }
+
+    // A new blur region can reach niri with a commit older than itself, and
+    // is then not applied until the region changes again (see PopupHost):
+    // the pill stays without its blur. So the region is sent a few more
+    // times once the pill is in it.
+    property int blurResend: 0
+    onBlurredChanged: if (blurred) {
+        blurResendTimer.left = 8;
+        blurResendTimer.restart();
+    }
+    Timer {
+        id: blurResendTimer
+        property int left: 0
+        interval: 48
+        repeat: true
+        onTriggered: {
+            osd.blurResend++;
+            if (--left <= 0)
+                stop();
+        }
     }
 
     // A new or switched output reports its volume as it appears; that is not a change.
