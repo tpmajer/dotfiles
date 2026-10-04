@@ -9,14 +9,14 @@ Column {
     readonly property var adapter: Bluetooth.defaultAdapter
     // Paired devices by name; clicking one connects or disconnects it.
     readonly property var devices: Bluetooth.devices.values.filter(d => d.paired || d.connected).sort((a, b) => a.name.localeCompare(b.name))
-    readonly property bool hasRows: !!adapter && adapter.enabled && devices.length > 0
+    readonly property bool hasRows: !!adapter
     // Columns line up across rows.
     readonly property real nameWidth: widest(i => i.labelImplicitWidth)
     readonly property real valueWidth: widest(i => i.valueImplicitWidth)
     spacing: 2
 
     function widest(width) {
-        let w = 0;
+        let w = width(power);
         for (let i = 0; i < btRows.count; i++) {
             const item = btRows.itemAt(i);
             if (item)
@@ -26,8 +26,23 @@ Column {
     }
 
     PopupText {
-        visible: !btList.hasRows
-        text: !parent.adapter ? "No bluetooth controller found" : parent.adapter.enabled ? "Bluetooth on" : "Bluetooth off"
+        visible: !btList.adapter
+        text: "No bluetooth controller found"
+    }
+
+    // The adapter's switch: clicking it turns bluetooth on or off.
+    PopupAction {
+        id: power
+        readonly property bool on: !!btList.adapter && btList.adapter.enabled
+        visible: !!btList.adapter
+        labelWidth: btList.nameWidth
+        valueWidth: btList.valueWidth
+        icon: Theme.glyph(on ? 0xf00af : 0xf00b2)
+        iconColor: on ? Theme.sapphire : Theme.subtext0
+        bright: on
+        text: "Bluetooth"
+        value: on ? "on" : "off"
+        onTriggered: btList.adapter.enabled = !on
     }
 
     // Icon by the BlueZ device type; headphones match the volume module.
@@ -47,7 +62,7 @@ Column {
 
     Repeater {
         id: btRows
-        model: btList.hasRows ? btList.devices : []
+        model: power.on ? btList.devices : []
 
         PopupAction {
             required property var modelData
