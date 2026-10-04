@@ -12,7 +12,7 @@ Column {
     spacing: 4
     // The rows above the switches are inset like the switches' text, on
     // the sides and at the top.
-    topPadding: trafficGrid.visible ? Theme.popupTextInsetV : 0
+    topPadding: info.visible ? Theme.popupTextInsetV : 0
 
     Component.onCompleted: Network.refreshWgAuto()
     Connections {
@@ -31,56 +31,54 @@ Column {
         onTriggered: Network.refreshRoute()
     }
 
-    // One grid: a connection's traffic in two columns of a set width, so
-    // that the popup keeps its width as the rates change, and below them a
-    // label and a value to a row, the value across both columns.
+    // A connection's traffic in two columns of a set width, so that the
+    // popup keeps its width as the rates change, and below it a label and a
+    // value to a row. Both are as wide as the wider one, so the values end
+    // where the rates do.
     TextMetrics {
         id: rate
         font.family: Theme.font
         font.pixelSize: Theme.fontSize
         text: Network.widestRate
     }
-    GridLayout {
-        id: trafficGrid
+    Column {
+        id: info
+        readonly property real wide: Math.max(trafficGrid.implicitWidth, details.implicitWidth)
         visible: Network.rows.length + Network.details.length > 0
         x: 12
-        columns: 3
-        columnSpacing: 16
-        rowSpacing: 4
+        spacing: 4
 
-        Repeater {
-            model: Network.rows
+        GridLayout {
+            id: trafficGrid
+            visible: Network.rows.length > 0
+            width: info.wide
+            columns: 3
+            columnSpacing: 16
+            rowSpacing: 4
 
-            delegate: Repeater {
-                required property var modelData
-                model: [modelData.label, modelData.down, modelData.up]
+            Repeater {
+                model: Network.rows
 
-                PopupText {
+                delegate: Repeater {
                     required property var modelData
-                    required property int index
-                    text: modelData
-                    horizontalAlignment: index === 0 ? Text.AlignLeft : Text.AlignRight
-                    Layout.preferredWidth: index === 0 ? implicitWidth : Math.ceil(rate.width)
+                    model: [modelData.label, modelData.down, modelData.up]
+
+                    PopupText {
+                        required property var modelData
+                        required property int index
+                        text: modelData
+                        horizontalAlignment: index === 0 ? Text.AlignLeft : Text.AlignRight
+                        Layout.fillWidth: index === 0
+                        Layout.preferredWidth: index === 0 ? implicitWidth : Math.ceil(rate.width)
+                    }
                 }
             }
         }
-
-        Repeater {
-            model: Network.details
-
-            delegate: Repeater {
-                id: detail
-                required property var modelData
-                model: 2
-
-                PopupText {
-                    required property int index
-                    text: index === 0 ? detail.modelData.label : detail.modelData.value
-                    color: index === 0 ? Theme.subtext0 : detail.modelData.color
-                    Layout.columnSpan: index === 0 ? 1 : 2
-                    Layout.alignment: index === 0 ? Qt.AlignLeft : Qt.AlignRight
-                }
-            }
+        PopupDetails {
+            id: details
+            visible: Network.details.length > 0
+            width: info.wide
+            rows: Network.details
         }
     }
     PopupText {
@@ -94,7 +92,7 @@ Column {
     // sits under the labels, or ends where the values do.
     Item {
         id: wgSwitches
-        implicitWidth: Math.max(tunnelAction.implicitWidth + 2 + wgAutoAction.implicitWidth, trafficGrid.implicitWidth + 24)
+        implicitWidth: Math.max(tunnelAction.implicitWidth + 2 + wgAutoAction.implicitWidth, info.wide + 24)
         implicitHeight: tunnelAction.implicitHeight
 
         PopupAction {

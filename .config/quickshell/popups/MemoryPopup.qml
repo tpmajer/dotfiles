@@ -86,30 +86,9 @@ Column {
         }
     }
 
-    GridLayout {
+    PopupDetails {
         visible: popup.programs.length > 0
         width: levels.width
-        columns: 2
-        columnSpacing: 16
-        rowSpacing: 4
-
-        Repeater {
-            model: popup.programs
-
-            delegate: Repeater {
-                id: program
-                required property var modelData
-                model: 2
-
-                PopupText {
-                    required property int index
-                    text: index === 0 ? program.modelData.name : popup.size(program.modelData.kib)
-                    color: Theme.subtext0
-                    elide: Text.ElideRight
-                    Layout.fillWidth: index === 0
-                    Layout.alignment: index === 0 ? Qt.AlignLeft : Qt.AlignRight
-                }
-            }
-        }
+        rows: popup.programs.map(p => ({label: p.name, value: popup.size(p.kib)}))
     }
 }
