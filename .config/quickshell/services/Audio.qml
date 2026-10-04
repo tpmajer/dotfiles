@@ -67,14 +67,16 @@ Singleton {
     }
 
     // A bluetooth device's battery, the way every popup shows it: the laptop
-    // battery's icon for that level and the percent, red from 20% down. Empty
-    // when unknown. Styled text, for the color.
+    // battery's icon for that level and the percent, peach from 25% down and
+    // red from 15%, where the laptop's battery warns too. Empty when unknown.
+    // Styled text, for the color.
     function batteryText(device) {
         if (!device || !device.batteryAvailable)
             return "";
         const percent = Math.round(device.battery * 100);
         const text = Theme.glyph(Battery.defaultIcons[Math.min(9, Math.floor(percent / 10))]) + " " + percent + "%";
-        return percent <= 20 ? "<font color=\"" + Theme.red + "\">" + text + "</font>" : text;
+        const color = percent <= 15 ? Theme.red : percent <= 25 ? Theme.peach : null;
+        return color ? "<font color=\"" + color + "\">" + text + "</font>" : text;
     }
 
     function icon(node) {
