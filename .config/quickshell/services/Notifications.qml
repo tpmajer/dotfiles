@@ -88,8 +88,12 @@ Singleton {
     // The default action, if there is one, and the notification is closed.
     function activate(notification) {
         const action = notification.actions.find(a => a.identifier === "default");
-        if (action)
+        if (action) {
             action.invoke();
+            // Invoking an action closes a notification that is not resident.
+            if (!notification.resident)
+                return;
+        }
         notification.dismiss();
     }
 
