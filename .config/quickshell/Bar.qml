@@ -192,12 +192,6 @@ PanelWindow {
             prefixWidth: Math.ceil(Math.max(bellMetrics.advanceWidth(Theme.glyph(0xf009a)), bellMetrics.advanceWidth(Theme.glyph(0xf009b))))
             text: Notifications.missedCount > 0 ? String(Notifications.missedCount) : ""
             color: !Notifications.dnd && Notifications.missedCount > 0 ? Theme.pink : Theme.subtext0
-
-            FontMetrics {
-                id: bellMetrics
-                font.family: Theme.font
-                font.pixelSize: Theme.fontSize
-            }
             popup: NotificationsPopup {
                 host: bar
             }
@@ -206,6 +200,12 @@ PanelWindow {
                     Notifications.clear();
                 else if (m.button === Qt.LeftButton)
                     Notifications.toggleDnd();
+            }
+
+            FontMetrics {
+                id: bellMetrics
+                font.family: Theme.font
+                font.pixelSize: Theme.fontSize
             }
         }
 
