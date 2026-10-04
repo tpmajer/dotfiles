@@ -4,11 +4,11 @@ import qs.services
 import qs.widgets
 
 // Every audio output with its volume or mute, the default one (the one the
-// module controls) first, in brighter text with a yellow icon. Clicking a row
-// mutes or unmutes that output, scrolling over it changes its volume, a right
-// click makes it the default. Below them, the same for Spotify while it runs
-// and for every program that plays, then the microphone and the programs
-// recording from it.
+// module controls) first, in brighter text with a yellow icon; a bluetooth
+// one with its codec and battery. Clicking a row mutes or unmutes that output,
+// scrolling over it changes its volume, a right click makes it the default.
+// Below them, the same for Spotify while it runs and for every program that
+// plays, then the microphone and the programs recording from it.
 Column {
     id: sinkList
     readonly property bool hasRows: true
@@ -42,6 +42,7 @@ Column {
             iconColor: isDefault ? Theme.yellow : Theme.subtext0
             bright: isDefault
             text: Audio.name(modelData)
+            detail: Audio.bluetoothDetail(modelData)
             value: sinkList.level(modelData)
             onTriggered: Audio.toggleMute(modelData)
             onSecondaryTriggered: Audio.setDefault(modelData)

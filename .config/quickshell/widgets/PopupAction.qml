@@ -3,12 +3,14 @@ import qs
 
 // A clickable row in a popup: icon + label and an optional value on the right,
 // Surface 0 highlight on hover or when selected from the keyboard. The label is
-// dim unless the row is active or bright (what it shows is on).
+// dim unless the row is active or bright (what it shows is on). An optional
+// detail follows the label, always dim.
 Rectangle {
     id: root
 
     property string icon
     property string text
+    property string detail: ""
     property string value: ""
     property color iconColor: Theme.text
     property bool bright: false
@@ -19,7 +21,7 @@ Rectangle {
     // Set by a list to line its rows' columns up; the row's own width otherwise.
     property real labelWidth: -1
     property real valueWidth: -1
-    readonly property real labelImplicitWidth: label.implicitWidth
+    readonly property real labelImplicitWidth: label.implicitWidth + (detail === "" ? 0 : detailText.implicitWidth)
     readonly property real valueImplicitWidth: value === "" ? 0 : valueText.implicitWidth
 
     signal triggered
@@ -46,11 +48,21 @@ Rectangle {
             text: root.icon
             color: root.iconColor
         }
-        PopupText {
-            id: label
+        Row {
             width: root.labelWidth >= 0 ? root.labelWidth : implicitWidth
-            text: root.text
-            color: root.active || root.bright ? Theme.text : Theme.subtext0
+
+            PopupText {
+                id: label
+                text: root.text
+                color: root.active || root.bright ? Theme.text : Theme.subtext0
+            }
+            PopupText {
+                id: detailText
+                visible: root.detail !== ""
+                leftPadding: Theme.popupColumnGap
+                text: root.detail
+                color: Theme.subtext0
+            }
         }
         PopupText {
             id: valueText

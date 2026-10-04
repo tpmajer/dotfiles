@@ -37,15 +37,33 @@ Singleton {
         return node && node.audio ? Math.round(node.audio.volume * 100) : 0;
     }
 
-    // Bluetooth sinks are named bluez_output.<MAC>.N; BlueZ knows whether the
-    // device is headphones or a headset.
-    function isHeadphones(node) {
+    // Bluetooth sinks are named bluez_output.<MAC>.N.
+    function bluetoothDevice(node) {
         const m = node ? (node.name || "").match(/^bluez_output\.([0-9A-Fa-f_]{17})/) : null;
         if (!m)
-            return false;
+            return null;
         const address = m[1].replace(/_/g, ":").toUpperCase();
-        const device = Bluetooth.devices.values.find(d => d.address === address);
+        return Bluetooth.devices.values.find(d => d.address === address) ?? null;
+    }
+
+    // BlueZ knows whether the device is headphones or a headset.
+    function isHeadphones(node) {
+        const device = bluetoothDevice(node);
         return !!device && /^audio-head(phones|set)/.test(deviceType(device));
+    }
+
+    // What a bluetooth output adds to its name: the codec it plays with (mSBC
+    // or CVSD mean the headset profile, with its telephone sound) and the
+    // device's battery.
+    function bluetoothDetail(node) {
+        const parts = [];
+        const codec = node && node.properties ? node.properties["api.bluez5.codec"] : "";
+        if (codec)
+            parts.push(codec.replace(/_/g, " ").toUpperCase());
+        const device = bluetoothDevice(node);
+        if (device && device.batteryAvailable)
+            parts.push(Theme.glyph(0xf0079) + " " + Math.round(device.battery * 100) + "%");
+        return parts.join("  ");
     }
 
     function icon(node) {
