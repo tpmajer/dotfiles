@@ -60,10 +60,19 @@ Singleton {
         const codec = node && node.properties ? node.properties["api.bluez5.codec"] : "";
         if (codec)
             parts.push(codec.replace(/_/g, " ").toUpperCase());
-        const device = bluetoothDevice(node);
-        if (device && device.batteryAvailable)
-            parts.push(Theme.glyph(0xf0079) + " " + Math.round(device.battery * 100) + "%");
+        const battery = batteryText(bluetoothDevice(node));
+        if (battery)
+            parts.push(battery);
         return parts.join("  ");
+    }
+
+    // A bluetooth device's battery, the way every popup shows it: the laptop
+    // battery's icon for that level and the percent. Empty when unknown.
+    function batteryText(device) {
+        if (!device || !device.batteryAvailable)
+            return "";
+        const percent = Math.round(device.battery * 100);
+        return Theme.glyph(Battery.defaultIcons[Math.min(9, Math.floor(percent / 10))]) + " " + percent + "%";
     }
 
     function icon(node) {
