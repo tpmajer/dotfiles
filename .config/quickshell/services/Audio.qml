@@ -8,7 +8,7 @@ import qs
 
 // Audio outputs (sinks) and how the bar shows them: the volume level icon,
 // a headphone icon for bluetooth headphones, a muted icon. Also the programs
-// playing sound.
+// playing sound, the microphone and the programs recording from it.
 Singleton {
     id: root
 
@@ -19,6 +19,9 @@ Singleton {
 
     // Programs playing sound, in PipeWire's order.
     readonly property var streams: Pipewire.nodes.values.filter(n => n.isStream && n.isSink && n.audio)
+    // Programs recording from the microphone: what its links lead to, so that
+    // one listening to an output's monitor (a level meter) doesn't count.
+    readonly property var recorders: sourceLinks.linkGroups.map(g => g.target).filter(n => n && n.isStream && n.audio)
 
     // Devices whose BlueZ type is wrong, by address. The Mu-so Qb is a speaker
     // but reports itself as a headset.
@@ -90,6 +93,11 @@ Singleton {
     }
 
     PwObjectTracker {
-        objects: root.streams
+        objects: root.streams.concat(root.recorders)
+    }
+
+    PwNodeLinkTracker {
+        id: sourceLinks
+        node: root.defaultSource
     }
 }

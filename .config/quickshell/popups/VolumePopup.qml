@@ -7,7 +7,8 @@ import qs.widgets
 // module controls) first, in brighter text with a yellow icon. Clicking a row
 // mutes or unmutes that output, scrolling over it changes its volume, a right
 // click makes it the default. Below them, the same for Spotify while it runs
-// and for every program that plays.
+// and for every program that plays, then the microphone and the programs
+// recording from it.
 Column {
     id: sinkList
     readonly property bool hasRows: true
@@ -75,6 +76,41 @@ Column {
             valueWidth: sinkList.valueWidth
             icon: Theme.glyph(modelData.audio.muted ? 0xf075f : 0xf0387)
             iconColor: Theme.subtext0
+            text: Audio.appName(modelData)
+            value: sinkList.level(modelData)
+            onTriggered: Audio.toggleMute(modelData)
+            onScrolled: steps => Audio.changeVolume(modelData, steps)
+        }
+    }
+
+    // The microphone, red while something records from it.
+    Repeater {
+        model: Audio.defaultSource && Audio.defaultSource.audio ? [Audio.defaultSource] : []
+
+        PopupAction {
+            required property var modelData
+            readonly property bool recording: Audio.recorders.length > 0
+            labelWidth: sinkList.nameWidth
+            valueWidth: sinkList.valueWidth
+            icon: Theme.glyph(modelData.audio.muted ? 0xf036d : 0xf036c)
+            iconColor: modelData.audio.muted ? Theme.subtext0 : recording ? Theme.red : Theme.yellow
+            bright: recording
+            text: Audio.name(modelData)
+            value: sinkList.level(modelData)
+            onTriggered: Audio.toggleMute(modelData)
+            onScrolled: steps => Audio.changeVolume(modelData, steps)
+        }
+    }
+
+    Repeater {
+        model: Audio.recorders
+
+        PopupAction {
+            required property var modelData
+            labelWidth: sinkList.nameWidth
+            valueWidth: sinkList.valueWidth
+            icon: Theme.glyph(0xf044a)
+            iconColor: modelData.audio.muted ? Theme.subtext0 : Theme.red
             text: Audio.appName(modelData)
             value: sinkList.level(modelData)
             onTriggered: Audio.toggleMute(modelData)
