@@ -146,6 +146,7 @@ PanelWindow {
                 text: !win ? "" : alt ? (win.app_id || "") : (win.title || "")
                 iconSource: entry ? Quickshell.iconPath(entry.icon, true) : ""
                 maxTextWidth: Math.max(0, weatherModule.x - leftRow.x - windowModule.x - 80)
+                popup: WindowPopup {}
                 onClicked: alt = !alt
             }
         }
