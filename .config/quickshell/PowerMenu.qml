@@ -13,6 +13,23 @@ PanelWindow {
 
     property bool shown: false
     property int index: Power.defaultIndex
+    // The session is locked.
+    property bool locked: false
+    // The menu is gone, the dimming stays: an action was chosen and what it
+    // brings is not there yet. The lock's curtain fades in over the dimming,
+    // and the session ends under it; it would otherwise be gone for a moment
+    // before either.
+    property bool dimHeld: false
+    onLockedChanged: if (locked)
+        dimHeld = false
+
+    // The dimming goes even if nothing comes of the action. A click ends
+    // it too.
+    Timer {
+        id: dimRelease
+        interval: 5000
+        onTriggered: menu.dimHeld = false
+    }
 
     Pop {
         id: pop
@@ -21,6 +38,7 @@ PanelWindow {
     }
 
     function toggle() {
+        dimHeld = false;
         if (shown) {
             shown = false;
             return;
@@ -30,9 +48,11 @@ PanelWindow {
         keyHandler.forceActiveFocus();
     }
 
-    function runAction(command) {
+    function runAction(action) {
         shown = false;
-        Power.run(command);
+        dimHeld = true;
+        dimRelease.restart();
+        Power.run(action.command);
     }
 
     screen: Quickshell.screens.find(s => s.name === Niri.focusedOutput) ?? Quickshell.screens[0]
@@ -44,7 +64,7 @@ PanelWindow {
     }
     exclusionMode: ExclusionMode.Ignore
     color: "transparent"
-    visible: shown || pop.openness > 0
+    visible: shown || pop.openness > 0 || dimHeld
 
     WlrLayershell.namespace: "quickshell-power"
     WlrLayershell.layer: WlrLayer.Overlay
@@ -61,12 +81,15 @@ PanelWindow {
     Rectangle {
         anchors.fill: parent
         color: "black"
-        opacity: 0.35 * Math.min(1, pop.openness)
+        opacity: 0.35 * (dimHeld ? 1 : Math.min(1, pop.openness))
     }
 
     MouseArea {
         anchors.fill: parent
-        onClicked: menu.shown = false
+        onClicked: {
+            menu.shown = false;
+            menu.dimHeld = false;
+        }
     }
 
     Item {
@@ -88,7 +111,7 @@ PanelWindow {
             case Qt.Key_Return:
             case Qt.Key_Enter:
             case Qt.Key_Space:
-                menu.runAction(Power.actions[menu.index].command);
+                menu.runAction(Power.actions[menu.index]);
                 break;
             case Qt.Key_Escape:
                 menu.shown = false;
@@ -183,7 +206,7 @@ PanelWindow {
                     cursorShape: Qt.PointingHandCursor
                     onContainsMouseChanged: if (containsMouse)
                         menu.index = tile.index
-                    onClicked: menu.runAction(tile.modelData.command)
+                    onClicked: menu.runAction(tile.modelData)
                 }
             }
         }

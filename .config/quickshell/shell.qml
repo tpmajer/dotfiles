@@ -27,6 +27,7 @@ ShellRoot {
 
     PowerMenu {
         id: powerMenu
+        locked: lock.locked
     }
 
     // The bar on the focused output.
