@@ -33,8 +33,8 @@ Column {
 
     // A connection's traffic in two columns of a set width, so that the
     // popup keeps its width as the rates change, and below it a label and a
-    // value to a row. Both are as wide as the wider one, so the values end
-    // where the rates do.
+    // value to a row. Both are as wide as the widest of them and the switches
+    // below, so the values end where the rates do.
     TextMetrics {
         id: rate
         font.family: Theme.font
@@ -43,7 +43,7 @@ Column {
     }
     Column {
         id: info
-        readonly property real wide: Math.max(trafficGrid.implicitWidth, details.implicitWidth)
+        readonly property real wide: Math.max(trafficGrid.implicitWidth, details.implicitWidth, wgSwitches.textWidth)
         visible: Network.rows.length + Network.details.length > 0
         x: Theme.popupTextInset
         spacing: Theme.popupRowGap
@@ -87,29 +87,32 @@ Column {
         text: Network.offline
         color: Theme.red
     }
-    // WireGuard switches at the bottom: the tunnel by hand at the left end,
-    // wg-auto at the right. Each is as wide as what it shows, so its text
-    // sits under the labels, or ends where the values do.
-    Item {
+    // WireGuard switches at the bottom: the tunnel by hand, and wg-auto. Their
+    // labels sit under the labels above, their values end where the values do.
+    Column {
         id: wgSwitches
-        implicitWidth: Math.max(tunnelAction.implicitWidth + 2 + wgAutoAction.implicitWidth, info.wide + 2 * Theme.popupTextInset)
-        implicitHeight: tunnelAction.implicitHeight
+        readonly property real valueWidth: Math.max(tunnelAction.valueImplicitWidth, wgAutoAction.valueImplicitWidth)
+        readonly property real labelWidth: info.wide - tunnelAction.chromeWidth - valueWidth
+        // What the wider of the two needs for its text.
+        readonly property real textWidth: tunnelAction.chromeWidth + Math.max(tunnelAction.labelImplicitWidth, wgAutoAction.labelImplicitWidth) + valueWidth
+        spacing: 2
 
         PopupAction {
             id: tunnelAction
-            icon: Theme.glyph(Network.vpn ? 0xf0565 : 0xf099e)
-            iconColor: Network.vpn ? Theme.teal : Theme.subtext0
+            labelWidth: wgSwitches.labelWidth
+            valueWidth: wgSwitches.valueWidth
             bright: Network.vpn
-            text: "WireGuard " + (Network.vpn ? "on" : "off")
+            text: "WireGuard"
+            value: Network.vpn ? "on" : "off"
             onTriggered: Network.toggleTunnel()
         }
         PopupAction {
             id: wgAutoAction
-            anchors.right: parent.right
-            icon: Theme.glyph(0xf006a)
-            iconColor: Network.wgAuto ? Theme.teal : Theme.subtext0
+            labelWidth: wgSwitches.labelWidth
+            valueWidth: wgSwitches.valueWidth
             bright: Network.wgAuto
-            text: "Auto " + (Network.wgAuto ? "on" : "off")
+            text: "WireGuard auto"
+            value: Network.wgAuto ? "on" : "off"
             onTriggered: Network.toggleWgAuto()
         }
     }
