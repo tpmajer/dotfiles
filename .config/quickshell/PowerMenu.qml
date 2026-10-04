@@ -112,7 +112,7 @@ PanelWindow {
     Rectangle {
         anchors.fill: parent
         color: "black"
-        opacity: 0.35 * (dimHeld ? 1 : Math.min(1, pop.openness))
+        opacity: 0.45 * (dimHeld ? 1 : Math.min(1, pop.openness))
     }
 
     MouseArea {
