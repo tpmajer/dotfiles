@@ -68,6 +68,7 @@ Column {
                     Component {
                         id: level
                         LevelBar {
+                            popupY: levels.y + cell.y
                             level: row.modelData.used / row.modelData.total
                             fill: row.accent
                         }

@@ -1,5 +1,4 @@
 import QtQuick
-import Quickshell
 import qs
 import qs.services
 import qs.widgets
@@ -53,32 +52,11 @@ Column {
                     color: Theme.subtext0
                 }
 
-                Rectangle {
-                    // Centered in its row, on whole device pixels (the popup's
-                    // origin is on one).
-                    readonly property real popupY: grid.y + parent.y + (parent.height - height) / 2
-                    y: Theme.snap(popupY, QsWindow.window?.devicePixelRatio ?? 1) - grid.y - parent.y
-                    width: 60
-                    height: Theme.levelHeight
-                    radius: height / 2
-                    color: Theme.surface0
-
-                    Rectangle {
-                        // Never narrower than its height, or it can't be round
-                        // and sticks out of the track's end: at 0 it shrinks to
-                        // a dot and fades out.
-                        width: Math.max(height, parent.width * parent.parent.usage / 100)
-                        opacity: parent.parent.usage > 0 ? 1 : 0
-                        Behavior on opacity {
-                            NumberAnimation { duration: 300 }
-                        }
-                        height: parent.height
-                        radius: parent.radius
-                        color: Theme.lavender
-                        Behavior on width {
-                            NumberAnimation { duration: 300 }
-                        }
-                    }
+                LevelBar {
+                    anchors.verticalCenter: parent.verticalCenter
+                    popupY: grid.y + parent.y + y
+                    level: parent.usage / 100
+                    fill: Theme.lavender
                 }
 
                 PopupText {
