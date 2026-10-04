@@ -10,10 +10,19 @@ import qs.widgets
 Column {
     id: sinkList
     readonly property bool hasRows: true
-    // Columns line up across rows: each keeps the widest text seen so far.
-    property real nameWidth: 0
-    property real valueWidth: 0
+    // Columns line up across rows.
+    readonly property real nameWidth: widest(i => i.labelImplicitWidth)
+    readonly property real valueWidth: widest(i => i.valueImplicitWidth)
     spacing: 2
+
+    function widest(width) {
+        let w = 0;
+        for (const item of children) {
+            if (item instanceof PopupAction)
+                w = Math.max(w, width(item));
+        }
+        return w;
+    }
 
     Repeater {
         model: Audio.sinks
@@ -28,12 +37,6 @@ Column {
             bright: isDefault
             text: Audio.name(modelData)
             value: modelData.audio && modelData.audio.muted ? "muted" : Audio.volume(modelData) + "%"
-            onLabelImplicitWidthChanged: sinkList.nameWidth = Math.max(sinkList.nameWidth, labelImplicitWidth)
-            onValueImplicitWidthChanged: sinkList.valueWidth = Math.max(sinkList.valueWidth, valueImplicitWidth)
-            Component.onCompleted: {
-                sinkList.nameWidth = Math.max(sinkList.nameWidth, labelImplicitWidth);
-                sinkList.valueWidth = Math.max(sinkList.valueWidth, valueImplicitWidth);
-            }
             onTriggered: Audio.toggleMute(modelData)
             onScrolled: steps => Audio.changeVolume(modelData, steps)
         }
@@ -41,21 +44,18 @@ Column {
 
     // Spotify's own volume, while it runs: the speaker's when it plays on a
     // Connect device.
-    PopupAction {
-        visible: Spotify.ready
-        labelWidth: sinkList.nameWidth
-        valueWidth: sinkList.valueWidth
-        icon: Theme.glyph(0xf04c7)
-        iconColor: Spotify.muted ? Theme.subtext0 : Theme.green
-        text: "Spotify"
-        value: Spotify.muted ? "muted" : Spotify.volume + "%"
-        onLabelImplicitWidthChanged: sinkList.nameWidth = Math.max(sinkList.nameWidth, labelImplicitWidth)
-        onValueImplicitWidthChanged: sinkList.valueWidth = Math.max(sinkList.valueWidth, valueImplicitWidth)
-        Component.onCompleted: {
-            sinkList.nameWidth = Math.max(sinkList.nameWidth, labelImplicitWidth);
-            sinkList.valueWidth = Math.max(sinkList.valueWidth, valueImplicitWidth);
+    Repeater {
+        model: Spotify.ready ? 1 : 0
+
+        PopupAction {
+            labelWidth: sinkList.nameWidth
+            valueWidth: sinkList.valueWidth
+            icon: Theme.glyph(0xf04c7)
+            iconColor: Spotify.muted ? Theme.subtext0 : Theme.green
+            text: "Spotify"
+            value: Spotify.muted ? "muted" : Spotify.volume + "%"
+            onTriggered: Spotify.toggleMute()
+            onScrolled: steps => Spotify.changeVolume(steps)
         }
-        onTriggered: Spotify.toggleMute()
-        onScrolled: steps => Spotify.changeVolume(steps)
     }
 }
