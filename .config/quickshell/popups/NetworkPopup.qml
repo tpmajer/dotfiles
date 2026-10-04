@@ -101,6 +101,7 @@ Column {
             id: tunnelAction
             icon: Theme.glyph(Network.vpn ? 0xf0565 : 0xf099e)
             iconColor: Network.vpn ? Theme.teal : Theme.subtext0
+            bright: Network.vpn
             text: "WireGuard " + (Network.vpn ? "on" : "off")
             onTriggered: Network.toggleTunnel()
         }
@@ -109,6 +110,7 @@ Column {
             anchors.right: parent.right
             icon: Theme.glyph(0xf006a)
             iconColor: Network.wgAuto ? Theme.teal : Theme.subtext0
+            bright: Network.wgAuto
             text: "Auto " + (Network.wgAuto ? "on" : "off")
             onTriggered: Network.toggleWgAuto()
         }
