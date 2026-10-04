@@ -26,6 +26,22 @@ qs ipc call lock unlock      # a way out from a TTY
 qs ipc call power toggle     # the power menu
 ```
 
+A notification whose toast times out waits in the notification center, the
+popup of the bell in the bar, until it is dismissed. A click on the bell
+switches do not disturb, under which only critical notifications get a toast;
+a right click clears the center.
+
+```sh
+qs ipc call notifications toggle          # the center, from the keyboard
+qs ipc call notifications toggleDnd       # do not disturb
+qs ipc call notifications dismissToasts   # the toasts go to the center
+qs ipc call notifications clear           # close what waits in the center
+```
+
+In the center opened from the keyboard, `j` and `k` move the selection,
+`Enter` runs the notification's default action, `d` closes it, `D` closes
+them all and `Esc` closes the center.
+
 ## Installation
 
 Clone into `~/.dotfiles` and stow from inside the repo. The target defaults to
