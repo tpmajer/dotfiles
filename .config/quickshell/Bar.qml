@@ -33,24 +33,26 @@ PanelWindow {
     mask: popups.inputRegion
     BackgroundEffect.blurRegion: popups.blurRegion
 
-    // ---- power menu from the keyboard (qs ipc call power toggleBar) ---------------
+    // ---- a popup driven from the keyboard (qs ipc call power toggleBar) ----------
 
-    readonly property var powerActions: Power.actions
+    // The open popup is pinned and gets the keys, through its keyPressed().
     property bool keyboardMode: false
-    property int powerIndex: 0
 
-    function togglePowerMenu() {
-        if (keyboardMode && popups.popupOpen) {
+    function toggleKeyboardPopup(module) {
+        if (keyboardMode && popups.popupOpen && popups.popupOwner === module) {
             popups.popupOpen = false;
             return;
         }
-        powerIndex = 0;
-        popups.showPopup(powerModule);
+        popups.showPopup(module);
         keyboardMode = true;
         keyHandler.forceActiveFocus();
     }
 
-    // For the key handler and the power popup.
+    function togglePowerMenu() {
+        toggleKeyboardPopup(powerModule);
+    }
+
+    // For the power popup.
     function runAction(command) {
         popups.popupOpen = false;
         Power.run(command);
@@ -62,29 +64,14 @@ PanelWindow {
         Keys.onPressed: event => {
             if (!bar.keyboardMode)
                 return;
-            const count = bar.powerActions.length;
-            switch (event.key) {
-            case Qt.Key_Up:
-            case Qt.Key_K:
-                bar.powerIndex = (bar.powerIndex + count - 1) % count;
-                break;
-            case Qt.Key_Down:
-            case Qt.Key_J:
-            case Qt.Key_Tab:
-                bar.powerIndex = (bar.powerIndex + 1) % count;
-                break;
-            case Qt.Key_Return:
-            case Qt.Key_Enter:
-            case Qt.Key_Space:
-                bar.runAction(bar.powerActions[bar.powerIndex].command);
-                break;
-            case Qt.Key_Escape:
+            if (event.key === Qt.Key_Escape) {
                 popups.popupOpen = false;
-                break;
-            default:
+                event.accepted = true;
                 return;
             }
-            event.accepted = true;
+            const popup = popups.popupItem;
+            if (popup && popup.keyPressed)
+                popup.keyPressed(event);
         }
     }
 
@@ -92,8 +79,10 @@ PanelWindow {
         id: popups
         anchors.fill: parent
         pinned: bar.keyboardMode
+        // Another module's popup is not driven from the keyboard. The owner
+        // is still the previous one here.
         onAboutToShow: module => {
-            if (module !== powerModule)
+            if (module !== popups.popupOwner)
                 bar.keyboardMode = false;
         }
         onPopupOpenChanged: if (!popupOpen)

@@ -57,6 +57,8 @@ Item {
     property Item pendingOwner: null
     property bool popupOpen: false
     readonly property real openness: pop.openness
+    // What the open popup shows, for the keys the bar passes on to it.
+    readonly property Item popupItem: popupLoader.item
 
     // Scaled from its top edge, towards the module.
     Pop {
