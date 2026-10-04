@@ -395,6 +395,8 @@ binds {
     Mod+P hotkey-overlay-title="Open Nautilus" { spawn-sh "nautilus -w"; }
     Mod+L hotkey-overlay-title="Lock screen" allow-when-locked=false { spawn-sh "loginctl lock-session"; }
     Mod+Escape hotkey-overlay-title="Power menu" allow-when-locked=false { spawn "qs" "ipc" "call" "power" "toggle"; }
+    Mod+Shift+N hotkey-overlay-title="Notification center" allow-when-locked=false { spawn "qs" "ipc" "call" "notifications" "toggle"; }
+    Mod+Ctrl+N hotkey-overlay-title="Do not disturb" allow-when-locked=false { spawn "qs" "ipc" "call" "notifications" "toggleDnd"; }
     Mod+S hotkey-overlay-title="Shuffle wallpaper" { spawn "~/.config/niri/scripts/wallpaper.sh"; }
     Mod+X hotkey-overlay-title="Shuffle wallpaper, second set" { spawn-sh "~/.config/niri/scripts/wallpaper.sh ~/Pictures/.Wallpapers2 random"; }
     Mod+M hotkey-overlay-title="Open MPV" { spawn-sh "mpv --player-operation-mode=pseudo-gui"; }
