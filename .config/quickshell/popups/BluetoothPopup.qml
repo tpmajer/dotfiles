@@ -30,19 +30,9 @@ PopupList {
         onTriggered: btList.adapter.enabled = !on
     }
 
-    // Icon by the BlueZ device type; headphones match the volume module.
+    // Icon by the BlueZ device type.
     function deviceIcon(type) {
-        const icons = {
-            "audio-headphones": 0xf025,
-            "audio-headset": 0xf02ce,
-            "audio-card": 0xf04c3,
-            "input-mouse": 0xf037d,
-            "input-keyboard": 0xf030c,
-            "input-gaming": 0xf0297,
-            "phone": 0xf011c,
-            "computer": 0xf0322
-        };
-        return Theme.glyph(icons[type] || 0xf00af);
+        return Theme.iconGlyph(type) || Theme.glyph(0xf00af);
     }
 
     Repeater {

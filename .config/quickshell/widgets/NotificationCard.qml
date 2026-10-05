@@ -45,23 +45,41 @@ Item {
 
     readonly property color accent: Notifications.urgencyColor(notification.urgency)
     // Who it is from: the name the sender gives, or that of its desktop
-    // entry, and its icon, the entry's if it names none. An icon may come
-    // as the notification's image too; a picture there is not the sender's.
+    // entry, and its icon. An application's own icon is shown as it is: the
+    // one the sender names, as such or as the notification's image (a
+    // picture there is not the sender's), or its desktop entry's. Any other
+    // icon of the theme, such as a mouse's, is shown as the glyph the bar
+    // has for it.
     readonly property var entry: notification.desktopEntry !== "" && DesktopEntries.applications.values.length >= 0 ? DesktopEntries.heuristicLookup(notification.desktopEntry) : null
     readonly property string sender: notification.appName || entry?.name || ""
-    readonly property string icon: {
+    readonly property string iconName: {
         const prefix = "image://icon/";
-        const image = notification.image.startsWith(prefix) ? notification.image.slice(prefix.length) : "";
-        const icon = notification.appIcon || image || entry?.icon || "";
-        if (icon === "" || icon.includes("://"))
-            return icon;
+        return notification.appIcon || (notification.image.startsWith(prefix) ? notification.image.slice(prefix.length) : "");
+    }
+    readonly property bool iconIsFile: iconName.startsWith("/") || iconName.includes("://")
+    readonly property bool iconIsApp: iconName !== "" && !iconIsFile && DesktopEntries.applications.values.some(e => e.icon === iconName)
+    readonly property string glyph: iconName !== "" && !iconIsFile && !iconIsApp ? Theme.iconGlyph(iconName) : ""
+    readonly property string icon: {
+        if (glyph !== "")
+            return "";
+        if (iconIsFile)
+            return iconName.startsWith("/") ? "file://" + iconName : iconName;
         // Nothing for a name no icon goes by, not a placeholder.
-        return icon.startsWith("/") ? "file://" + icon : Quickshell.iconPath(icon, true);
+        const name = iconIsApp ? iconName : entry?.icon || "";
+        return name === "" ? "" : Quickshell.iconPath(name, true);
     }
     readonly property var extraActions: notification.actions.filter(a => a.identifier !== "default")
 
     implicitWidth: Theme.notificationWidth
     implicitHeight: content.implicitHeight + 2 * (Theme.popupPaddingV + Theme.popupTextInsetV)
+
+    // A left click, or its key in the notification center.
+    function activate() {
+        if (body.truncated && !expanded)
+            expanded = true;
+        else
+            Notifications.activate(notification);
+    }
 
     MouseArea {
         anchors.fill: parent
@@ -73,14 +91,6 @@ Item {
                 card.close();
         }
     }
-    // A left click, or its key in the notification center.
-    function activate() {
-        if (body.truncated && !expanded)
-            expanded = true;
-        else
-            Notifications.activate(notification);
-    }
-
 
     // The urgency, in the place of a module's underline.
     Rectangle {
@@ -115,8 +125,16 @@ Item {
             }
 
             PopupText {
+                id: senderGlyph
+                visible: card.glyph !== ""
+                text: card.glyph
+                color: Theme.subtext0
+                font.pixelSize: Theme.fontSize - 2
+            }
+
+            PopupText {
                 id: sender
-                x: senderIcon.visible ? senderIcon.width + 6 : 0
+                x: senderIcon.visible ? senderIcon.width + 6 : senderGlyph.visible ? senderGlyph.width + 6 : 0
                 width: parent.width - x - (arrival.text !== "" ? arrival.width + Theme.popupColumnGap : 0)
                 text: card.sender
                 textFormat: Text.PlainText
@@ -145,6 +163,7 @@ Item {
         }
 
         PopupText {
+            id: body
             visible: text !== ""
             width: parent.width
             text: Notifications.markup(card.notification.body)
@@ -163,7 +182,6 @@ Item {
 
             Repeater {
                 model: card.extraActions
-            id: body
 
                 Rectangle {
                     id: button

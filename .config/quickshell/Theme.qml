@@ -96,4 +96,30 @@ Singleton {
     function glyph(codepoint) {
         return String.fromCodePoint(codepoint);
     }
+
+    // The glyphs that stand for the icon theme's general icons, by name:
+    // a kind of device, a state. Headphones match the volume module.
+    readonly property var iconGlyphs: ({
+            "audio-headphones": 0xf025,
+            "audio-headset": 0xf02ce,
+            "audio-card": 0xf04c3,
+            "input-mouse": 0xf037d,
+            "input-keyboard": 0xf030c,
+            "input-gaming": 0xf0297,
+            "phone": 0xf011c,
+            "computer": 0xf0322,
+            "bluetooth": 0xf00af,
+            "battery": 0xf0079,
+            "network-wireless": 0xf0928,
+            "network-wired": 0xf0002,
+            "dialog-information": 0xf02fc,
+            "dialog-warning": 0xf0026,
+            "dialog-error": 0xf0028
+        })
+    // The glyph for such a name, "input-mouse" or "battery-low-symbolic",
+    // by the longest of the names above it starts with; "" if it has none.
+    function iconGlyph(name) {
+        const key = Object.keys(iconGlyphs).filter(k => name === k || name.startsWith(k + "-")).sort((a, b) => b.length - a.length)[0];
+        return key ? glyph(iconGlyphs[key]) : "";
+    }
 }
