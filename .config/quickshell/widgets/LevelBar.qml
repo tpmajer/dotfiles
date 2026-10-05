@@ -12,6 +12,8 @@ Item {
     // Its y in the popup. With that the track is drawn on whole device pixels
     // (the popup's origin is on one), and so with hard edges.
     property real popupY: 0
+    // How long the fill takes to get to a new level, in ms.
+    property int glide: 300
 
     implicitWidth: 60
     implicitHeight: Theme.levelHeight
@@ -35,7 +37,7 @@ Item {
             radius: parent.radius
             color: bar.fill
             Behavior on width {
-                NumberAnimation { duration: 300 }
+                NumberAnimation { duration: bar.glide }
             }
         }
     }

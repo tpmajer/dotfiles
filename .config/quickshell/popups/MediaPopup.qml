@@ -151,6 +151,9 @@ Column {
                 popupY: info.y + progress.y + y
                 level: progress.visible && popup.player.positionSupported ? popup.player.position / popup.player.length : 0
                 fill: Media.color
+                // As long as the position's next reading is away: the
+                // fill moves on evenly, not in steps.
+                glide: 1000
             }
             PopupText {
                 text: progress.visible ? popup.time(popup.player.length) : ""
