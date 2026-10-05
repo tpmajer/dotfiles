@@ -180,9 +180,10 @@ Item {
             root.showPopup(root.pendingOwner)
     }
 
+    // Long enough to come back to a popup the pointer has slipped off.
     Timer {
         id: hideTimer
-        interval: 200
+        interval: 500
         onTriggered: if (!root.popupHovered)
             root.popupOpen = false
     }
