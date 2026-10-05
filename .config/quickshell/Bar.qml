@@ -211,6 +211,39 @@ PanelWindow {
             }
         }
 
+        // what plays, right of the bell: a wave in the player's color,
+        // gone a while after the last one was paused. A middle click
+        // pauses, a right one goes to the player's window, the wheel
+        // skips a track.
+        Module {
+            id: mediaModule
+            anchors.left: bellModule.right
+            host: popups
+            hPadding: 8
+            color: Media.color
+            content: Media.active ? mediaWave : null
+            onClicked: m => {
+                if (m.button === Qt.MiddleButton)
+                    Media.playPause();
+                else if (m.button === Qt.RightButton)
+                    Media.focusWindow();
+            }
+            // Down for the next one, as down a list.
+            onScrolled: steps => Media.skip(-steps)
+
+            Component {
+                id: mediaWave
+
+                Wave {
+                    anchor: mediaModule
+                    levels: Spectrum.levels
+                    color: Media.color
+                    simulated: Media.remote
+                    playing: Media.playing
+                }
+            }
+        }
+
         Row {
             id: rightRow
             anchors.right: parent.right
