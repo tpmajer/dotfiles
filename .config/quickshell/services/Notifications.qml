@@ -160,8 +160,9 @@ Singleton {
                 command: ["thunderbird"]
             }
         })
-    // The notification activated, while its sender's unit is asked about.
-    property var pending: null
+    // The notifications activated, while their senders' units are asked
+    // about, one at a time: a second click does not wait for the first.
+    property var pending: []
 
     // A click on a card: the default action, and the notification is closed.
     // For a sender that may be running without a window the click leads to
@@ -173,29 +174,38 @@ Singleton {
             activateDefault(notification);
             return;
         }
-        pending = notification;
-        unitCheck.command = ["systemctl", "--user", "is-active", "--quiet", app.unit];
+        pending = pending.concat([notification]);
+        checkNext();
+    }
+
+    function checkNext() {
+        // Not those closed in the meantime.
+        pending = pending.filter(n => tracked.values.includes(n));
+        if (unitCheck.running || pending.length === 0)
+            return;
+        unitCheck.command = ["systemctl", "--user", "is-active", "--quiet", windowless[pending[0].desktopEntry].unit];
         unitCheck.running = true;
     }
 
     Process {
         id: unitCheck
         onExited: exitCode => {
-            const notification = root.pending;
-            root.pending = null;
-            // Closed in the meantime.
-            if (!notification || !root.tracked.values.includes(notification))
-                return;
-            if (exitCode !== 0) {
-                const appId = notification.desktopEntry;
-                root.activateDefault(notification);
-                Niri.focusApp(appId);
-                return;
+            const notification = root.pending[0];
+            root.pending = root.pending.slice(1);
+            // Not one closed in the meantime.
+            if (notification && root.tracked.values.includes(notification)) {
+                if (exitCode !== 0) {
+                    const appId = notification.desktopEntry;
+                    root.activateDefault(notification);
+                    Niri.focusApp(appId);
+                } else {
+                    // Through niri, as from the launcher: a child of this
+                    // service would go with it when it restarts.
+                    Quickshell.execDetached(["niri", "msg", "action", "spawn", "--"].concat(root.windowless[notification.desktopEntry].command));
+                    notification.dismiss();
+                }
             }
-            // Through niri, as from the launcher: a child of this service
-            // would go with it when it restarts.
-            Quickshell.execDetached(["niri", "msg", "action", "spawn", "--"].concat(root.windowless[notification.desktopEntry].command));
-            notification.dismiss();
+            root.checkNext();
         }
     }
 
