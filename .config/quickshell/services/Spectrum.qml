@@ -5,8 +5,9 @@ import Quickshell
 import Quickshell.Io
 
 // The spectrum of what the computer plays, for the bar's wave: cava,
-// run only while a player plays here. Not for Spotify on a Connect
-// device, which makes no sound here, and not behind the lock.
+// run only while a player plays, and not behind the lock. It also tells
+// when a player plays and nothing sounds here: Spotify on a Connect
+// device.
 Singleton {
     id: root
 
@@ -14,9 +15,12 @@ Singleton {
     property bool locked: false
 
     readonly property int bars: 5
-    readonly property bool wanted: Media.playing && !Media.remote && !locked
+    readonly property bool wanted: Media.playing && !locked
     // One level a bar, 0 to 1; all 0 while cava does not run.
     property var levels: Array(bars).fill(0)
+    // Nothing has sounded for a while with cava running. Spotify keeps
+    // its stream open on a Connect device, so the silence is what tells.
+    property bool silent: false
 
     Process {
         id: cava
@@ -25,12 +29,33 @@ Singleton {
         stdout: SplitParser {
             onRead: line => {
                 const values = line.split(";").slice(0, root.bars).map(n => Math.min(1, (parseInt(n) || 0) / 100));
-                if (values.length === root.bars)
-                    root.levels = values;
+                if (values.length !== root.bars)
+                    return;
+                if (values.some(v => v > 0)) {
+                    root.silent = false;
+                    quiet.restart();
+                } else if (root.silent) {
+                    return;
+                }
+                root.levels = values;
             }
         }
-        onRunningChanged: if (!running)
-            root.levels = Array(root.bars).fill(0)
+        onRunningChanged: {
+            root.silent = false;
+            if (running) {
+                quiet.restart();
+            } else {
+                quiet.stop();
+                root.levels = Array(root.bars).fill(0);
+            }
+        }
+    }
+
+    // Longer than the gap between two tracks.
+    Timer {
+        id: quiet
+        interval: 1500
+        onTriggered: root.silent = true
     }
 
     IpcHandler {
@@ -41,6 +66,7 @@ Singleton {
             return JSON.stringify({
                 wanted: root.wanted,
                 running: cava.running,
+                silent: root.silent,
                 levels: root.levels
             });
         }

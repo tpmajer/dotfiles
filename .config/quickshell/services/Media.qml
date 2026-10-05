@@ -24,9 +24,9 @@ Singleton {
     readonly property string source: sourceOf(active)
     readonly property color color: colorOf(active)
 
-    // Spotify plays on a Connect device: it says it plays, and no sound
-    // of its own goes out here.
-    readonly property bool remote: source === "spotify" && playing && !Audio.streams.some(n => /^spotify$/i.test(Audio.appName(n)))
+    // Spotify plays on a Connect device: it says it plays, and nothing
+    // sounds here. Its stream is no telling, it stays open there.
+    readonly property bool remote: source === "spotify" && playing && Spectrum.silent
 
     readonly property string title: active ? active.trackTitle || active.identity : ""
     readonly property string artist: active ? active.trackArtist : ""
