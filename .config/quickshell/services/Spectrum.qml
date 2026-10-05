@@ -14,7 +14,8 @@ Singleton {
     // Set by the shell.
     property bool locked: false
 
-    readonly property int bars: 5
+    // As many as cava.conf has cava make.
+    readonly property int bars: 15
     readonly property bool wanted: Media.playing && !locked
     // One level a bar, 0 to 1; all 0 while cava does not run.
     property var levels: Array(bars).fill(0)

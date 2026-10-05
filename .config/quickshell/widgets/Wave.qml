@@ -2,7 +2,7 @@ import QtQuick
 import Quickshell
 import qs
 
-// A sound wave in the bar: five bars, each as high as its level. The
+// A sound wave in the bar: a row of bars, each as high as its level. The
 // levels are the spectrum of what plays, or, simulated, a pattern that
 // only tells that something plays. Paused, the bars are low and gray.
 Item {
@@ -13,7 +13,7 @@ Item {
     property bool simulated: false
     property bool playing: false
 
-    readonly property int count: 5
+    readonly property int count: levels.length
     // 2.5 px is 4 whole device pixels at scale 1.6.
     readonly property real barWidth: 2.5
     readonly property real gap: 2.5
