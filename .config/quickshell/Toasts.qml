@@ -12,8 +12,10 @@ import qs.widgets
 // the others close ranks; one closed by its action or its sender is gone at
 // once. A card whose sender takes a reply has a field for it, and stays while
 // one is being written. Only the newest few are shown; the rest fold into a
-// row at the top that unfolds them on a click. None goes while the session is
-// locked: they are all there, for their whole time, once it is not.
+// row at the top that unfolds them on a click. With a few toasts up, that row
+// is there too, with their count and a button that closes them all. None goes
+// while the session is locked: they are all there, for their whole time, once
+// it is not.
 PanelWindow {
     id: toasts
 
@@ -31,6 +33,23 @@ PanelWindow {
     readonly property int fading: cards.filter(c => c.fading === true && c.toastIndex < 0).length
     readonly property int hiddenCount: Math.max(0, count + fading - Theme.notificationsVisible)
     property bool expanded: false
+    // From this many toasts on, the row at the top has "Close all": fewer
+    // are as quickly closed one by one.
+    readonly property int closeAllFrom: 3
+    // Closes every toast as a right click on each would, the folded ones
+    // too. Not one a reply is being written on.
+    function closeAll() {
+        const closed = cards.filter(c => c.toastIndex >= 0 && !c.replying);
+        closing = closed.length > 0;
+        for (const c of closed)
+            c.leave = () => c.notification.dismiss();
+    }
+    // Closing them all: the row at the top fades out with the cards, not
+    // after them. Until the last of the cards is gone.
+    property bool closing: false
+    readonly property bool leaving: cards.some(c => c.leaving === true)
+    onLeavingChanged: if (!leaving)
+        closing = false
     // The session is locked: the lock is over the cards, nobody sees them.
     property bool locked: false
     onHiddenCountChanged: if (hiddenCount === 0)
@@ -171,7 +190,6 @@ PanelWindow {
                 height: modelData.height
                 radius: Theme.barRadius
                 color: Theme.base
-                // The fold row has neither: it is just there.
                 opacity: modelData.openness ?? 1
                 scale: modelData.popScale ?? 1
             }
@@ -222,7 +240,10 @@ PanelWindow {
             }
         }
 
-        // The folded notifications: "+N more", or "Show less" once unfolded.
+        // The row above the cards. On the left the folded notifications,
+        // "+N more", or "Show less" once unfolded, on a click anywhere in
+        // the row; with none folded, how many toasts there are. On the right
+        // "Close all", as "Clear" in the notification center.
         Rectangle {
             id: fold
 
@@ -241,8 +262,22 @@ PanelWindow {
                 radius: Theme.barRadius
             }
 
-            readonly property bool present: toasts.hiddenCount > 0
+            readonly property bool foldable: toasts.hiddenCount > 0
+            readonly property bool open: (foldable || toasts.count >= toasts.closeAllFrom) && !toasts.closing
+            // It goes as a card does, and comes at once.
+            property real openness: open ? 1 : 0
+            Behavior on openness {
+                id: foldFade
+                NumberAnimation {
+                    duration: foldFade.targetValue === 0 ? 120 : 0
+                    easing.type: Easing.InQuad
+                }
+            }
+            readonly property real popScale: open ? 1 : 0.95 + 0.05 * openness
+            readonly property bool present: open || openness > 0
             visible: present
+            opacity: open ? 1 : Math.max(0, 2 * openness - 1)
+            scale: popScale
             width: Theme.notificationWidth
             height: foldLabel.implicitHeight + 2 * Theme.popupPaddingV
             radius: Theme.barRadius
@@ -252,9 +287,11 @@ PanelWindow {
 
             PopupText {
                 id: foldLabel
-                anchors.centerIn: parent
-                text: toasts.expanded ? "Show less" : "+" + toasts.hiddenCount + " more"
-                color: foldMouse.containsMouse ? Theme.text : Theme.subtext0
+                // In line with the cards' text.
+                x: Theme.popupPadding + Theme.popupTextInset
+                anchors.verticalCenter: parent.verticalCenter
+                text: !fold.foldable ? toasts.count + " notifications" : toasts.expanded ? "Show less" : "+" + toasts.hiddenCount + " more"
+                color: fold.foldable && foldMouse.containsMouse ? Theme.text : Theme.subtext0
                 Behavior on color {
                     ColorAnimation { duration: Theme.hoverDuration }
                 }
@@ -264,8 +301,42 @@ PanelWindow {
             MouseArea {
                 id: foldMouse
                 anchors.fill: parent
+                enabled: fold.foldable
                 hoverEnabled: true
                 onClicked: toasts.expanded = !toasts.expanded
+            }
+
+            // Highlighted on hover as a popup's clickable row is.
+            Rectangle {
+                anchors.right: parent.right
+                anchors.rightMargin: Theme.popupPadding
+                anchors.verticalCenter: parent.verticalCenter
+                width: closeAllLabel.implicitWidth + 2 * Theme.popupTextInset
+                height: closeAllLabel.implicitHeight + 8
+                radius: Theme.moduleRadius
+                color: closeAllMouse.containsMouse ? Theme.surface0 : Qt.rgba(Theme.surface0.r, Theme.surface0.g, Theme.surface0.b, 0)
+                Behavior on color {
+                    ColorAnimation { duration: Theme.hoverDuration }
+                }
+
+                PopupText {
+                    id: closeAllLabel
+                    anchors.centerIn: parent
+                    text: "Close all"
+                    color: closeAllMouse.containsMouse ? Theme.text : Theme.subtext0
+                    Behavior on color {
+                        ColorAnimation { duration: Theme.hoverDuration }
+                    }
+                    font.pixelSize: Theme.fontSize - 2
+                }
+
+                MouseArea {
+                    id: closeAllMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: toasts.closeAll()
+                }
             }
         }
 
@@ -302,6 +373,7 @@ PanelWindow {
                 // of a transient one is up. Both take the card with them.
                 property var leave: null
                 readonly property bool leaving: leave !== null
+                readonly property bool replying: body.replying
                 // To be seen whole; in a top corner a new card fades in
                 // instead of sliding in.
                 readonly property bool open: shown && !leaving && (appeared || !toasts.atTop)
