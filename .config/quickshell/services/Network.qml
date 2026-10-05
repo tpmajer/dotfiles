@@ -267,14 +267,23 @@ Singleton {
     }
 
     // Looks for Wi-Fi networks anew, for the list networkmanager_dmenu shows.
-    readonly property bool scanning: wifiScan.running
+    // The scan takes a moment only: it counts as running for 2 s more, so
+    // that the popup's row can be read.
+    readonly property bool scanning: wifiScan.running || scanShown.running
     function rescan() {
+        scanShown.stop();
         wifiScan.running = true;
     }
 
     Process {
         id: wifiScan
         command: ["nmcli", "device", "wifi", "rescan"]
+        onExited: scanShown.restart()
+    }
+
+    Timer {
+        id: scanShown
+        interval: 2000
     }
 
     Process {
