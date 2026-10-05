@@ -105,44 +105,50 @@ Singleton {
             linger.stop();
             return;
         }
-        if (active && players.includes(active) && active.isPlaying)
+        if (active && !players.includes(active))
+            active = null;
+        if (active && active.isPlaying)
+            return;
+        // A paused one stays for its while, the one picked in the popup
+        // too, whatever the others do short of starting to play.
+        if (active && linger.running)
             return;
         const other = players.find(p => p.isPlaying);
         if (other) {
             active = other;
             linger.stop();
-        } else if (active && !players.includes(active)) {
-            active = null;
-            linger.stop();
-        } else if (active && !linger.running) {
+        } else if (active) {
             linger.restart();
         }
     }
 
     onPlayersChanged: update(null)
 
+    // Over the players' own model, not the list above: one here is made
+    // as its player shows up, and so tells of one that plays by then.
     Instantiator {
-        model: root.players
+        model: Mpris.players
 
         Connections {
             required property var modelData
-            target: modelData
+            readonly property bool own: !modelData.dbusName.endsWith(".playerctld")
+            target: own ? modelData : null
             function onIsPlayingChanged() {
                 root.update(modelData);
             }
-            // Only one that plays as the shell starts, or as it shows up,
-            // with none active: the list is made anew whenever it changes.
-            Component.onCompleted: if (modelData.isPlaying && !root.playing)
+            // A player is listed once it has said that it plays.
+            Component.onCompleted: if (own && modelData.isPlaying)
                 root.update(modelData)
         }
     }
 
-    // How long a paused player stays in the bar.
+    // How long a paused player stays in the bar. Then the bar is about
+    // another that plays, if there is one.
     Timer {
         id: linger
         interval: 30000
         onTriggered: if (!root.playing)
-            root.active = null
+            root.active = root.players.find(p => p.isPlaying) ?? null
     }
 
     Timer {
