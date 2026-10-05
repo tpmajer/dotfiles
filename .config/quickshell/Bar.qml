@@ -180,7 +180,7 @@ PanelWindow {
             id: bellModule
             anchors.left: clock.right
             host: popups
-            prefix: Theme.glyph(Notifications.dnd ? 0xf009b : 0xf009a)
+            prefix: Theme.glyph(Notifications.quiet ? 0xf009b : 0xf009a)
             // Both bells in the wider one's width: the module keeps its
             // width, and its popup its place, as do not disturb is switched.
             prefixWidth: Math.ceil(Math.max(bellMetrics.advanceWidth(Theme.glyph(0xf009a)), bellMetrics.advanceWidth(Theme.glyph(0xf009b))))
@@ -189,7 +189,7 @@ PanelWindow {
             // most urgent notification in the center, as the line on its
             // card; with none there, or only low ones, whose line is gray,
             // the bell is white, brighter than plain text.
-            color: Notifications.dnd ? Theme.subtext0 : Notifications.missedUrgency === NotificationUrgency.Low ? Theme.white : Notifications.urgencyColor(Notifications.missedUrgency)
+            color: Notifications.quiet ? Theme.subtext0 : Notifications.missedUrgency === NotificationUrgency.Low ? Theme.white : Notifications.urgencyColor(Notifications.missedUrgency)
             popup: NotificationsPopup {
                 panel: bar
             }

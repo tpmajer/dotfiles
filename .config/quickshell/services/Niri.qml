@@ -17,6 +17,12 @@ Singleton {
         return null;
     }
 
+    // The screencasts, by stream id.
+    property var casts: ({})
+    // A whole output is being recorded or shared, layer surfaces with it,
+    // as a window alone is not. Not a cast that is paused.
+    readonly property bool castingOutput: Object.values(casts).some(c => c.is_active && c.target.Output !== undefined)
+
     readonly property string focusedOutput: {
         const ws = workspaces.find(w => w.is_focused);
         return ws ? ws.output : "";
@@ -123,6 +129,20 @@ Singleton {
             const map = Object.assign({}, windows);
             delete map[ev.WindowClosed.id];
             windows = map;
+        } else if (ev.CastsChanged) {
+            const map = {};
+            for (const c of ev.CastsChanged.casts)
+                map[c.stream_id] = c;
+            casts = map;
+        } else if (ev.CastStartedOrChanged) {
+            const c = ev.CastStartedOrChanged.cast;
+            const map = Object.assign({}, casts);
+            map[c.stream_id] = c;
+            casts = map;
+        } else if (ev.CastStopped) {
+            const map = Object.assign({}, casts);
+            delete map[ev.CastStopped.stream_id];
+            casts = map;
         } else if (ev.WindowFocusChanged) {
             const focusedId = ev.WindowFocusChanged.id;
             const map = {};

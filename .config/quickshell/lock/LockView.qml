@@ -134,7 +134,7 @@ Rectangle {
             // it is not there.
             PopupText {
                 visible: Notifications.waitingCount > 0
-                text: Theme.glyph(Notifications.dnd ? 0xf009b : 0xf009a) + " " + Notifications.waitingCount
+                text: Theme.glyph(Notifications.quiet ? 0xf009b : 0xf009a) + " " + Notifications.waitingCount
                 color: Theme.subtext0
             }
         }

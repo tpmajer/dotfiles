@@ -65,6 +65,18 @@ Singleton {
     // Do not disturb: a notification gets no toast and goes straight to the
     // center, unless it is critical.
     readonly property bool dnd: state.dnd
+    // The same while a screen is recorded or shared, so that no toast gets
+    // into the recording; those on screen then go to the center, but for
+    // the critical ones. niri could keep the toasts out of a screencast by
+    // itself, but blacks out their whole window, as high as the screen.
+    readonly property bool quiet: dnd || Niri.castingOutput
+    readonly property bool casting: Niri.castingOutput
+    onCastingChanged: {
+        if (!casting)
+            return;
+        for (const n of toasts.filter(n => n.urgency !== NotificationUrgency.Critical))
+            timedOut(n);
+    }
 
     // A new notification in one of these categories replaces the previous one.
     readonly property var replacedCategories: ["mpd"]
@@ -204,7 +216,7 @@ Singleton {
     // now, or straight to the center under do not disturb. False for one
     // that is to be neither: a transient one under do not disturb.
     function arrived(notification) {
-        const toast = !state.dnd || notification.urgency === NotificationUrgency.Critical;
+        const toast = !quiet || notification.urgency === NotificationUrgency.Critical;
         if (!toast && isTransient(notification))
             return false;
         store(notification, {
