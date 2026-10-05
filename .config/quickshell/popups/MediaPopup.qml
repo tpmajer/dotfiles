@@ -28,15 +28,52 @@ Column {
         return s >= 3600 ? Math.floor(s / 3600) + ":" + pad(Math.floor(s / 60) % 60) + ":" + pad(s % 60) : Math.floor(s / 60) + ":" + pad(s % 60);
     }
 
-    // A player's position is not a property that tells of its changes:
-    // it is asked for, once a second and only while the popup shows.
+    // How far into the track it is, in seconds. A player's position is
+    // not a property that tells of its changes: it is read, once a second
+    // and only while the popup shows. The bar takes that second to get to
+    // the new reading, and so moves on evenly; over a jump, and to
+    // another track, wherever that one starts, it takes no time.
+    property real elapsed: 0
+    // The same as a part of the track's length, for the bar: set here
+    // with the rest, not bound, so that the bar moves only as told.
+    property real played: 0
+    property int glide: 0
+    // What the last reading was of.
+    property string readOf: ""
+    function read() {
+        const known = !!player && player.positionSupported && player.lengthSupported && player.length > 0;
+        const now = known ? player.position : 0;
+        const key = player ? [player.dbusName, player.trackTitle, player.length].join("\n") : "";
+        // Evenly only from one second's reading to the next one's.
+        glide = key === readOf && now >= elapsed && now - elapsed < 1.5 ? 1000 : 0;
+        readOf = key;
+        elapsed = now;
+        played = known ? now / player.length : 0;
+    }
+    Component.onCompleted: read()
+    onPlayerChanged: read()
+    onVisibleChanged: if (visible)
+        read()
+
     Timer {
         interval: 1000
         repeat: true
         triggeredOnStart: true
         running: popup.visible && Media.playing
-        onTriggered: if (popup.player)
-            popup.player.positionChanged()
+        onTriggered: popup.read()
+    }
+    Connections {
+        target: popup.player
+        function onPostTrackChanged() {
+            popup.read();
+        }
+        function onLengthChanged() {
+            popup.read();
+        }
+        // A seek.
+        function onPositionChanged() {
+            popup.read();
+        }
     }
 
     component Control: Rectangle {
@@ -143,17 +180,17 @@ Column {
             visible: !!popup.player && popup.player.lengthSupported && popup.player.length > 0
 
             PopupText {
-                text: progress.visible && popup.player.positionSupported ? popup.time(popup.player.position) : ""
+                text: progress.visible && popup.player.positionSupported ? popup.time(popup.elapsed) : ""
                 color: Theme.subtext0
             }
             LevelBar {
                 Layout.fillWidth: true
                 popupY: info.y + progress.y + y
-                level: progress.visible && popup.player.positionSupported ? popup.player.position / popup.player.length : 0
+                // Not by whether the row shows: it does not in a closed
+                // popup, and the bar would fill up anew as that opens.
+                level: popup.played
                 fill: Media.color
-                // As long as the position's next reading is away: the
-                // fill moves on evenly, not in steps.
-                glide: 1000
+                glide: popup.glide
             }
             PopupText {
                 text: progress.visible ? popup.time(popup.player.length) : ""
