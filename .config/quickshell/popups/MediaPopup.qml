@@ -204,8 +204,8 @@ Column {
 
             Control {
                 glyph: Theme.glyph(0xf04ae)
-                usable: !!popup.player && popup.player.canGoPrevious
-                onTriggered: popup.player.previous()
+                usable: Media.canSkip(popup.player, -1)
+                onTriggered: Media.skip(-1)
             }
             Control {
                 glyph: Theme.glyph(Media.playing ? 0xf03e4 : 0xf040a)
@@ -214,8 +214,8 @@ Column {
             }
             Control {
                 glyph: Theme.glyph(0xf04ad)
-                usable: !!popup.player && popup.player.canGoNext
-                onTriggered: popup.player.next()
+                usable: Media.canSkip(popup.player, 1)
+                onTriggered: Media.skip(1)
             }
         }
     }

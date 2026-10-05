@@ -67,18 +67,50 @@ Singleton {
             active.togglePlaying();
     }
 
+    // mpv plays a file of the disk with no playlist: the next one and the
+    // previous one are then the files beside it, as with uosc's keys in
+    // mpv itself.
+    function besideFiles(player) {
+        return sourceOf(player) === "mpv" && !player.canGoNext && !player.canGoPrevious && String(player.metadata["xesam:url"] ?? "").startsWith("file://");
+    }
+
+    // Whether the player has a next track (1) or a previous one (-1) to
+    // go to. Beside a file there may be none; that is found out on the go.
+    function canSkip(player, step) {
+        return !!player && ((step > 0 ? player.canGoNext : player.canGoPrevious) || besideFiles(player));
+    }
+
     // One track per call, however fast the wheel turns: a touchpad sends
     // a run of steps for one swipe.
     function skip(steps) {
         if (!active || steps === 0 || skipGuard.running)
             return;
-        if (steps > 0 && active.canGoNext)
-            active.next();
-        else if (steps < 0 && active.canGoPrevious)
-            active.previous();
-        else
+        const step = steps > 0 ? 1 : -1;
+        if (!canSkip(active, step))
             return;
+        if (besideFiles(active)) {
+            sibling.player = active;
+            sibling.command = [Quickshell.shellDir + "/scripts/media-sibling.py", active.metadata["xesam:url"], String(step)];
+            sibling.running = true;
+        } else if (step > 0) {
+            active.next();
+        } else {
+            active.previous();
+        }
         skipGuard.restart();
+    }
+
+    // scripts/media-sibling.py: the address of the file to go to, if any.
+    Process {
+        id: sibling
+        property var player: null
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const address = text.trim();
+                if (address && sibling.player)
+                    sibling.player.openUri(address);
+            }
+        }
     }
 
     // From the popup's list. It stays the active one until another
