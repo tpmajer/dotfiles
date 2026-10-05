@@ -122,3 +122,10 @@ based on the solarized dark colours from adw-colors: https://github.com/lassekon
   --thumbnail-bg-color: @thumbnail_bg_color;
   --thumbnail-fg-color: @thumbnail_fg_color;
 }
+
+/* Windows that keep their own decorations under niri, message dialogs among
+   them, round their corners more than niri's geometry-corner-radius does:
+   that leaves a gap in each corner inside the focus ring. */
+window.csd {
+  border-radius: 6px;
+}
