@@ -31,7 +31,26 @@ PanelWindow {
     // is counted as one, and counted twice it would fold a card for as long
     // as it fades.
     readonly property int fading: cards.filter(c => c.fading === true && c.toastIndex < 0).length
-    readonly property int hiddenCount: Math.max(0, count + fading - Theme.notificationsVisible)
+    // How many of the newest toasts fit on the screen under the bar, with
+    // the row at the top: as many as are shown at most, unfolded or not. By
+    // the cards' heights, which a folded card has too. No limit while they
+    // all fit: a new toast is counted before its card is there to measure.
+    readonly property int fitCount: {
+        const room = height - Theme.barMargin - Theme.barHeight - Theme.popupGap - Theme.notificationMargin - fold.height;
+        const newest = cards.filter(c => c.toastIndex >= 0).sort((a, b) => b.toastIndex - a.toastIndex);
+        let used = 0;
+        for (let fit = 0; fit < newest.length; fit++) {
+            used += Theme.notificationGap + newest[fit].height;
+            if (used > room)
+                return Math.max(1, fit);
+        }
+        return 1000000;
+    }
+    readonly property int foldLimit: Math.min(Theme.notificationsVisible, fitCount)
+    // The toasts folded while the stack is not unfolded, and those not
+    // shown now: the same until it is, then only what does not fit.
+    readonly property int foldedCount: Math.max(0, count + fading - foldLimit)
+    readonly property int hiddenCount: Math.max(0, count + fading - (expanded ? fitCount : foldLimit))
     property bool expanded: false
     // From this many toasts on, the row at the top has "Close all": fewer
     // are as quickly closed one by one.
@@ -52,7 +71,7 @@ PanelWindow {
         closing = false
     // The session is locked: the lock is over the cards, nobody sees them.
     property bool locked: false
-    onHiddenCountChanged: if (hiddenCount === 0)
+    onFoldedCountChanged: if (foldedCount === 0)
         expanded = false
 
     // The window is on screen and has its size, so an animation started now is seen.
@@ -229,7 +248,7 @@ PanelWindow {
         // the newest: one unfolded by another's leaving is just there.
         add: Transition {
             id: arrive
-            enabled: !toasts.atTop && toasts.live && toasts.hiddenCount > 0 && !toasts.expanded
+            enabled: !toasts.atTop && toasts.live && toasts.hiddenCount > 0
             NumberAnimation {
                 // There is no item once the transition is over.
                 readonly property Item item: arrive.ViewTransition.item
@@ -242,7 +261,8 @@ PanelWindow {
 
         // The row above the cards. On the left the folded notifications,
         // "+N more", or "Show less" once unfolded, on a click anywhere in
-        // the row; with none folded, how many toasts there are. On the right
+        // the row, with those that do not fit on the screen even so; with
+        // none folded, how many toasts there are. On the right
         // "Close all", as "Clear" in the notification center.
         Rectangle {
             id: fold
@@ -262,7 +282,7 @@ PanelWindow {
                 radius: Theme.barRadius
             }
 
-            readonly property bool foldable: toasts.hiddenCount > 0
+            readonly property bool foldable: toasts.foldedCount > 0
             readonly property bool open: (foldable || toasts.count >= toasts.closeAllFrom) && !toasts.closing
             // It goes as a card does, and comes at once.
             property real openness: open ? 1 : 0
@@ -290,7 +310,7 @@ PanelWindow {
                 // In line with the cards' text.
                 x: Theme.popupPadding + Theme.popupTextInset
                 anchors.verticalCenter: parent.verticalCenter
-                text: !fold.foldable ? toasts.count + " notifications" : toasts.expanded ? "Show less" : "+" + toasts.hiddenCount + " more"
+                text: !fold.foldable ? toasts.count + " notifications" : !toasts.expanded ? "+" + toasts.hiddenCount + " more" : toasts.hiddenCount > 0 ? "Show less · +" + toasts.hiddenCount + " more" : "Show less"
                 color: fold.foldable && foldMouse.containsMouse ? Theme.text : Theme.subtext0
                 Behavior on color {
                     ColorAnimation { duration: Theme.hoverDuration }
@@ -367,7 +387,7 @@ PanelWindow {
                 }
                 property bool appeared: false
                 // Among the cards shown: a toast, and not folded.
-                readonly property bool shown: toastIndex >= 0 && (toasts.expanded || toastIndex >= toasts.hiddenCount)
+                readonly property bool shown: toastIndex >= 0 && toastIndex >= toasts.hiddenCount
                 // What is to be done to the notification once its card has
                 // faded out: closing it after a right click, or when the time
                 // of a transient one is up. Both take the card with them.
@@ -407,7 +427,7 @@ PanelWindow {
                 // faded. Told from toastIndex here, not from shown and
                 // fading: those change one after the other, and the card
                 // would be gone between the two.
-                readonly property bool present: toastIndex >= 0 && !leaving ? toasts.expanded || toastIndex >= toasts.hiddenCount : openness > 0
+                readonly property bool present: toastIndex >= 0 && !leaving ? toastIndex >= toasts.hiddenCount : openness > 0
                 visible: present
                 width: Theme.notificationWidth
                 height: body.implicitHeight
