@@ -37,8 +37,8 @@ Column {
         case Qt.Key_Return:
         case Qt.Key_Enter:
         case Qt.Key_Space:
-            if (notification)
-                Notifications.activate(notification);
+            if (cards.itemAt(selected))
+                cards.itemAt(selected).card.activate();
             break;
         case Qt.Key_D:
             if (event.modifiers & Qt.ShiftModifier)
@@ -171,6 +171,8 @@ Column {
                         onHoveredChanged: if (hovered)
                             center.selected = row.index
                     }
+
+                    readonly property alias card: body
 
                     NotificationCard {
                         id: body

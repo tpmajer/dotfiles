@@ -7,10 +7,11 @@ import qs.services
 
 // What a notification's card shows, as a toast and in the notification
 // center: the urgency as a line on the left, who it is from with the time it
-// came, the summary, the body, a button for each action and, where the card is told to, a
-// field for the reply its sender takes. A left click runs the default action
-// and closes the notification, a right click only closes it. The background
-// is drawn by what the card is in.
+// came, the summary, the body, a button for each action and, where the card
+// is told to, a field for the reply its sender takes. A left click runs the
+// default action and closes the notification, but the first one on a body
+// cut short, which shows the whole of it; a right click only closes it. The
+// background is drawn by what the card is in.
 Item {
     id: card
 
@@ -33,6 +34,14 @@ Item {
     // Closes the notification on a right click. What the card is in may
     // have its own way, such as fading the card out first.
     property var close: () => card.notification.dismiss()
+
+    // The whole body is shown, not its first lines: after a click on a
+    // body cut short.
+    property bool expanded: false
+    // The lines of a body cut short, and of one shown whole: as much as
+    // still leaves the card on the screen.
+    readonly property int bodyLines: 6
+    readonly property int bodyLinesExpanded: 40
 
     readonly property color accent: Notifications.urgencyColor(notification.urgency)
     // Who it is from: the name the sender gives, or that of its desktop
@@ -59,11 +68,19 @@ Item {
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         onClicked: m => {
             if (m.button === Qt.LeftButton)
-                Notifications.activate(card.notification);
+                card.activate();
             else
                 card.close();
         }
     }
+    // A left click, or its key in the notification center.
+    function activate() {
+        if (body.truncated && !expanded)
+            expanded = true;
+        else
+            Notifications.activate(notification);
+    }
+
 
     // The urgency, in the place of a module's underline.
     Rectangle {
@@ -135,7 +152,7 @@ Item {
             color: Theme.subtext0
             font.pixelSize: Theme.fontSize - 2
             wrapMode: Text.Wrap
-            maximumLineCount: 6
+            maximumLineCount: card.expanded ? card.bodyLinesExpanded : card.bodyLines
             elide: Text.ElideRight
         }
 
@@ -146,6 +163,7 @@ Item {
 
             Repeater {
                 model: card.extraActions
+            id: body
 
                 Rectangle {
                     id: button
