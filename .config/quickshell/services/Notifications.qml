@@ -69,8 +69,17 @@ Singleton {
     // into the recording; those on screen then go to the center, but for
     // the critical ones. niri could keep the toasts out of a screencast by
     // itself, but blacks out their whole window, as high as the screen.
-    readonly property bool quiet: dnd || Niri.castingOutput
-    readonly property bool casting: Niri.castingOutput
+    // Only a cast that lasts: a screenshot is one too, of a moment.
+    readonly property bool quiet: dnd || casting
+    property bool casting: false
+    readonly property bool castingNow: Niri.castingOutput
+    onCastingNowChanged: if (!castingNow)
+        casting = false
+    Timer {
+        interval: 1000
+        running: root.castingNow
+        onTriggered: root.casting = true
+    }
     onCastingChanged: {
         if (!casting)
             return;
