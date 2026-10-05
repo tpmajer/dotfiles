@@ -120,7 +120,7 @@ PanelWindow {
         left: atLeft
         right: !atLeft
     }
-    // Over everything and reserving nothing: anchored to three edges, the
+    // Reserving nothing: anchored to three edges, the
     // window would otherwise claim its width and push the other windows aside.
     exclusionMode: ExclusionMode.Ignore
     margins {
@@ -137,7 +137,9 @@ PanelWindow {
     visible: cards.some(c => c.present)
 
     WlrLayershell.namespace: "quickshell-notifications"
-    WlrLayershell.layer: WlrLayer.Overlay
+    // Under a window that fills the screen, a game or a film: a toast is
+    // not shown over it, and waits in the center once its time is up.
+    WlrLayershell.layer: WlrLayer.Top
     // The keyboard only on a click, and only with a reply field to click
     // on. Taken away for a moment once a reply is closed: the window that
     // had the keyboard gets it back.
