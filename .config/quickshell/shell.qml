@@ -25,6 +25,13 @@ ShellRoot {
         id: lock
     }
 
+    // No spectrum behind the lock, where no bar shows.
+    Binding {
+        target: Spectrum
+        property: "locked"
+        value: lock.locked
+    }
+
     PowerMenu {
         id: powerMenu
         locked: lock.locked
