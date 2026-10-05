@@ -174,8 +174,7 @@ PanelWindow {
         }
 
         // notifications, right of the clock: how many wait in the center,
-        // which is its popup; a click switches do not disturb, a right click
-        // clears
+        // which is its popup; a right click switches do not disturb
         Module {
             id: bellModule
             anchors.left: clock.right
@@ -195,8 +194,6 @@ PanelWindow {
             }
             onClicked: m => {
                 if (m.button === Qt.RightButton)
-                    Notifications.clear();
-                else if (m.button === Qt.LeftButton)
                     Notifications.toggleDnd();
             }
 
@@ -230,7 +227,10 @@ PanelWindow {
                 // with the temperature.
                 color: SysStats.cpuTempLevel === 2 ? Theme.red : Theme.lavender
                 popup: CpuPopup {}
-                onClicked: Quickshell.execDetached(["ghostty", "-e", "btop"])
+                onClicked: m => {
+                    if (m.button === Qt.RightButton)
+                        Quickshell.execDetached(["ghostty", "-e", "btop"]);
+                }
             }
 
             // memory
@@ -240,7 +240,10 @@ PanelWindow {
                 // Red with nearly all of it taken.
                 color: SysStats.memLevel === 2 ? Theme.red : Theme.peach
                 popup: MemoryPopup {}
-                onClicked: Quickshell.execDetached(["ghostty", "-e", "btop"])
+                onClicked: m => {
+                    if (m.button === Qt.RightButton)
+                        Quickshell.execDetached(["ghostty", "-e", "btop"]);
+                }
             }
 
             // custom/network
@@ -254,7 +257,10 @@ PanelWindow {
                 popup: NetworkPopup {
                     host: popups
                 }
-                onClicked: m => Quickshell.execDetached(m.button === Qt.RightButton ? ["nmcli", "device", "wifi", "rescan"] : ["networkmanager_dmenu"])
+                onClicked: m => {
+                    if (m.button === Qt.RightButton)
+                        Quickshell.execDetached(["networkmanager_dmenu"]);
+                }
             }
 
             // bluetooth
@@ -265,7 +271,10 @@ PanelWindow {
                 // Gray while bluetooth is off, as its row in the popup.
                 color: adapter && adapter.enabled ? Theme.sapphire : Theme.subtext0
                 popup: BluetoothPopup {}
-                onClicked: Quickshell.execDetached(["ghostty", "-e", "bluetui"])
+                onClicked: m => {
+                    if (m.button === Qt.RightButton)
+                        Quickshell.execDetached(["ghostty", "-e", "bluetui"]);
+                }
             }
 
             // wireplumber#sink
