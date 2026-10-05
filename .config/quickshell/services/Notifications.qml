@@ -33,6 +33,16 @@ Singleton {
         return urgency === NotificationUrgency.Critical ? Theme.red : urgency === NotificationUrgency.Low ? Theme.subtext0 : Theme.green;
     }
 
+    // A notification's body, as its card is to show it: of the markup only
+    // bold, italic, underline and links are let through. The rest is shown
+    // as it was written, since the text format of the card would load any
+    // image the body names, from the network too, and drop what it takes
+    // for a tag it does not know, such as "<no subject>".
+    function markup(body) {
+        const allowed = /^<\/?[biu]>$|^<a(\s+href\s*=\s*("[^"]*"|'[^']*'))?\s*>$|^<\/a>$/i;
+        return body.replace(/<[^<>]*>|[<>]/g, tag => allowed.test(tag) ? tag : tag.replace(/</g, "&lt;").replace(/>/g, "&gt;"));
+    }
+
     // Do not disturb: a notification gets no toast and goes straight to the
     // center, unless it is critical.
     readonly property bool dnd: state.dnd

@@ -98,7 +98,7 @@ Item {
         PopupText {
             visible: text !== ""
             width: parent.width
-            text: card.notification.body
+            text: Notifications.markup(card.notification.body)
             textFormat: Text.StyledText
             color: Theme.subtext0
             font.pixelSize: Theme.fontSize - 2
