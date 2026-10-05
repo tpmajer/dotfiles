@@ -294,20 +294,34 @@ Singleton {
     }
 
     // A sender replacing its notification changes it in place, without the
-    // server's signal: only what it shows changes.
+    // server's signal: only what it shows changes, or how urgent it is. All
+    // that changed with one replacement makes it come once, a moment later.
+    // One replaced by the very same is not told from one left alone.
     Instantiator {
         model: server.trackedNotifications
 
         Connections {
+            id: replacement
             required property var modelData
             target: modelData
+            property Timer changed: Timer {
+                interval: 0
+                onTriggered: {
+                    // Closed in the meantime.
+                    if (!root.tracked.values.includes(replacement.modelData))
+                        return;
+                    if (!root.arrived(replacement.modelData))
+                        replacement.modelData.expire();
+                }
+            }
             function onSummaryChanged() {
-                if (!root.arrived(modelData))
-                    modelData.expire();
+                changed.start();
             }
             function onBodyChanged() {
-                if (!root.arrived(modelData))
-                    modelData.expire();
+                changed.start();
+            }
+            function onUrgencyChanged() {
+                changed.start();
             }
         }
     }
