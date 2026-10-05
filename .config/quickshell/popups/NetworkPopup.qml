@@ -87,14 +87,15 @@ Column {
         text: Network.offline
         color: Theme.red
     }
-    // WireGuard switches at the bottom: the tunnel by hand, and wg-auto. Their
-    // labels sit under the labels above, their values end where the values do.
+    // At the bottom the WireGuard switches, the tunnel by hand and wg-auto,
+    // and the Wi-Fi scan. Their labels sit under the labels above, their
+    // values end where the values do.
     Column {
         id: wgSwitches
-        readonly property real valueWidth: Math.max(tunnelAction.valueImplicitWidth, wgAutoAction.valueImplicitWidth)
+        readonly property real valueWidth: Math.max(tunnelAction.valueImplicitWidth, wgAutoAction.valueImplicitWidth, scanAction.valueImplicitWidth)
         readonly property real labelWidth: info.wide - tunnelAction.chromeWidth - valueWidth
         // What the wider of the two needs for its text.
-        readonly property real textWidth: tunnelAction.chromeWidth + Math.max(tunnelAction.labelImplicitWidth, wgAutoAction.labelImplicitWidth) + valueWidth
+        readonly property real textWidth: tunnelAction.chromeWidth + Math.max(tunnelAction.labelImplicitWidth, wgAutoAction.labelImplicitWidth, scanAction.labelImplicitWidth) + valueWidth
         spacing: 2
 
         PopupAction {
@@ -114,6 +115,15 @@ Column {
             text: "WireGuard auto"
             value: Network.wgAuto ? "on" : "off"
             onTriggered: Network.toggleWgAuto()
+        }
+        PopupAction {
+            id: scanAction
+            labelWidth: wgSwitches.labelWidth
+            valueWidth: wgSwitches.valueWidth
+            bright: Network.scanning
+            text: "Scan Wi-Fi"
+            value: Network.scanning ? "scanning" : ""
+            onTriggered: Network.rescan()
         }
     }
 }

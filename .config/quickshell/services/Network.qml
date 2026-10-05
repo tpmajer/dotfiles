@@ -266,6 +266,17 @@ Singleton {
         runWgAuto(vpn ? "off" : "up");
     }
 
+    // Looks for Wi-Fi networks anew, for the list networkmanager_dmenu shows.
+    readonly property bool scanning: wifiScan.running
+    function rescan() {
+        wifiScan.running = true;
+    }
+
+    Process {
+        id: wifiScan
+        command: ["nmcli", "device", "wifi", "rescan"]
+    }
+
     Process {
         id: wgAutoQuery
         running: true
