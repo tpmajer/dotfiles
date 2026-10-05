@@ -75,6 +75,9 @@ Singleton {
     readonly property int notificationsVisible: 5
     // The notification center in the bar lists this much, and scrolls the rest.
     readonly property int centerMaxHeight: 560
+    // No more notifications than this are kept, on screen and in the center
+    // together: past it the oldest are closed.
+    readonly property int notificationsKept: 100
 
     // Thin colored lines: a module's underline, a notification's urgency.
     // 2.5 px is 4 whole device pixels at scale 1.6.

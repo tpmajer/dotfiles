@@ -25,6 +25,25 @@ Singleton {
     // critical one stays a toast, and so would not be among the missed.
     readonly property int waitingCount: tracked.values.filter(n => !root.isToast(n) || !root.isTransient(n)).length
 
+    // No more than Theme.notificationsKept are kept: each has its card, and
+    // every one of them is looked at as any other comes or goes, so a sender
+    // gone wild would bring the bar and the lock down with it. Past that the
+    // oldest are closed as if their time were up: those in the center first,
+    // then the toasts, the critical ones last. Not from the change itself,
+    // which closing them would change again.
+    readonly property int trackedCount: tracked.values.length
+    onTrackedCountChanged: if (trackedCount > Theme.notificationsKept)
+        Qt.callLater(trim)
+    function trim() {
+        const over = tracked.values.length - Theme.notificationsKept;
+        if (over <= 0)
+            return;
+        const critical = n => n.urgency === NotificationUrgency.Critical;
+        const oldest = [...missed].reverse().concat(toasts.filter(n => !critical(n)), toasts.filter(critical));
+        for (const n of oldest.slice(0, over))
+            n.expire();
+    }
+
     // The most urgent of those waiting in the center; low with none.
     readonly property int missedUrgency: missed.reduce((u, n) => Math.max(u, n.urgency), NotificationUrgency.Low)
 
