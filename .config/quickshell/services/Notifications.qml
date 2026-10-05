@@ -53,12 +53,12 @@ Singleton {
     }
 
     // A notification's body, as its card is to show it: of the markup only
-    // bold, italic, underline and links are let through. The rest is shown
-    // as it was written, since the text format of the card would load any
-    // image the body names, from the network too, and drop what it takes
-    // for a tag it does not know, such as "<no subject>".
+    // bold, italic, underline, links and line breaks are let through. The
+    // rest is shown as it was written, since the text format of the card
+    // would load any image the body names, from the network too, and drop
+    // what it takes for a tag it does not know, such as "<no subject>".
     function markup(body) {
-        const allowed = /^<\/?[biu]>$|^<a(\s+href\s*=\s*("[^"]*"|'[^']*'))?\s*>$|^<\/a>$/i;
+        const allowed = /^<\/?[biu]>$|^<br\s*\/?>$|^<a(\s+href\s*=\s*("[^"]*"|'[^']*'))?\s*>$|^<\/a>$/i;
         return body.replace(/<[^<>]*>|[<>]/g, tag => allowed.test(tag) ? tag : tag.replace(/</g, "&lt;").replace(/>/g, "&gt;"));
     }
 
