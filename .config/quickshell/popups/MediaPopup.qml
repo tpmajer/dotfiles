@@ -103,7 +103,8 @@ Column {
                     source: Media.artUrl
                     asynchronous: true
                     fillMode: Image.PreserveAspectCrop
-                    sourceSize.width: popup.coverSize * 2
+                    // The height alone: a wide cover, a video's, is
+                    // cropped to the square and has to fill its height.
                     sourceSize.height: popup.coverSize * 2
                 }
             }
