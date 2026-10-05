@@ -123,6 +123,24 @@ Singleton {
         return ms ? Qt.formatTime(new Date(ms), "HH:mm") : "";
     }
 
+    // The icon a notification names, as such or as its image; "" if it
+    // names none, or a picture there.
+    function iconName(notification) {
+        const prefix = "image://icon/";
+        return notification.appIcon || (notification.image.startsWith(prefix) ? notification.image.slice(prefix.length) : "");
+    }
+
+    function isBatteryIcon(name) {
+        return name === "battery" || name.startsWith("battery-");
+    }
+
+    // The icon a notification came with, kept while its sender replaces it
+    // with a battery: blueman does so to one of a device just connected,
+    // once the device tells its charge. "" if that is not known.
+    function icon(notification) {
+        return entries[notification.id]?.icon ?? "";
+    }
+
     // Only ever a toast: there is nothing of it to keep in the center.
     function isTransient(notification) {
         return notification.transient || transientCategories.includes(notification.hints.category);
@@ -140,7 +158,8 @@ Singleton {
     function hide(notification) {
         store(notification, {
             time: time(notification),
-            toast: false
+            toast: false,
+            icon: icon(notification)
         });
     }
 
@@ -238,9 +257,12 @@ Singleton {
         const toast = !quiet || notification.urgency === NotificationUrgency.Critical;
         if (!toast && isTransient(notification))
             return false;
+        const name = iconName(notification);
+        const before = icon(notification);
         store(notification, {
             time: Date.now(),
-            toast: toast
+            toast: toast,
+            icon: isBatteryIcon(name) && before !== "" ? before : name
         });
         return true;
     }
@@ -256,8 +278,8 @@ Singleton {
         state.entries = JSON.stringify(kept);
     }
 
-    // Notification id -> { time: when it came, in ms; toast: it is on screen }.
-    // The server tells neither.
+    // Notification id -> { time: when it came, in ms; toast: it is on screen;
+    // icon: the one it came with }. The server tells none of them.
     readonly property var entries: JSON.parse(state.entries)
 
     // Survives a reload of the configuration, as the notifications do. As

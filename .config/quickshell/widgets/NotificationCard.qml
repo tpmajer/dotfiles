@@ -49,12 +49,26 @@ Item {
     // one the sender names, as such or as the notification's image (a
     // picture there is not the sender's), or its desktop entry's. Any other
     // icon of the theme, such as a mouse's, is shown as the glyph the bar
-    // has for it.
+    // has for it. A battery that took the place of the icon it came with,
+    // as blueman puts one on a device just connected, goes to the body, by
+    // the charge it tells; the icon it came with stays.
     readonly property var entry: notification.desktopEntry !== "" && DesktopEntries.applications.values.length >= 0 ? DesktopEntries.heuristicLookup(notification.desktopEntry) : null
     readonly property string sender: notification.appName || entry?.name || ""
-    readonly property string iconName: {
-        const prefix = "image://icon/";
-        return notification.appIcon || (notification.image.startsWith(prefix) ? notification.image.slice(prefix.length) : "");
+    readonly property string namedIcon: Notifications.iconName(notification)
+    readonly property string firstIcon: Notifications.icon(notification)
+    readonly property bool batteryInBody: Notifications.isBatteryIcon(namedIcon) && firstIcon !== "" && !Notifications.isBatteryIcon(firstIcon)
+    readonly property string iconName: batteryInBody ? firstIcon : namedIcon
+    readonly property string bodyText: {
+        const text = Notifications.markup(notification.body);
+        if (!batteryInBody)
+            return text;
+        // The battery as full as the charge told, before it; with none
+        // told, a battery before the body.
+        const charge = /\d+\s*%/.exec(text);
+        if (!charge)
+            return Theme.iconGlyph(namedIcon) + " " + text;
+        const glyph = Theme.glyph(Battery.defaultIcons[Math.min(9, Math.floor(parseInt(charge[0]) / 10))]);
+        return text.slice(0, charge.index) + glyph + " " + text.slice(charge.index);
     }
     readonly property bool iconIsFile: iconName.startsWith("/") || iconName.includes("://")
     readonly property bool iconIsApp: iconName !== "" && !iconIsFile && DesktopEntries.applications.values.some(e => e.icon === iconName)
@@ -166,7 +180,7 @@ Item {
             id: body
             visible: text !== ""
             width: parent.width
-            text: Notifications.markup(card.notification.body)
+            text: card.bodyText
             textFormat: Text.StyledText
             color: Theme.subtext0
             font.pixelSize: Theme.fontSize - 2
