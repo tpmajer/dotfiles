@@ -6,9 +6,10 @@ import Quickshell.Io
 import Quickshell.Services.Mpris
 import qs
 
-// What plays, over MPRIS: Spotify, a browser's tab, mpv. One player is
-// the active one, which the bar's wave and its popup are about: the one
-// that started to play last, or the one picked in the popup.
+// What plays, over MPRIS: Spotify, a browser's tab (YouTube told from
+// the rest), mpv. One player is the active one, which the bar's wave and
+// its popup are about: the one that started to play last, or the one
+// picked in the popup.
 Singleton {
     id: root
 
@@ -36,8 +37,9 @@ Singleton {
         const name = player ? player.dbusName.replace("org.mpris.MediaPlayer2.", "") : "";
         if (/^spotify/.test(name))
             return "spotify";
+        // A browser gives the page's site as the track's address.
         if (/^(firefox|chromium|chrome)/.test(name))
-            return "browser";
+            return /^https?:\/\/([^\/]*\.)?(youtube\.com|youtu\.be)(\/|$)/.test(player.metadata["xesam:url"] ?? "") ? "youtube" : "browser";
         if (/^mpv/.test(name))
             return "mpv";
         return "other";
@@ -46,7 +48,7 @@ Singleton {
     function colorOf(player) {
         return ({
                 spotify: Theme.green,
-                browser: Theme.red,
+                youtube: Theme.red,
                 mpv: Theme.teal
             })[sourceOf(player)] ?? Theme.text;
     }
@@ -54,6 +56,7 @@ Singleton {
     function glyphOf(player) {
         return Theme.glyph(({
                 spotify: 0xf04c7,
+                youtube: 0xf05c3,
                 browser: 0xf059f,
                 mpv: 0xf0381
             })[sourceOf(player)] ?? 0xf075a);
