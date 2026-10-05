@@ -1,11 +1,13 @@
 import QtQuick
+import Quickshell
 import Quickshell.Services.Notifications
+import Quickshell.Widgets
 import qs
 import qs.services
 
 // What a notification's card shows, as a toast and in the notification
-// center: the urgency as a line on the left, the summary with the time it
-// came, the body, a button for each action and, where the card is told to, a
+// center: the urgency as a line on the left, who it is from with the time it
+// came, the summary, the body, a button for each action and, where the card is told to, a
 // field for the reply its sender takes. A left click runs the default action
 // and closes the notification, a right click only closes it. The background
 // is drawn by what the card is in.
@@ -33,6 +35,20 @@ Item {
     property var close: () => card.notification.dismiss()
 
     readonly property color accent: Notifications.urgencyColor(notification.urgency)
+    // Who it is from: the name the sender gives, or that of its desktop
+    // entry, and its icon, the entry's if it names none. An icon may come
+    // as the notification's image too; a picture there is not the sender's.
+    readonly property var entry: notification.desktopEntry !== "" && DesktopEntries.applications.values.length >= 0 ? DesktopEntries.heuristicLookup(notification.desktopEntry) : null
+    readonly property string sender: notification.appName || entry?.name || ""
+    readonly property string icon: {
+        const prefix = "image://icon/";
+        const image = notification.image.startsWith(prefix) ? notification.image.slice(prefix.length) : "";
+        const icon = notification.appIcon || image || entry?.icon || "";
+        if (icon === "" || icon.includes("://"))
+            return icon;
+        // Nothing for a name no icon goes by, not a placeholder.
+        return icon.startsWith("/") ? "file://" + icon : Quickshell.iconPath(icon, true);
+    }
     readonly property var extraActions: notification.actions.filter(a => a.identifier !== "default")
 
     implicitWidth: Theme.notificationWidth
@@ -68,31 +84,47 @@ Item {
         width: parent.width - x - Theme.popupPadding - Theme.popupTextInset + 3
         spacing: 4
 
-        // The summary, and when it came in the top right corner.
+        // Who it is from, and when it came in the top right corner.
         Item {
             width: parent.width
-            height: summary.height
+            height: sender.height
+
+            IconImage {
+                id: senderIcon
+                visible: card.icon !== ""
+                anchors.verticalCenter: parent.verticalCenter
+                source: card.icon
+                implicitSize: Theme.fontSize - 1
+            }
 
             PopupText {
-                id: summary
-                width: parent.width - (arrival.text !== "" ? arrival.width + Theme.popupColumnGap : 0)
-                text: card.notification.summary
+                id: sender
+                x: senderIcon.visible ? senderIcon.width + 6 : 0
+                width: parent.width - x - (arrival.text !== "" ? arrival.width + Theme.popupColumnGap : 0)
+                text: card.sender
                 textFormat: Text.PlainText
-                font.bold: true
-                wrapMode: Text.Wrap
-                maximumLineCount: 2
+                color: Theme.subtext0
+                font.pixelSize: Theme.fontSize - 2
                 elide: Text.ElideRight
             }
 
             PopupText {
                 id: arrival
                 anchors.right: parent.right
-                // On the summary's first line.
-                anchors.baseline: summary.baseline
                 text: Notifications.arrival(card.notification)
                 color: Theme.subtext0
                 font.pixelSize: Theme.fontSize - 2
             }
+        }
+
+        PopupText {
+            width: parent.width
+            text: card.notification.summary
+            textFormat: Text.PlainText
+            font.bold: true
+            wrapMode: Text.Wrap
+            maximumLineCount: 2
+            elide: Text.ElideRight
         }
 
         PopupText {
