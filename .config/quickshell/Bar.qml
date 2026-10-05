@@ -235,6 +235,16 @@ PanelWindow {
             // Down for the next one, as down a list.
             onScrolled: steps => Media.skip(-steps)
 
+            // The popup goes with the module, not left open and empty
+            // under the pointer.
+            Connections {
+                target: Media
+                function onActiveChanged() {
+                    if (!Media.active && popups.popupOwner === mediaModule)
+                        popups.popupOpen = false;
+                }
+            }
+
             Component {
                 id: mediaWave
 
