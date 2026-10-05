@@ -12,8 +12,6 @@ Item {
     property color color: Theme.text
     property bool simulated: false
     property bool playing: false
-    // The module the wave is in: when it moves, so does the wave.
-    property Item anchor: null
 
     readonly property int count: 5
     // 2.5 px is 4 whole device pixels at scale 1.6.
@@ -27,8 +25,7 @@ Item {
     // pixels, and so with hard edges.
     readonly property point origin: {
         // Referenced so the binding re-evaluates when the wave moves:
-        // the module, and every item from the wave up to the window.
-        void (anchor ? anchor.x + anchor.width : 0);
+        // every item from the wave up to the window.
         for (let item = wave; item; item = item.parent)
             void (item.x + item.y);
         return wave.mapToItem(null, 0, 0);

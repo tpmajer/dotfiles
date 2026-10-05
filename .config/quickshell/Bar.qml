@@ -239,7 +239,6 @@ PanelWindow {
                 id: mediaWave
 
                 Wave {
-                    anchor: mediaModule
                     levels: Spectrum.levels
                     color: Media.color
                     simulated: Media.remote
