@@ -241,7 +241,9 @@ PanelWindow {
                 Wave {
                     levels: Spectrum.levels
                     color: Media.color
-                    simulated: Media.remote
+                    // Not behind the lock, where the pattern would
+                    // run on unseen.
+                    simulated: Media.remote && !Spectrum.locked
                     playing: Media.playing
                 }
             }
