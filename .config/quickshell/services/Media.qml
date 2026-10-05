@@ -167,6 +167,7 @@ Singleton {
                 source: root.source,
                 playing: root.playing,
                 remote: root.remote,
+                position: root.active ? root.active.position : 0,
                 title: root.title,
                 artist: root.artist
             });
