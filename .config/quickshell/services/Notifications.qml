@@ -30,7 +30,7 @@ Singleton {
 
     // An urgency's color: the line on a notification's card.
     function urgencyColor(urgency) {
-        return urgency === NotificationUrgency.Critical ? Theme.red : urgency === NotificationUrgency.Low ? Theme.subtext0 : Theme.teal;
+        return urgency === NotificationUrgency.Critical ? Theme.red : urgency === NotificationUrgency.Low ? Theme.subtext0 : Theme.green;
     }
 
     // Do not disturb: a notification gets no toast and goes straight to the
