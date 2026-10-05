@@ -171,10 +171,15 @@ PanelWindow {
             text: Weather.known ? Weather.icon + " " + Weather.temperatureText : ""
             color: Theme.sky
             popup: WeatherPopup {}
+            onClicked: m => {
+                if (m.button === Qt.LeftButton)
+                    openPopup();
+            }
         }
 
         // notifications, right of the clock: how many wait in the center,
-        // which is its popup; a right click switches do not disturb
+        // which is its popup; a click opens it, a right click switches do
+        // not disturb
         Module {
             id: bellModule
             anchors.left: clock.right
@@ -195,6 +200,8 @@ PanelWindow {
             onClicked: m => {
                 if (m.button === Qt.RightButton)
                     Notifications.toggleDnd();
+                else if (m.button === Qt.LeftButton)
+                    openPopup();
             }
 
             FontMetrics {
@@ -230,6 +237,8 @@ PanelWindow {
                 onClicked: m => {
                     if (m.button === Qt.RightButton)
                         Quickshell.execDetached(["ghostty", "-e", "btop"]);
+                    else if (m.button === Qt.LeftButton)
+                        openPopup();
                 }
             }
 
@@ -243,6 +252,8 @@ PanelWindow {
                 onClicked: m => {
                     if (m.button === Qt.RightButton)
                         Quickshell.execDetached(["ghostty", "-e", "btop"]);
+                    else if (m.button === Qt.LeftButton)
+                        openPopup();
                 }
             }
 
@@ -260,6 +271,8 @@ PanelWindow {
                 onClicked: m => {
                     if (m.button === Qt.RightButton)
                         Quickshell.execDetached(["networkmanager_dmenu"]);
+                    else if (m.button === Qt.LeftButton)
+                        openPopup();
                 }
             }
 
@@ -274,6 +287,8 @@ PanelWindow {
                 onClicked: m => {
                     if (m.button === Qt.RightButton)
                         Quickshell.execDetached(["ghostty", "-e", "bluetui"]);
+                    else if (m.button === Qt.LeftButton)
+                        openPopup();
                 }
             }
 

@@ -37,6 +37,12 @@ Item {
     signal clicked(var mouse)
     signal scrolled(int steps)
 
+    // Shows the popup at once, without the wait a hover takes.
+    function openPopup() {
+        if (host && popup)
+            host.showPopup(root);
+    }
+
     visible: text !== "" || prefix !== "" || iconSource !== ""
     implicitWidth: visible ? bg.width + leftMargin + rightMargin : 0
     implicitHeight: Theme.barHeight
