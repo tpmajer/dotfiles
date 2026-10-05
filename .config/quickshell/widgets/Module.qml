@@ -20,6 +20,8 @@ Item {
     property int fontSize: Theme.fontSize
     property string iconSource: ""
     property int iconSize: 22
+    // What a module shows that is neither text nor an icon, after them.
+    property Component content: null
 
     // Geometry: margins around the hover rectangle, padding inside it.
     property int leftMargin: 3
@@ -43,7 +45,7 @@ Item {
             host.showPopup(root);
     }
 
-    visible: text !== "" || prefix !== "" || iconSource !== ""
+    visible: text !== "" || prefix !== "" || iconSource !== "" || content !== null
     implicitWidth: visible ? bg.width + leftMargin + rightMargin : 0
     implicitHeight: Theme.barHeight
 
@@ -51,7 +53,7 @@ Item {
         id: bg
         x: root.leftMargin
         y: 6
-        width: Math.max(content.implicitWidth + 2 * root.hPadding, root.minWidth)
+        width: Math.max(contentRow.implicitWidth + 2 * root.hPadding, root.minWidth)
         height: root.height - 12
         radius: Theme.moduleRadius
         // Fade only the alpha: animating from "transparent" (black) flashes dark.
@@ -79,7 +81,7 @@ Item {
         }
 
         Row {
-            id: content
+            id: contentRow
             anchors.centerIn: parent
             spacing: 6
 
@@ -117,6 +119,12 @@ Item {
                 font.bold: root.bold
                 width: root.maxTextWidth > 0 ? Math.min(implicitWidth, root.maxTextWidth) : implicitWidth
                 elide: Text.ElideRight
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
+            Loader {
+                visible: root.content !== null
+                sourceComponent: root.content
                 anchors.verticalCenter: parent.verticalCenter
             }
         }
