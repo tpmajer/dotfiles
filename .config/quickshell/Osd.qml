@@ -42,6 +42,10 @@ PanelWindow {
         const sink = Audio.defaultSink;
         if (!sink || !sink.audio || settle.running)
             return;
+        // An output that goes away (headphones disconnecting) drops its
+        // channels before another becomes the default; that is not a change.
+        if (sink.audio.volumes.length === 0)
+            return;
         const muted = sink.audio.muted;
         // Muted, the yellow bar runs out and leaves the level in grey.
         show(Audio.icon(sink), muted ? Theme.subtext0 : Theme.yellow, sink.audio.volume, muted ? "muted" : Audio.volume(sink) + "%", muted ? 0 : sink.audio.volume, Theme.yellow);
