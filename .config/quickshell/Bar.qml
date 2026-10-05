@@ -212,9 +212,10 @@ PanelWindow {
         }
 
         // what plays, right of the bell: a wave in the player's color,
-        // gone a while after the last one was paused. A middle click
-        // pauses, a right one goes to the player's window, the wheel
-        // skips a track.
+        // gone a while after the last one was paused. Its popup tells
+        // what it is and has the buttons. A middle click pauses, a
+        // right one goes to the player's window, the wheel skips a
+        // track.
         Module {
             id: mediaModule
             anchors.left: bellModule.right
@@ -222,11 +223,14 @@ PanelWindow {
             hPadding: 8
             color: Media.color
             content: Media.active ? mediaWave : null
+            popup: MediaPopup {}
             onClicked: m => {
                 if (m.button === Qt.MiddleButton)
                     Media.playPause();
                 else if (m.button === Qt.RightButton)
                     Media.focusWindow();
+                else if (m.button === Qt.LeftButton)
+                    openPopup();
             }
             // Down for the next one, as down a list.
             onScrolled: steps => Media.skip(-steps)
