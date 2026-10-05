@@ -47,8 +47,8 @@ Column {
         property bool usable: true
         signal triggered
 
-        implicitWidth: 44
-        implicitHeight: 32
+        implicitWidth: 56
+        implicitHeight: 42
         radius: Theme.moduleRadius
         color: area.containsMouse && usable ? Theme.surface0 : Qt.rgba(Theme.surface0.r, Theme.surface0.g, Theme.surface0.b, 0)
         Behavior on color {
@@ -58,7 +58,7 @@ Column {
         PopupText {
             anchors.centerIn: parent
             text: control.glyph
-            font.pixelSize: 22
+            font.pixelSize: 30
             color: !control.usable ? Theme.surface1 : area.containsMouse ? Theme.text : Theme.subtext0
         }
         MouseArea {
