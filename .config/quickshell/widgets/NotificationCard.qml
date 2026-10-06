@@ -194,8 +194,10 @@ Item {
             elide: Text.ElideRight
         }
 
-        Row {
+        // Wraps, and a label too long for the card is cut short.
+        Flow {
             visible: card.extraActions.length > 0
+            width: parent.width
             topPadding: 4
             spacing: 6
 
@@ -205,7 +207,7 @@ Item {
                 Rectangle {
                     id: button
                     required property var modelData
-                    width: label.implicitWidth + 20
+                    width: Math.min(label.implicitWidth + 20, content.width)
                     height: label.implicitHeight + 8
                     radius: Theme.moduleRadius
                     color: buttonMouse.containsMouse ? card.actionColor : Qt.rgba(card.actionColor.r, card.actionColor.g, card.actionColor.b, 0.5)
@@ -216,6 +218,8 @@ Item {
                     PopupText {
                         id: label
                         anchors.centerIn: parent
+                        width: Math.min(implicitWidth, button.width - 20)
+                        elide: Text.ElideRight
                         text: button.modelData.text
                         font.pixelSize: Theme.fontSize - 2
                     }
