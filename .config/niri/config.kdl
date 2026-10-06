@@ -4,7 +4,8 @@
 // Find the full list of options on the wiki:
 // https://yalter.github.io/niri/Configuration:-Input
 
-// Private window rules, not in the repo (.gitignore): niri starts without them.
+// Private window rules, not in the repo (.gitignore): niri starts without them,
+// and scripts/private-rules-check.sh then says so.
 include optional=true "block-screen-capture.kdl"
 include "animations/prism-glide.kdl"
 
@@ -113,6 +114,8 @@ recent-windows {
 }
 
 spawn-at-startup "~/.config/niri/scripts/flatpak-gtk-theme.sh"
+// Says so if the private window rules included at the top are not there.
+spawn-at-startup "~/.config/niri/scripts/private-rules-check.sh"
 
 cursor {
     // Change the theme and size of the cursor as well as set the
