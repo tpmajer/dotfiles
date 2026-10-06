@@ -64,7 +64,10 @@ Item {
             return text;
         // The battery as full as the charge told, before it; with none
         // told, a battery before the body.
-        const charge = /\d+\s*%/.exec(text);
+        // The last one told, and none inside a tag: a link's address may
+        // have a %20 in it.
+        const charges = [...text.matchAll(/\d+\s*%(?![^<>]*>)/g)];
+        const charge = charges[charges.length - 1];
         if (!charge)
             return Theme.iconGlyph(namedIcon) + " " + text;
         const glyph = Theme.glyph(Battery.defaultIcons[Math.min(9, Math.floor(parseInt(charge[0]) / 10))]);
