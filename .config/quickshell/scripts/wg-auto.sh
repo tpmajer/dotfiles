@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
-# Switch for the wg-auto NetworkManager dispatcher (~/.nixos/network.nix), which
-# brings wg0 up on untrusted Wi-Fi unless /var/lib/wg-auto-disabled exists.
+# Switch for wg-auto (~/.nixos/network.nix), which brings wg0 up, with a kill
+# switch, on every network that is not trusted, Wi-Fi or wired, unless
+# /var/lib/wg-auto-disabled exists. It acts on the flag the moment it is set
+# or removed (wg-auto.path); with the flag set on a foreign network it still
+# lets nothing in.
 # Shared by the fish function `wgauto` and the quickshell network popup.
 #   off     set the flag and stop wg0 (always asks for the password)
 #   up      set the flag and start wg0: a manual tunnel, e.g. on a trusted

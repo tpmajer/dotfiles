@@ -242,8 +242,8 @@ Singleton {
         }
     }
 
-    // wg-auto: the NetworkManager dispatcher that brings wg0 up on untrusted
-    // Wi-Fi, off while /var/lib/wg-auto-disabled exists. scripts/wg-auto.sh flips
+    // wg-auto: brings wg0 up, with a kill switch, on every network that is not
+    // trusted, off while /var/lib/wg-auto-disabled exists. scripts/wg-auto.sh flips
     // it; the state is read when the popup opens and after a toggle, not polled.
     // Switching the tunnel by hand turns wg-auto off, or the dispatcher would undo
     // it on the next "up" event (which also comes with DHCP renewals).
