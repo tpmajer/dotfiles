@@ -3,5 +3,6 @@ function port --description 'show what is listening on a port'
         echo "Usage: port <number>"
         return 1
     end
-    ss -tlnp | grep ":$argv[1]"
+    # By ss's own filter: grep for ":80" would find :8080 too.
+    ss -tlnp "sport = :$argv[1]"
 end
