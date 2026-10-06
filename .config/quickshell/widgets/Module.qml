@@ -139,7 +139,17 @@ Item {
         hoverEnabled: true
         acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
         onClicked: m => root.clicked(m)
-        onWheel: w => root.scrolled(w.angleDelta.y > 0 ? 1 : w.angleDelta.y < 0 ? -1 : 0)
+        // A step per notch of a wheel; a touchpad sends many small turns.
+        property real turned: 0
+        onWheel: w => {
+            if (turned * w.angleDelta.y < 0)
+                turned = 0;
+            turned += w.angleDelta.y;
+            const steps = Math.trunc(turned / 120);
+            turned -= steps * 120;
+            if (steps !== 0)
+                root.scrolled(steps);
+        }
         onContainsMouseChanged: if (root.host)
             root.host.moduleHovered(root, containsMouse)
     }
