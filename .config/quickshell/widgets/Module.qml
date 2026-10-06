@@ -95,6 +95,7 @@ Item {
             Text {
                 visible: root.prefix !== ""
                 text: root.prefix
+                textFormat: Text.PlainText
                 color: root.prefixColor
                 Behavior on color {
                     ColorAnimation { duration: Theme.hoverDuration }
@@ -109,6 +110,8 @@ Item {
             Text {
                 visible: root.text !== ""
                 text: root.text
+                // As written: a window's title is not markup.
+                textFormat: Text.PlainText
                 color: root.color
                 // With the hover rectangle, for a module whose text brightens on hover.
                 Behavior on color {
