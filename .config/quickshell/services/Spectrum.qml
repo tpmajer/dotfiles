@@ -26,7 +26,8 @@ Singleton {
     Process {
         id: cava
         command: ["cava", "-p", Quickshell.shellDir + "/cava.conf"]
-        running: root.wanted
+        // Not while it waits to be started again, see below.
+        running: root.wanted && !again.running
         stdout: SplitParser {
             onRead: line => {
                 const values = line.split(";").slice(0, root.bars).map(n => Math.min(1, (parseInt(n) || 0) / 100));
@@ -48,8 +49,18 @@ Singleton {
             } else {
                 quiet.stop();
                 root.levels = Array(root.bars).fill(0);
+                // It went by itself, with a player still playing: PipeWire
+                // was restarted, or it crashed.
+                if (root.wanted)
+                    again.restart();
             }
         }
+    }
+
+    // cava is started again once this is over.
+    Timer {
+        id: again
+        interval: 2000
     }
 
     // Longer than the gap between two tracks.
