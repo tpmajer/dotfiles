@@ -270,19 +270,33 @@ Singleton {
     // The scan takes a moment only: it counts as running for 2 s more, so
     // that the popup's row can be read.
     readonly property bool scanning: wifiScan.running || scanShown.running
+    // A scan NetworkManager refused, with the Wi-Fi off or right after
+    // another scan: said for as long as a scan is.
+    readonly property bool scanFailed: !scanning && scanRefused.running
     function rescan() {
         scanShown.stop();
+        scanRefused.stop();
         wifiScan.running = true;
     }
 
     Process {
         id: wifiScan
         command: ["nmcli", "device", "wifi", "rescan"]
-        onExited: scanShown.restart()
+        onExited: exitCode => {
+            if (exitCode === 0)
+                scanShown.restart();
+            else
+                scanRefused.restart();
+        }
     }
 
     Timer {
         id: scanShown
+        interval: 2000
+    }
+
+    Timer {
+        id: scanRefused
         interval: 2000
     }
 

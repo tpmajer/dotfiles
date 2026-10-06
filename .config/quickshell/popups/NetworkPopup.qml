@@ -122,7 +122,7 @@ Column {
             valueWidth: wgSwitches.valueWidth
             bright: Network.scanning
             text: "Scan Wi-Fi"
-            value: Network.scanning ? "scanning" : ""
+            value: Network.scanning ? "scanning" : Network.scanFailed ? "refused" : ""
             onTriggered: Network.rescan()
         }
     }
