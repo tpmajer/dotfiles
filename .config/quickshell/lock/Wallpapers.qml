@@ -13,11 +13,9 @@ Scope {
         query.running = true;
     }
 
-    // Asked at startup, every half a minute and at every lock: awww does not
-    // tell when the wallpaper changes. What changes it does, where it can (the
-    // `wallpaper` IPC), so the new image is here and decoded before the next
-    // lock, not swapped in under it. The lock does not wait for it: a surface
-    // is plain until its image is there, and stays plain if awww shows none.
+    // Asked at startup and at every lock, and by what changes the wallpaper
+    // (the `wallpaper` IPC): awww does not tell. Until an image is known it
+    // is asked again every half a minute, for awww may start after this.
     Process {
         id: query
         command: ["awww", "query"]
@@ -46,7 +44,7 @@ Scope {
 
     Timer {
         interval: 30000
-        running: true
+        running: Object.keys(root.images).length === 0
         repeat: true
         onTriggered: root.refresh()
     }
