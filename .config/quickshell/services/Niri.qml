@@ -42,7 +42,15 @@ Singleton {
     // several, on whatever workspace it is. False if it has none.
     function focusApp(appId) {
         const stamp = w => w.focus_timestamp ? w.focus_timestamp.secs + w.focus_timestamp.nanos / 1e9 : 0;
-        const own = Object.values(windows).filter(w => w.app_id === appId).sort((a, b) => stamp(b) - stamp(a));
+        // By the id as it is; failing that whatever its case, and with a
+        // Flatpak's domain before it (org.mozilla.firefox for firefox).
+        const id = String(appId).toLowerCase();
+        const all = Object.values(windows);
+        const exact = all.filter(w => w.app_id === appId);
+        const own = (exact.length > 0 ? exact : all.filter(w => {
+            const other = String(w.app_id ?? "").toLowerCase();
+            return id !== "" && (other === id || other.endsWith("." + id));
+        })).sort((a, b) => stamp(b) - stamp(a));
         if (own.length === 0)
             return false;
         send({Action: {FocusWindow: {id: own[0].id}}});

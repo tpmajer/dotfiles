@@ -178,10 +178,18 @@ Singleton {
     }
 
     // To the player's window, wherever it is. A browser's window, not
-    // the tab that plays.
+    // the tab that plays. The window is looked for by the desktop entry
+    // the player names, then by the name it has on the bus (firefox of
+    // org.mpris.MediaPlayer2.firefox.instance_1_23), which a browser's
+    // differs from: Chrome and Chromium are both chromium there.
     function focusWindow() {
-        if (active)
-            Niri.focusApp(active.desktopEntry || sourceOf(active));
+        if (!active)
+            return;
+        const name = active.dbusName.replace("org.mpris.MediaPlayer2.", "").split(".")[0];
+        const ids = [active.desktopEntry, name];
+        if (/^(chromium|chrome)/.test(name))
+            ids.push("google-chrome", "chromium-browser", "chromium");
+        ids.filter(id => id).some(id => Niri.focusApp(id));
     }
 
     // A player started or stopped playing, or came or went.
