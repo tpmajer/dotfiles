@@ -233,7 +233,7 @@ PanelWindow {
                     openPopup();
             }
             // Down for the next one, as down a list.
-            onScrolled: steps => Media.skip(-steps)
+            onScrolled: steps => Media.scroll(-steps)
 
             // The popup goes with the module, not left open and empty
             // under the pointer.

@@ -80,10 +80,9 @@ Singleton {
         return !!player && ((step > 0 ? player.canGoNext : player.canGoPrevious) || besideFiles(player));
     }
 
-    // One track per call, however fast the wheel turns: a touchpad sends
-    // a run of steps for one swipe.
+    // To the next track (1) or the previous one (-1).
     function skip(steps) {
-        if (!active || steps === 0 || skipGuard.running)
+        if (!active || steps === 0)
             return;
         const step = steps > 0 ? 1 : -1;
         if (!canSkip(active, step))
@@ -97,6 +96,15 @@ Singleton {
         } else {
             active.previous();
         }
+    }
+
+    // The same by the wheel, one track a swipe however fast it turns: a
+    // touchpad sends a run of steps for one. Not for a button, which may
+    // well be clicked twice in that time.
+    function scroll(steps) {
+        if (steps === 0 || skipGuard.running)
+            return;
+        skip(steps);
         skipGuard.restart();
     }
 
