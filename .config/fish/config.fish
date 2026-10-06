@@ -1,4 +1,6 @@
 # ~/.config/fish/config.fish
+status is-interactive; or return
+
 # The prompt (starship) and fzf's own key bindings are set up by NixOS
 # (programs.starship, programs.fzf), in /etc/fish/config.fish.
 set fish_greeting
