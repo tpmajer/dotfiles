@@ -74,7 +74,10 @@ equal to the target, stow skips it and plans no operations at all.
 
 `niri/config.kdl` includes `block-screen-capture.kdl`, window rules that are
 kept out of the repo (`.gitignore`). The include is optional: without the file
-niri logs a warning and starts with everything else.
+niri logs a warning and starts with everything else, and
+`niri/scripts/private-rules-check.sh` sends a notification at login. Copy
+`niri/block-screen-capture.kdl.example` to `block-screen-capture.kdl` and put
+your own windows in.
 
 ## Checking for keybinding conflicts
 
