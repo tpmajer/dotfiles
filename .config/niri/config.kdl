@@ -202,19 +202,19 @@ window-rule {
     match app-id="discord"
     match app-id="WinBox"
     match app-id="resolve"
-    match app-id="steam"
+    match app-id="^steam$" // not steam_app_…, the games' windows
     match app-id="google-chrome"
     match app-id="obsidian"
     match app-id="Godot"
     match app-id="REAPER"
     match app-id="RapidRAW"
-    match app-id="electron"
+    match app-id="^electron$"
     match app-id="art.graphite.Graphite"
     open-maximized true
 }
 // Width 0.8
 window-rule {
-    match title="Signal"
+    match title=r"^Signal( \(\d+\))?$" // with or without the count of unread
     default-column-width { proportion 0.8; }
 }
 // Width 0.6
