@@ -7,14 +7,11 @@
 STEP_LOCAL="0.02"
 STEP_SPOTIFY="0.03"
 
-# Spotify reports "Playing" but has no audio stream in PipeWire -> the sound
-# comes out of a remote Connect device, not this machine.
+# As the bar's wave tells it (quickshell, services/Media.qml): Spotify plays
+# and nothing sounds here. Not by its stream in PipeWire, which stays open
+# on a Connect device. With no answer from Quickshell the keys are the sink's.
 spotify_on_connect() {
-    [ "$(playerctl -p spotify status 2>/dev/null)" = "Playing" ] || return 1
-    ! pw-dump 2>/dev/null | jq -e '
-        any(.[]; .type == "PipeWire:Interface:Node"
-            and .info.props["media.class"] == "Stream/Output/Audio"
-            and ((.info.props["application.name"] // "") | test("spotify"; "i")))' >/dev/null
+    qs ipc call media state 2>/dev/null | jq -e '.remote' >/dev/null 2>&1
 }
 
 if spotify_on_connect; then
