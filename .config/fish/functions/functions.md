@@ -25,7 +25,7 @@
 
 | Function | Usage | Description |
 |----------|-------|-------------|
-| `nix` | `nix <args>` | Wrapper for `nix` — runs via `systemd-inhibit`, auto-commits `flake.lock` changes on success |
+| `nix` | `nix <args>` | Wrapper for `nix` — runs `build`, `copy`, `flake`, `profile` and `store` via `systemd-inhibit`, auto-commits `flake.lock` changes on success |
 | `nh` | `nh <args>` | Wrapper for `nh` — runs via `systemd-inhibit`, auto-commits `flake.lock` changes on success |
 | `nixos-rebuild` | `nixos-rebuild <args>` | Wrapper for `nixos-rebuild` via `systemd-inhibit` |
 
