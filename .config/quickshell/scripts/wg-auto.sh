@@ -6,7 +6,7 @@
 #   off     set the flag and stop wg0 (always asks for the password)
 #   up      set the flag and start wg0: a manual tunnel, e.g. on a trusted
 #           network, that the dispatcher leaves alone (asks for the password)
-#   on      remove the flag and re-activate Wi-Fi so the SSID rule applies now
+#   on      remove the flag
 #   status  print the state (default)
 
 flag=/var/lib/wg-auto-disabled
@@ -33,10 +33,6 @@ case "${1:-status}" in
     on)
         # NOPASSWD in sudoers (system.nix); fall back to asking if that rule is missing.
         sudo -n "$bin/rm" -f "$flag" 2>/dev/null || as_root "$bin/rm" -f "$flag" || exit
-        nmcli -g TYPE,UUID connection show --active | sed -n 's/^802-11-wireless://p' |
-            while read -r uuid; do
-                nmcli connection up uuid "$uuid" >/dev/null
-            done
         ;;
     status) ;;
     *)
