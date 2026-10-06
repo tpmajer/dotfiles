@@ -151,6 +151,14 @@ Singleton {
             const map = Object.assign({}, casts);
             delete map[ev.CastStopped.stream_id];
             casts = map;
+        } else if (ev.WindowFocusTimestampChanged) {
+            // Comes apart from the focus itself, a moment later.
+            const {id, focus_timestamp} = ev.WindowFocusTimestampChanged;
+            if (!(id in windows))
+                return;
+            const map = Object.assign({}, windows);
+            map[id] = Object.assign({}, map[id], {focus_timestamp: focus_timestamp});
+            windows = map;
         } else if (ev.WindowFocusChanged) {
             const focusedId = ev.WindowFocusChanged.id;
             const map = {};
