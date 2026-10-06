@@ -1,0 +1,11 @@
+// The windows to keep out of screen captures: copy to block-screen-capture.kdl,
+// next to config.kdl, and put your own in. The copy is not in the repo
+// (.gitignore). A match is a regular expression, looked for anywhere in the
+// app id or the title unless anchored with ^ and $; `niri msg windows` lists
+// both for the windows that are open.
+window-rule {
+	match app-id="^org\\.keepassxc\\.KeePassXC$"
+	match app-id="^firefox$" title="Private Browsing"
+	// "screencast" blocks screencasts only, "screen-capture" screenshots too.
+	block-out-from "screen-capture"
+}

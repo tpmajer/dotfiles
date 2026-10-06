@@ -71,5 +71,6 @@ COPYING
 ^/\.beads
 
 .git.*
+.*\.example
 assets
 check_keybinds.py

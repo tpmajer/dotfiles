@@ -5,7 +5,8 @@
 // https://yalter.github.io/niri/Configuration:-Input
 
 // Private window rules, not in the repo (.gitignore): niri starts without them,
-// and scripts/private-rules-check.sh then says so.
+// and scripts/private-rules-check.sh then says so. block-screen-capture.kdl.example
+// is what to start one from.
 include optional=true "block-screen-capture.kdl"
 include "animations/prism-glide.kdl"
 
