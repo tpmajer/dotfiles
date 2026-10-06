@@ -11,6 +11,8 @@ for src in "$GTK4_SRC/gtk.css" "$GTK4_SRC/settings.ini" "$GTK3_SRC/gtk.css" "$GT
     fi
 done
 
+# With no Flatpak app installed the pattern must match nothing, not itself.
+shopt -s nullglob
 for app_dir in "$HOME"/.var/app/*/; do
   mkdir -p "$app_dir/config/gtk-4.0"
   mkdir -p "$app_dir/config/gtk-3.0"
