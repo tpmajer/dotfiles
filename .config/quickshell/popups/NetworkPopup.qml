@@ -123,6 +123,7 @@ Column {
             bright: Network.scanning
             text: "Scan Wi-Fi"
             value: Network.scanning ? "scanning" : Network.scanFailed ? "refused" : ""
+            widestValue: "scanning"
             onTriggered: Network.rescan()
         }
     }

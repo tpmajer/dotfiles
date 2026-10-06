@@ -26,7 +26,10 @@ Rectangle {
     // The icon and the gap after it: the label's, in a row without an icon.
     readonly property real iconRoom: icon === "" ? 20 + Theme.popupIconGap : 0
     readonly property real labelImplicitWidth: Math.max(0, label.implicitWidth + (detail === "" ? 0 : detailText.implicitWidth) - iconRoom)
-    readonly property real valueImplicitWidth: value === "" ? 0 : valueText.implicitWidth
+    // The widest value the row may come to show: room is kept for it, so
+    // that a list's columns stay where they are when the value changes.
+    property string widestValue: ""
+    readonly property real valueImplicitWidth: Math.max(value === "" ? 0 : valueText.implicitWidth, widestValue === "" ? 0 : widestText.implicitWidth)
     // What the row's content has besides its label and value: the icon and
     // the gaps. For a popup that makes one row as wide as its other content.
     readonly property real chromeWidth: 20 + 2 * Theme.popupIconGap
@@ -41,6 +44,15 @@ Rectangle {
     color: active ? Theme.surface0 : Qt.rgba(Theme.surface0.r, Theme.surface0.g, Theme.surface0.b, 0)
     Behavior on color {
         ColorAnimation { duration: Theme.hoverDuration }
+    }
+
+    // Not shown, only measured: as the value's text is.
+    PopupText {
+        id: widestText
+        visible: false
+        leftPadding: valueText.leftPadding
+        textFormat: Text.StyledText
+        text: root.widestValue
     }
 
     Row {
