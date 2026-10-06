@@ -11,7 +11,6 @@
 
 | Function | Usage | Description |
 |----------|-------|-------------|
-| `gco` | `gco` | Pick and checkout a git branch via fzf (includes remote branches) |
 | `gitstat` | `gitstat` | Status of `~/.nixos` and `~/.dotfiles`: branch, ahead/behind origin (↑↓), last commit, changes |
 
 ## Processes and networking
@@ -40,7 +39,6 @@
 | `wp` | `wp [dir]` | Pick a wallpaper via fzf (`timg` preview) and set it with `awww` |
 | `fcd` | `fcd` | fzf directory navigation (see above) |
 | `fkill` | `fkill` | fzf process killer (see above) |
-| `gco` | `gco` | fzf git branch switcher (see above) |
 
 ## File listing (eza)
 
