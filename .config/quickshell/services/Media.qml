@@ -87,15 +87,12 @@ Singleton {
         const step = steps > 0 ? 1 : -1;
         if (!canSkip(active, step))
             return;
-        if (besideFiles(active)) {
-            sibling.player = active;
-            sibling.command = [Quickshell.shellDir + "/scripts/media-sibling.py", active.metadata["xesam:url"], String(step)];
-            sibling.running = true;
-        } else if (step > 0) {
+        if (besideFiles(active))
+            sibling.ask(active, step);
+        else if (step > 0)
             active.next();
-        } else {
+        else
             active.previous();
-        }
     }
 
     // The same by the wheel, one track a swipe however fast it turns: a
@@ -109,14 +106,63 @@ Singleton {
     }
 
     // scripts/media-sibling.py: the address of the file to go to, if any.
+    // One search at a time. Steps asked for meanwhile are taken next, from
+    // the file this search got to: the player still names the old one.
+    // Another player's wait for their turn.
     Process {
         id: sibling
         property var player: null
+        property string from: ""
+        property int waiting: 0
+        property var other: null
+
+        function ask(player, step) {
+            if (!running && !next.running)
+                look(player, String(player.metadata["xesam:url"]), step);
+            else if (player === sibling.player)
+                waiting += step;
+            else
+                other = {player: player, step: step};
+        }
+
+        function look(player, from, step) {
+            sibling.player = player;
+            sibling.from = from;
+            command = [Quickshell.shellDir + "/scripts/media-sibling.py", from, String(step)];
+            running = true;
+        }
+
         stdout: StdioCollector {
             onStreamFinished: {
                 const address = text.trim();
-                if (address && sibling.player)
+                if (address && root.players.includes(sibling.player)) {
                     sibling.player.openUri(address);
+                    sibling.from = address;
+                }
+                next.restart();
+            }
+        }
+    }
+
+    // What was asked for during a search, once its process is gone.
+    Timer {
+        id: next
+        interval: 10
+        onTriggered: {
+            if (sibling.running) {
+                restart();
+            } else if (sibling.waiting !== 0 && root.players.includes(sibling.player)) {
+                const step = sibling.waiting;
+                sibling.waiting = 0;
+                sibling.look(sibling.player, sibling.from, step);
+            } else if (sibling.other && root.players.includes(sibling.other.player)) {
+                const asked = sibling.other;
+                sibling.waiting = 0;
+                sibling.other = null;
+                sibling.ask(asked.player, asked.step);
+            } else {
+                sibling.waiting = 0;
+                sibling.other = null;
             }
         }
     }
