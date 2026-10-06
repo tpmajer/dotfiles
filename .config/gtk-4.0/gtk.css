@@ -125,7 +125,8 @@ based on the solarized dark colours from adw-colors: https://github.com/lassekon
 
 /* Windows that keep their own decorations under niri, message dialogs among
    them, round their corners more than niri's geometry-corner-radius does:
-   that leaves a gap in each corner inside the focus ring. */
-window.csd {
+   that leaves a gap in each corner inside the focus ring. Not the windows
+   whose corners the theme squares, at the edges of the screen. */
+window.csd:not(.maximized):not(.fullscreen):not(.tiled) {
   border-radius: 6px;
 }
