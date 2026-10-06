@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Switch for wg-auto (~/.nixos/network.nix), which brings wg0 up, with a kill
+# Switch for wg-auto (~/.nixos, wireguard.nix), which brings wg0 up, with a kill
 # switch, on every network that is not trusted, Wi-Fi or wired, unless
 # /var/lib/wg-auto-disabled exists. It acts on the flag the moment it is set
 # or removed (wg-auto.path); with the flag set on a foreign network it still
@@ -34,7 +34,7 @@ case "${1:-status}" in
         as_root "$bin/sh" -c "$bin/touch $flag && $bin/systemctl start wg-quick-wg0.service" || exit
         ;;
     on)
-        # NOPASSWD in sudoers (system.nix); fall back to asking if that rule is missing.
+        # NOPASSWD in sudoers (wireguard.nix); fall back to asking if that rule is missing.
         sudo -n "$bin/rm" -f "$flag" 2>/dev/null || as_root "$bin/rm" -f "$flag" || exit
         ;;
     status) ;;

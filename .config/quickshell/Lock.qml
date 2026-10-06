@@ -281,7 +281,7 @@ Scope {
         id: pam
 
         // hyprlock's PAM service, borrowed: the password only, no fingerprint.
-        // It is set up in ~/.nixos (system.nix) and stays without hyprlock.
+        // It is set up in ~/.nixos (desktop.nix) and stays without hyprlock.
         config: "hyprlock"
 
         onPamMessage: {

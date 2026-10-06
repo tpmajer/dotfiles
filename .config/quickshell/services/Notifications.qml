@@ -172,7 +172,7 @@ Singleton {
     // Senders that may be running without a window, by desktop entry: the
     // unit that runs them so, and what brings their window up. Their default
     // action has no window to show then. Thunderbird's unit and the wrapper
-    // that swaps it for the window are in ~/.nixos (user-services.nix).
+    // that swaps it for the window are in ~/.nixos (background-apps.nix).
     readonly property var windowless: ({
             "thunderbird": {
                 unit: "thunderbird-headless.service",

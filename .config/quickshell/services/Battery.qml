@@ -65,7 +65,7 @@ Singleton {
 
     // The limit off, to charge the battery full, or back on. Only root can
     // write it: battery-charge-limit@.service does, and polkit lets it be
-    // started (~/.nixos, system.nix).
+    // started (~/.nixos, modules/power.nix).
     function toggleLimit() {
         limitSwitch.command = ["systemctl", "--no-ask-password", "start", "battery-charge-limit@" + (limited ? 100 : limitedAt) + ".service"];
         limitSwitch.running = true;
