@@ -63,10 +63,11 @@ Singleton {
         interval: 2000
     }
 
-    // Longer than the gap between two tracks.
+    // Longer than the gap between two tracks and than the silence a track
+    // may start or end with: either would pass for a Connect device.
     Timer {
         id: quiet
-        interval: 1500
+        interval: 4000
         onTriggered: root.silent = true
     }
 
