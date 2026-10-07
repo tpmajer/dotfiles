@@ -38,6 +38,7 @@ PanelWindow {
 
     // The power module was clicked: the menu itself lives in the shell.
     signal powerMenuRequested
+    signal launcherRequested
 
     // ---- a popup driven from the keyboard (qs ipc call notifications toggle) ----
 
@@ -100,7 +101,7 @@ PanelWindow {
                 fontSize: 22
                 leftMargin: 5
                 hPadding: 9
-                onClicked: Quickshell.execDetached(["fuzzel"])
+                onClicked: bar.launcherRequested()
             }
 
             // niri/workspaces

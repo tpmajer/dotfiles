@@ -13,6 +13,7 @@ ShellRoot {
 
         Bar {
             onPowerMenuRequested: powerMenu.toggle()
+            onLauncherRequested: launcher.toggle()
         }
     }
 
