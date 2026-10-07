@@ -177,6 +177,13 @@ PanelWindow {
         }
     }
 
+    // The output dims, as under the power menu.
+    Rectangle {
+        anchors.fill: parent
+        color: "black"
+        opacity: 0.45 * Math.min(1, pop.openness)
+    }
+
     // A click beside the launcher closes it.
     MouseArea {
         anchors.fill: parent
