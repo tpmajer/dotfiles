@@ -334,11 +334,20 @@ PanelWindow {
 
                 IconImage {
                     id: icon
-                    visible: !menu.dmenu
+                    visible: !menu.dmenu && !row.modelData.glyph
                     x: Theme.popupTextInset
                     anchors.verticalCenter: parent.verticalCenter
                     implicitSize: 22
-                    source: menu.dmenu ? "" : Quickshell.iconPath(row.modelData.icon, "application-x-executable")
+                    source: visible ? Quickshell.iconPath(row.modelData.icon, "application-x-executable") : ""
+                }
+
+                // A power menu's action has its glyph for an icon.
+                PopupText {
+                    visible: !menu.dmenu && !!row.modelData.glyph
+                    anchors.centerIn: icon
+                    font.pixelSize: 22
+                    text: visible ? Theme.glyph(row.modelData.glyph) : ""
+                    color: visible && row.modelData.color || Theme.text
                 }
 
                 PopupText {

@@ -119,18 +119,29 @@ Singleton {
         return Math.max(score(query, entry.name), 0.7 * score(query, entry.genericName, false), 0.7 * score(query, entry.id, false), 0.5 * score(query, other, false));
     }
 
+    // The power menu's actions, to be listed like entries.
+    readonly property var actions: Power.actions.map(a => ({name: a.text, genericName: "Power", glyph: a.icon, color: a.color, action: a}))
+
     // The entries that answer a query, best first; all of them for none.
-    // Those started more often come first among equals.
+    // Those started more often come first among equals. The power menu's
+    // actions are listed only when asked for, and below an entry that
+    // answers as well: Enter after a letter or two must not shut down.
     function search(query) {
         const started = e => Math.min(counts[e.id] ?? 0, 10);
         const byName = (a, b) => a.name.localeCompare(b.name);
         if (!query.trim())
             return entries.slice().sort((a, b) => started(b) - started(a) || byName(a, b));
-        return entries.map(e => ({entry: e, score: scoreEntry(query, e)})).filter(r => r.score > 0).map(r => ({entry: r.entry, score: r.score + started(r.entry)})).sort((a, b) => b.score - a.score || byName(a.entry, b.entry)).map(r => r.entry);
+        const found = entries.map(e => ({entry: e, score: scoreEntry(query, e) + started(e)})).filter(r => r.score > started(r.entry));
+        const asked = actions.map(a => ({entry: a, score: score(query, a.name) - 15})).filter(r => r.score > -15);
+        return found.concat(asked).sort((a, b) => b.score - a.score || byName(a.entry, b.entry)).map(r => r.entry);
     }
 
     // Started by niri, so that nothing started here ends with quickshell.
     function launch(entry) {
+        if (entry.action) {
+            Power.run(entry.action.command);
+            return;
+        }
         counts = Object.assign({}, counts, {[entry.id]: (counts[entry.id] ?? 0) + 1});
         store.setText(JSON.stringify(counts));
         const command = Array.from(entry.command);
