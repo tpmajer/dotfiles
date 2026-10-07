@@ -33,6 +33,8 @@ PanelWindow {
         list.positionViewAtBeginning();
     }
 
+    // A little larger than the bar's.
+    readonly property int fontSize: Theme.fontSize + 2
     readonly property int boxWidth: 620
     readonly property int inputHeight: 40
     readonly property int rowHeight: 34
@@ -225,6 +227,7 @@ PanelWindow {
         }
 
         PopupText {
+            font.pixelSize: menu.fontSize
             id: prompt
             x: Theme.popupPadding + Theme.popupTextInset
             anchors.verticalCenter: input.verticalCenter
@@ -248,10 +251,11 @@ PanelWindow {
             selectionColor: Theme.surface1
             selectedTextColor: Theme.text
             font.family: Theme.font
-            font.pixelSize: Theme.fontSize
+            font.pixelSize: menu.fontSize
             echoMode: menu.dmenu && menu.password ? TextInput.Password : TextInput.Normal
 
             PopupText {
+                font.pixelSize: menu.fontSize
                 anchors.verticalCenter: parent.verticalCenter
                 visible: input.text === ""
                 text: menu.dmenu ? menu.placeholder : ""
@@ -331,6 +335,7 @@ PanelWindow {
                 }
 
                 PopupText {
+                    font.pixelSize: menu.fontSize
                     id: name
                     anchors.verticalCenter: parent.verticalCenter
                     x: menu.dmenu ? Theme.popupTextInset : icon.x + icon.width + Theme.popupColumnGap
@@ -349,6 +354,7 @@ PanelWindow {
                 }
 
                 PopupText {
+                    font.pixelSize: menu.fontSize
                     visible: !menu.dmenu
                     anchors {
                         verticalCenter: parent.verticalCenter
