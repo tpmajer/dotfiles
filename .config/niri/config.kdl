@@ -342,6 +342,15 @@ layer-rule {
     }
 }
 
+// Quickshell launcher, like the OSD.
+layer-rule {
+    match namespace="^quickshell-launcher$"
+    opacity 0.85
+    background-effect {
+        xray false
+    }
+}
+
 // Quickshell notifications, like the OSD.
 layer-rule {
     match namespace="^quickshell-notifications$"
@@ -393,7 +402,9 @@ binds {
     Mod+Shift+Slash { show-hotkey-overlay; }
 
     Mod+T hotkey-overlay-title="Open terminal" { spawn-sh "ghostty +new-window || ghostty"; }
-    Mod+Space hotkey-overlay-title="Open fuzzel" { spawn "fuzzel"; }
+    Mod+Space hotkey-overlay-title="Open launcher" { spawn "qs" "ipc" "call" "launcher" "toggle"; }
+    // For when quickshell is down.
+    Mod+Shift+Space hotkey-overlay-title="Open fuzzel" { spawn "fuzzel"; }
     Mod+B hotkey-overlay-title="Open Firefox" { spawn "firefox"; }
     Mod+N hotkey-overlay-title="Open Firefox in Private Mode" { spawn-sh "firefox --private-window"; }
     Mod+P hotkey-overlay-title="Open Nautilus" { spawn-sh "nautilus -w"; }
