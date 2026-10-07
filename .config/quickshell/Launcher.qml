@@ -344,7 +344,7 @@ PanelWindow {
                     // The letters that answer what is typed stand out, as
                     // in fuzzel.
                     textFormat: Text.StyledText
-                    text: Apps.styled(input.text, menu.dmenu ? row.modelData : row.modelData.name, row.selected ? Theme.peach : Theme.teal)
+                    text: Apps.styled(input.text, menu.dmenu ? row.modelData : row.modelData.name, row.selected ? Theme.teal : Theme.red)
                     // Lines from outside are laid out in columns.
                     font.family: menu.dmenu ? Theme.monoFont : Theme.font
                     color: row.selected ? Theme.text : Theme.overlay2
