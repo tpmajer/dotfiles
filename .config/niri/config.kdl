@@ -345,7 +345,7 @@ layer-rule {
 // Quickshell launcher, like the OSD.
 layer-rule {
     match namespace="^quickshell-launcher$"
-    opacity 0.85
+    opacity 0.9
     background-effect {
         xray false
     }
