@@ -37,6 +37,11 @@ ShellRoot {
         locked: lock.locked
     }
 
+    Launcher {
+        id: launcher
+        locked: lock.locked
+    }
+
     // The bar on the focused output.
     function focusedBar() {
         return bars.instances.find(b => b.screen.name === Niri.focusedOutput) ?? bars.instances[0];
@@ -49,6 +54,25 @@ ShellRoot {
 
         function toggle(): void {
             powerMenu.toggle();
+        }
+    }
+
+    // `qs ipc call launcher toggle` (Super+Space in niri): the launcher in
+    // the middle of the focused output. `dmenu` and `waiting` are for
+    // scripts/dmenu/fuzzel.
+    IpcHandler {
+        target: "launcher"
+
+        function toggle(): void {
+            launcher.toggle();
+        }
+
+        function dmenu(input: string, reply: string, placeholder: string, password: bool): void {
+            launcher.ask(input, reply, placeholder, password);
+        }
+
+        function waiting(reply: string): bool {
+            return launcher.reply === reply;
         }
     }
 

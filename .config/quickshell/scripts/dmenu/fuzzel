@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+# `fuzzel --dmenu` answered by the quickshell launcher. networkmanager_dmenu
+# picks its flags by the command's name, hence this one's. What the launcher
+# cannot do, or cannot do now, goes to the real fuzzel.
+
+args=("$@")
+placeholder=
+password=false
+while (($#)); do
+    case $1 in
+        --dmenu) ;;
+        --placeholder) placeholder=$2; shift ;;
+        --placeholder=*) placeholder=${1#*=} ;;
+        --password) password=true ;;
+        *) exec fuzzel "${args[@]}" ;;
+    esac
+    shift
+done
+
+dir=$(mktemp -d "${XDG_RUNTIME_DIR:-/tmp}/qs-dmenu.XXXXXX") || exec fuzzel "${args[@]}"
+trap 'rm -rf "$dir"' EXIT
+cat > "$dir/input"
+mkfifo "$dir/reply"
+exec 3<> "$dir/reply"
+
+if ! qs ipc call launcher dmenu "$dir/input" "$dir/reply" "$placeholder" "$password" > /dev/null 2>&1; then
+    exec 4< "$dir/input"
+    rm -rf "$dir"
+    exec fuzzel "${args[@]}" <&4
+fi
+
+# "+" and the line chosen, or "-" for none. A quickshell that restarted no
+# longer knows the question.
+until IFS= read -r -t 2 -u 3 reply; do
+    [[ $(qs ipc call launcher waiting "$dir/reply" 2> /dev/null) == true ]] || exit 1
+done
+[[ $reply == +* ]] || exit 1
+printf '%s\n' "${reply#+}"

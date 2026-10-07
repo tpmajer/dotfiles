@@ -28,6 +28,8 @@ Singleton {
 
     readonly property string font: "JetBrainsMono Nerd Font Propo"
     readonly property int fontSize: 17
+    // Icons a cell wide, for text laid out in columns.
+    readonly property string monoFont: "JetBrainsMono Nerd Font"
 
     readonly property int barHeight: 48
     readonly property int barMargin: 10
