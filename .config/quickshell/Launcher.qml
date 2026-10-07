@@ -347,7 +347,7 @@ PanelWindow {
                     text: Apps.styled(input.text, menu.dmenu ? row.modelData : row.modelData.name, row.selected ? Theme.teal : Theme.red)
                     // Lines from outside are laid out in columns.
                     font.family: menu.dmenu ? Theme.monoFont : Theme.font
-                    color: row.selected ? Theme.text : Theme.overlay2
+                    color: row.selected ? Theme.text : Theme.subtext0
                     Behavior on color {
                         ColorAnimation { duration: Theme.hoverDuration }
                     }
