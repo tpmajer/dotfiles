@@ -8,6 +8,6 @@ rules="$HOME/.config/niri/block-screen-capture.kdl"
 
 # The notification server (Quickshell) comes up after niri.
 for _ in $(seq 30); do
-    notify-send "niri" "No block-screen-capture.kdl: no window is kept out of screen captures. See block-screen-capture.kdl.example." && exit 0
+    notify-send -u critical "niri" "No block-screen-capture.kdl: no window is kept out of screen captures. See block-screen-capture.kdl.example." && exit 0
     sleep 1
 done
