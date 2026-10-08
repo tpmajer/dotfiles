@@ -56,11 +56,16 @@ if [ -z "$c_base" ]; then
 else
     printf 'theme = %s\n' "$c_ghostty" > "$ghostty"
 
+    # Rules come after the configuration's own, and so over them.
     cat > "$niri" <<KDL
 layout {
     focus-ring {
         active-gradient from="$c_sapphire" to="$c_green" angle=45 relative-to="window"
         inactive-color "${c_base}b3"
+    }
+    border {
+        active-color "${c_base}b3"
+        inactive-color "${c_subtext0}b3"
     }
     shadow {
         color "${c_teal}8c"
@@ -70,6 +75,38 @@ recent-windows {
     highlight {
         active-color "$c_sapphire"
         urgent-color "$c_red"
+    }
+}
+overview {
+    backdrop-color "$c_base"
+}
+window-rule {
+    match is-floating=true
+    shadow {
+        color "${c_teal}8c"
+    }
+}
+layer-rule {
+    match namespace="^launcher\$"
+    shadow {
+        color "${c_teal}8c"
+    }
+}
+window-rule {
+    match is-window-cast-target=true
+    focus-ring {
+        active-color "$c_red"
+        inactive-color "$c_maroon"
+    }
+    border {
+        inactive-color "$c_maroon"
+    }
+    shadow {
+        color "${c_maroon}bb"
+    }
+    tab-indicator {
+        active-color "$c_red"
+        inactive-color "$c_maroon"
     }
 }
 KDL
