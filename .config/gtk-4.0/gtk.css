@@ -1,5 +1,8 @@
-/* Catppuccin Mocha's colors, and then what Adwaita is to make of them. */
+/* Catppuccin Mocha's colors, over them those of the palette quickshell
+   switches to (scripts/palette-apply.sh, kept out of git), and then what
+   Adwaita is to make of them. */
 @import url("colors.css");
+@import url("palette.css");
 @import url("adwaita.css");
 
 /* Windows that keep their own decorations under niri, message dialogs among
