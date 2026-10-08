@@ -120,7 +120,7 @@ Singleton {
             else if (event === "discharging-critical")
                 Quickshell.execDetached(["notify-send", "-u", "critical", "Very Low Battery!"]);
             else if (event === "charging-100")
-                Quickshell.execDetached(["notify-send", "-u", "normal", "Battery Full"]);
+                Quickshell.execDetached(["notify-send", "-u", "low", "Battery Full"]);
         }
     }
 
