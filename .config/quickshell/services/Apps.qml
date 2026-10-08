@@ -121,7 +121,8 @@ Singleton {
     }
 
     // The power menu's actions and the palettes, to be listed like entries.
-    readonly property var actions: Power.actions.map(a => ({name: a.text, genericName: "Power", glyph: a.icon, color: a.color, action: a})).concat(Object.keys(Theme.palettes).map(p => ({name: Theme.palettes[p].label + " palette", genericName: "Theme", glyph: 0xf03d8, color: Theme.palettes[p].mauve, action: {command: "qs ipc call theme set " + p}})))
+    readonly property var actions: Power.actions.map(a => ({name: a.text, genericName: "Power", glyph: a.icon, color: a.color, action: a}))
+    readonly property var palettes: Object.keys(Theme.palettes).map(p => ({name: Theme.palettes[p].label + " palette", genericName: "Theme", glyph: 0xf03d8, color: Theme.palettes[p].mauve, palette: p}))
 
     // The entries that answer a query, best first; all of them for none.
     // Those started more often come first among equals. The actions
@@ -133,12 +134,16 @@ Singleton {
         if (!query.trim())
             return entries.slice().sort((a, b) => started(b) - started(a) || byName(a, b));
         const found = entries.map(e => ({entry: e, score: scoreEntry(query, e) + started(e)})).filter(r => r.score > started(r.entry));
-        const asked = actions.map(a => ({entry: a, score: score(query, a.name) - 15})).filter(r => r.score > -15);
+        const asked = actions.concat(palettes).map(a => ({entry: a, score: score(query, a.name) - 15})).filter(r => r.score > -15);
         return found.concat(asked).sort((a, b) => b.score - a.score || byName(a.entry, b.entry)).map(r => r.entry);
     }
 
     // Started by niri, so that nothing started here ends with quickshell.
     function launch(entry) {
+        if (entry.palette) {
+            Theme.setPalette(entry.palette);
+            return;
+        }
         if (entry.action) {
             Power.run(entry.action.command);
             return;
