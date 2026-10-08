@@ -7,7 +7,7 @@ import Quickshell.Io
 // The colors, under Catppuccin's names, and the bar geometry.
 Singleton {
     // The palettes to choose from. Past Catppuccin Mocha, a palette's
-    // nearest colors stand in for Catppuccin's.
+    // nearest colors stand in for Catppuccin's. `ghostty` is its theme there.
     readonly property var palettes: ({
             "catppuccin": {
                 label: "Catppuccin",
@@ -33,6 +33,7 @@ Singleton {
             },
             "night": {
                 label: "Tokyo Night",
+                ghostty: "TokyoNight Night",
                 base: "#1a1b26",
                 surface0: "#292e42",
                 surface1: "#414868",
@@ -55,6 +56,7 @@ Singleton {
             },
             "storm": {
                 label: "Tokyo Night Storm",
+                ghostty: "TokyoNight Storm",
                 base: "#24283b",
                 surface0: "#3b4261",
                 surface1: "#545c7e",
@@ -77,6 +79,7 @@ Singleton {
             },
             "kanagawa": {
                 label: "Kanagawa",
+                ghostty: "Kanagawa Wave",
                 base: "#1f1f28",
                 surface0: "#2a2a37",
                 surface1: "#363646",
@@ -99,6 +102,7 @@ Singleton {
             },
             "dracula": {
                 label: "Dracula",
+                ghostty: "Dracula",
                 base: "#282a36",
                 surface0: "#343746",
                 surface1: "#44475a",
@@ -121,6 +125,7 @@ Singleton {
             },
             "gruvbox": {
                 label: "Gruvbox Material",
+                ghostty: "Gruvbox Material Dark",
                 base: "#282828",
                 surface0: "#3c3836",
                 surface1: "#504945",
@@ -164,6 +169,10 @@ Singleton {
             return;
         palette = name;
         store.setText(name);
+        // Ghostty, niri and fuzzel follow. The first palette is the one
+        // their configurations have: nothing is passed for it.
+        const own = name === Object.keys(palettes)[0];
+        Quickshell.execDetached([Quickshell.shellDir + "/scripts/palette-apply.sh"].concat(own ? [] : Object.entries(palettes[name]).map(([k, v]) => k + "=" + v)));
         Quickshell.execDetached([Quickshell.shellDir + "/scripts/notify-replace.sh", "palette", "-u", "low", "Palette changed", palettes[name].label]);
     }
 
