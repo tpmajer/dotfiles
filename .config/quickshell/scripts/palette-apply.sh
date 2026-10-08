@@ -101,7 +101,6 @@ printf 'inherits = "%s"\n' "${c_helix:-catppuccin_mocha}" > "$helix"
 
 # bat and micro have Catppuccin's alone: theirs for it, in the palette's colors.
 recolor "$config/bat/themes/Catppuccin Mocha.tmTheme" > "$bat"
-bat cache --build > /dev/null 2>&1
 recolor "$config/micro/colorschemes/catppuccin-mocha-transparent.micro" > "$micro"
 
 # Open terminals, btop and helix take it at once; fuzzel, bat and micro when
@@ -110,3 +109,6 @@ pkill -USR2 --older 2 -x '\.?ghostty(-wrappe)?'
 pkill -USR2 --older 2 -x btop
 pkill -USR1 --older 2 -x '\.?hx(-wrapped)?'
 niri msg action load-config-file
+
+# Last, as it takes a moment: bat reads its themes from a cache.
+command -v bat > /dev/null && bat cache --build > /dev/null 2>&1
