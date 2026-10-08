@@ -121,20 +121,23 @@ Singleton {
     }
 
     // The power menu's actions and the palettes, to be listed like entries.
-    readonly property var actions: Power.actions.map(a => ({name: a.text, genericName: "Power", glyph: a.icon, color: a.color, action: a}))
-    readonly property var palettes: Object.keys(Theme.palettes).map(p => ({name: Theme.palettes[p].label + " palette", genericName: "Theme", glyph: 0xf03d8, color: Theme.palettes[p].mauve, palette: p}))
+    // `below` is taken off the score: how far under an application.
+    readonly property var actions: Power.actions.map(a => ({name: a.text, genericName: "Power", glyph: a.icon, color: a.color, action: a, loose: true, below: 15}))
+    readonly property var palettes: Object.keys(Theme.palettes).map(p => ({name: Theme.palettes[p].label + " palette", genericName: "Theme", glyph: 0xf03d8, color: Theme.palettes[p].mauve, palette: p, loose: false, below: 25}))
 
     // The entries that answer a query, best first; all of them for none.
     // Those started more often come first among equals. The actions
     // are listed only when asked for, and below an entry that
     // answers as well: Enter after a letter or two must not shut down.
+    // The palettes only for a word as typed, and below an entry with a
+    // word that starts so: there are many, all with "palette".
     function search(query) {
         const started = e => Math.min(counts[e.id] ?? 0, 10);
         const byName = (a, b) => a.name.localeCompare(b.name);
         if (!query.trim())
             return entries.slice().sort((a, b) => started(b) - started(a) || byName(a, b));
         const found = entries.map(e => ({entry: e, score: scoreEntry(query, e) + started(e)})).filter(r => r.score > started(r.entry));
-        const asked = actions.concat(palettes).map(a => ({entry: a, score: score(query, a.name) - 15})).filter(r => r.score > -15);
+        const asked = actions.concat(palettes).map(a => ({entry: a, score: score(query, a.name, a.loose)})).filter(r => r.score > 0).map(r => ({entry: r.entry, score: r.score - r.entry.below}));
         return found.concat(asked).sort((a, b) => b.score - a.score || byName(a.entry, b.entry)).map(r => r.entry);
     }
 
