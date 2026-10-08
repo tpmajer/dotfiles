@@ -97,17 +97,9 @@ Singleton {
             timedOut(n);
     }
 
-    // A new notification in one of these categories replaces the previous one.
-    readonly property var replacedCategories: ["mpd"]
-    // A notification in one of these is closed when its toast times out,
-    // as is one its sender marked transient.
-    readonly property var transientCategories: ["mpd"]
-
     // How long a toast stays, in ms, by urgency; 0 keeps it until it is
     // dismissed. The timeout the sender asked for is ignored.
     function timeout(notification) {
-        if (notification.hints.category === "mpd")
-            return 2000;
         switch (urgency(notification)) {
         case NotificationUrgency.Low:
             return 8000;
@@ -154,7 +146,7 @@ Singleton {
     // Only ever a toast, closed when its time is up: a low one, or one its
     // sender marked transient.
     function isTransient(notification) {
-        return notification.transient || urgency(notification) === NotificationUrgency.Low || transientCategories.includes(notification.hints.category);
+        return notification.transient || urgency(notification) === NotificationUrgency.Low;
     }
 
     // A toast's time is up.
@@ -311,13 +303,6 @@ Singleton {
         keepOnReload: true
 
         onNotification: n => {
-            const category = n.hints.category;
-            if (root.replacedCategories.includes(category)) {
-                for (const old of [...server.trackedNotifications.values]) {
-                    if (old !== n && old.hints.category === category)
-                        old.dismiss();
-                }
-            }
             // One carried over a reload of the configuration comes here
             // again: it is as it was. One not tracked is closed.
             if (!n.lastGeneration && !root.arrived(n))
