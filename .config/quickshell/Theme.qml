@@ -98,6 +98,7 @@ Singleton {
             return;
         palette = name;
         store.setText(name);
+        Quickshell.execDetached(["notify-send", "-u", "low", "Palette changed", palettes[name].label]);
     }
 
     function nextPalette() {
