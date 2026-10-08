@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs
 
 // The applications the launcher lists, and how often each was started.
 Singleton {
@@ -119,12 +120,12 @@ Singleton {
         return Math.max(score(query, entry.name), 0.7 * score(query, entry.genericName, false), 0.7 * score(query, entry.id, false), 0.5 * score(query, other, false));
     }
 
-    // The power menu's actions, to be listed like entries.
-    readonly property var actions: Power.actions.map(a => ({name: a.text, genericName: "Power", glyph: a.icon, color: a.color, action: a}))
+    // The power menu's actions and the palettes, to be listed like entries.
+    readonly property var actions: Power.actions.map(a => ({name: a.text, genericName: "Power", glyph: a.icon, color: a.color, action: a})).concat(Object.keys(Theme.palettes).map(p => ({name: Theme.palettes[p].label + " palette", genericName: "Theme", glyph: 0xf03d8, color: Theme.palettes[p].mauve, action: {command: "qs ipc call theme set " + p}})))
 
     // The entries that answer a query, best first; all of them for none.
-    // Those started more often come first among equals. The power menu's
-    // actions are listed only when asked for, and below an entry that
+    // Those started more often come first among equals. The actions
+    // are listed only when asked for, and below an entry that
     // answers as well: Enter after a letter or two must not shut down.
     function search(query) {
         const started = e => Math.min(counts[e.id] ?? 0, 10);

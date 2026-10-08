@@ -10,6 +10,7 @@ Singleton {
     // nearest colors stand in for Catppuccin's.
     readonly property var palettes: ({
             "catppuccin": {
+                label: "Catppuccin",
                 base: "#1e1e2e",
                 surface0: "#313244",
                 surface1: "#45475a",
@@ -31,6 +32,7 @@ Singleton {
                 mauve: "#cba6f7"
             },
             "night": {
+                label: "Tokyo Night",
                 base: "#1a1b26",
                 surface0: "#292e42",
                 surface1: "#414868",
@@ -52,6 +54,7 @@ Singleton {
                 mauve: "#9d7cd8"
             },
             "storm": {
+                label: "Tokyo Night Storm",
                 base: "#24283b",
                 surface0: "#3b4261",
                 surface1: "#545c7e",

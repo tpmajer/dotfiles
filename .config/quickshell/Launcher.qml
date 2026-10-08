@@ -341,7 +341,7 @@ PanelWindow {
                     source: visible ? Quickshell.iconPath(row.modelData.icon, "application-x-executable") : ""
                 }
 
-                // A power menu's action has its glyph for an icon.
+                // An action has its glyph for an icon.
                 PopupText {
                     visible: !menu.dmenu && !!row.modelData.glyph
                     anchors.centerIn: icon
