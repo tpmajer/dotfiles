@@ -164,7 +164,7 @@ Singleton {
             return;
         palette = name;
         store.setText(name);
-        Quickshell.execDetached(["notify-send", "-u", "low", "Palette changed", palettes[name].label]);
+        Quickshell.execDetached([Quickshell.shellDir + "/scripts/notify-replace.sh", "palette", "-u", "low", "Palette changed", palettes[name].label]);
     }
 
     function nextPalette() {
