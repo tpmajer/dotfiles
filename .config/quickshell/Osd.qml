@@ -13,11 +13,14 @@ PanelWindow {
     id: osd
 
     property string icon: ""
-    property color accent: Theme.text
+    // The colors by their names in Theme: they follow a change of palette.
+    property string accentName: "text"
+    readonly property color accent: Theme[accentName]
     property real level: 0          // 0..1, or -1 for no level bar (a switch)
     // The colored part of the bar; below level, the rest of it shows in grey.
     property real fill: 0
-    property color fillColor: accent
+    property string fillName: accentName
+    readonly property color fillColor: Theme[fillName]
     property string label: ""
     property bool shown: false
 
@@ -29,10 +32,10 @@ PanelWindow {
 
     function show(icon, accent, level, label, fill = level, fillColor = accent) {
         osd.icon = icon;
-        osd.accent = accent;
+        osd.accentName = accent;
         osd.level = Math.min(1, level);
         osd.fill = Math.min(1, fill);
-        osd.fillColor = fillColor;
+        osd.fillName = fillColor;
         osd.label = label;
         shown = true;
         hideTimer.restart();
@@ -48,7 +51,7 @@ PanelWindow {
             return;
         const muted = sink.audio.muted;
         // Muted, the yellow bar runs out and leaves the level in grey.
-        show(Audio.icon(sink), muted ? Theme.subtext0 : Theme.yellow, sink.audio.volume, muted ? "muted" : Audio.volume(sink) + "%", muted ? 0 : sink.audio.volume, Theme.yellow);
+        show(Audio.icon(sink), muted ? "subtext0" : "yellow", sink.audio.volume, muted ? "muted" : Audio.volume(sink) + "%", muted ? 0 : sink.audio.volume, "yellow");
     }
 
     screen: Quickshell.screens.find(s => s.name === Niri.focusedOutput) ?? Quickshell.screens[0]
@@ -150,7 +153,7 @@ PanelWindow {
             if (spotifySettle.running)
                 return;
             const muted = Spotify.muted;
-            osd.show(Theme.glyph(0xf04c7), muted ? Theme.subtext0 : Theme.green, Spotify.player.volume, muted ? "muted" : Spotify.volume + "%");
+            osd.show(Theme.glyph(0xf04c7), muted ? "subtext0" : "green", Spotify.player.volume, muted ? "muted" : Spotify.volume + "%");
         }
     }
 
@@ -167,7 +170,7 @@ PanelWindow {
             if (settle.running)
                 return;
             const muted = Audio.defaultSource.audio.muted;
-            osd.show(Theme.glyph(muted ? 0xf036d : 0xf036c), muted ? Theme.red : Theme.green, -1, muted ? "Microphone muted" : "Microphone on");
+            osd.show(Theme.glyph(muted ? 0xf036d : 0xf036c), muted ? "red" : "green", -1, muted ? "Microphone muted" : "Microphone on");
         }
     }
 
@@ -175,14 +178,14 @@ PanelWindow {
         target: Rfkill
         function onAirplaneChanged() {
             if (Rfkill.ready)
-                osd.show(Theme.glyph(Rfkill.airplane ? 0xf001d : 0xf001e), Rfkill.airplane ? Theme.sky : Theme.subtext0, -1, "Airplane mode " + (Rfkill.airplane ? "on" : "off"));
+                osd.show(Theme.glyph(Rfkill.airplane ? 0xf001d : 0xf001e), Rfkill.airplane ? "sky" : "subtext0", -1, "Airplane mode " + (Rfkill.airplane ? "on" : "off"));
         }
     }
 
     Connections {
         target: Brightness
         function onChanged() {
-            osd.show(Theme.glyph(0xf00e0), Theme.peach, Brightness.percent / 100, Brightness.percent + "%");
+            osd.show(Theme.glyph(0xf00e0), "peach", Brightness.percent / 100, Brightness.percent + "%");
         }
     }
 
