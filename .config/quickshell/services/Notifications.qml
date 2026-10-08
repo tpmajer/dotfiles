@@ -9,7 +9,8 @@ import qs
 // The notification daemon (org.freedesktop.Notifications): which
 // notifications are on screen as toasts and for how long, which wait in the
 // notification center, and do not disturb. A notification whose toast timed
-// out is not closed: it waits in the center until it is dismissed.
+// out is not closed: it waits in the center until it is dismissed. A low
+// one is closed: it is of use only as it comes.
 Singleton {
     id: root
 
@@ -150,9 +151,10 @@ Singleton {
         return entries[notification.id]?.icon ?? "";
     }
 
-    // Only ever a toast: there is nothing of it to keep in the center.
+    // Only ever a toast, closed when its time is up: a low one, or one its
+    // sender marked transient.
     function isTransient(notification) {
-        return notification.transient || transientCategories.includes(notification.hints.category);
+        return notification.transient || urgency(notification) === NotificationUrgency.Low || transientCategories.includes(notification.hints.category);
     }
 
     // A toast's time is up.
