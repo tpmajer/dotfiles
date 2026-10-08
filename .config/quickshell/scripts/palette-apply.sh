@@ -22,14 +22,19 @@ btop=$config/btop/themes/palette.theme
 helix=$config/helix/themes/palette.toml
 bat=$config/bat/themes/palette.tmTheme
 micro=$config/micro/colorschemes/palette.micro
+files=("$ghostty" "$niri" "$fuzzel" "$btop" "$helix" "$bat" "$micro")
 
 if [ -n "$init" ]; then
     missing=
-    for file in "$ghostty" "$niri" "$fuzzel" "$btop" "$helix" "$bat" "$micro"; do
+    for file in "${files[@]}"; do
         [ -e "$file" ] || missing=1
     done
     [ -n "$missing" ] || exit 0
 fi
+
+for file in "${files[@]}"; do
+    mkdir -p "${file%/*}"
+done
 
 # A file in Catppuccin Mocha's colors, in the palette's: for each of Mocha's
 # the nearest that Theme has. 3e5767 is bat's own, a highlight.
@@ -128,10 +133,15 @@ fi
 
 # btop has its own theme for each palette, with those that came with it or
 # among the user's. Not copied as a file: one from the store is read-only.
+# With none found it is btop's default, rather than the palette before.
 theme=${c_btop:-catppuccin_mocha}.theme
-for dir in "$config/btop/themes" "$(dirname "$(readlink -f "$(command -v btop)")")/../share/btop/themes"; do
-    [ -r "$dir/$theme" ] && cat "$dir/$theme" > "$btop" && break
+dirs=("$config/btop/themes")
+program=$(command -v btop) && dirs+=("$(dirname "$(readlink -f "$program")")/../share/btop/themes")
+found=
+for dir in "${dirs[@]}"; do
+    [ -r "$dir/$theme" ] && cat "$dir/$theme" > "$btop" && found=1 && break
 done
+[ -n "$found" ] || : > "$btop"
 
 # So has helix.
 printf 'inherits = "%s"\n' "${c_helix:-catppuccin_mocha}" > "$helix"
@@ -145,7 +155,7 @@ recolor "$config/micro/colorschemes/catppuccin-mocha-transparent.micro" > "$micr
 pkill -USR2 --older 2 -x '\.?ghostty(-wrappe)?'
 pkill -USR2 --older 2 -x btop
 pkill -USR1 --older 2 -x '\.?hx(-wrapped)?'
-niri msg action load-config-file
+niri msg action load-config-file > /dev/null 2>&1
 
 # Last, as it takes a moment: bat reads its themes from a cache.
 command -v bat > /dev/null && bat cache --build > /dev/null 2>&1
