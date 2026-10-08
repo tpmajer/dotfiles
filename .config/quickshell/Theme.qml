@@ -7,7 +7,8 @@ import Quickshell.Io
 // The colors, under Catppuccin's names, and the bar geometry.
 Singleton {
     // The palettes to choose from. Past Catppuccin Mocha, a palette's
-    // nearest colors stand in for Catppuccin's. `ghostty` is its theme there.
+    // nearest colors stand in for Catppuccin's. `ghostty`, `btop` and `helix`
+    // are its theme in each.
     readonly property var palettes: ({
             "catppuccin": {
                 label: "Catppuccin",
@@ -34,6 +35,8 @@ Singleton {
             "night": {
                 label: "Tokyo Night",
                 ghostty: "TokyoNight Night",
+                btop: "tokyo-night",
+                helix: "tokyonight",
                 base: "#1a1b26",
                 surface0: "#292e42",
                 surface1: "#414868",
@@ -57,6 +60,8 @@ Singleton {
             "storm": {
                 label: "Tokyo Night Storm",
                 ghostty: "TokyoNight Storm",
+                btop: "tokyo-storm",
+                helix: "tokyonight_storm",
                 base: "#24283b",
                 surface0: "#3b4261",
                 surface1: "#545c7e",
@@ -80,6 +85,8 @@ Singleton {
             "kanagawa": {
                 label: "Kanagawa",
                 ghostty: "Kanagawa Wave",
+                btop: "kanagawa-wave",
+                helix: "kanagawa",
                 base: "#1f1f28",
                 surface0: "#2a2a37",
                 surface1: "#363646",
@@ -103,6 +110,8 @@ Singleton {
             "dracula": {
                 label: "Dracula",
                 ghostty: "Dracula",
+                btop: "dracula",
+                helix: "dracula",
                 base: "#282a36",
                 surface0: "#343746",
                 surface1: "#44475a",
@@ -126,6 +135,8 @@ Singleton {
             "gruvbox": {
                 label: "Gruvbox Material",
                 ghostty: "Gruvbox Material Dark",
+                btop: "gruvbox_material_dark",
+                helix: "gruvbox-material",
                 base: "#282828",
                 surface0: "#3c3836",
                 surface1: "#504945",
@@ -162,6 +173,14 @@ Singleton {
         const kept = store.text().trim();
         if (Object.keys(palettes).includes(kept))
             palette = kept;
+        pass(["init"]);
+    }
+
+    // The palette for what else takes one, scripts/palette-apply.sh. The
+    // first is the one their configurations have: nothing is passed for it.
+    function pass(first) {
+        const own = palette === Object.keys(palettes)[0];
+        Quickshell.execDetached([Quickshell.shellDir + "/scripts/palette-apply.sh"].concat(first, own ? [] : Object.entries(colors).map(([k, v]) => k + "=" + v)));
     }
 
     function setPalette(name) {
@@ -169,10 +188,7 @@ Singleton {
             return;
         palette = name;
         store.setText(name);
-        // Ghostty, niri and fuzzel follow. The first palette is the one
-        // their configurations have: nothing is passed for it.
-        const own = name === Object.keys(palettes)[0];
-        Quickshell.execDetached([Quickshell.shellDir + "/scripts/palette-apply.sh"].concat(own ? [] : Object.entries(palettes[name]).map(([k, v]) => k + "=" + v)));
+        pass([]);
         Quickshell.execDetached([Quickshell.shellDir + "/scripts/notify-replace.sh", "palette", "-u", "low", "Palette changed", palettes[name].label]);
     }
 
