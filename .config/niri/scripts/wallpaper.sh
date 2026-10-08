@@ -25,4 +25,4 @@ awww img "$image" --transition-step 255 --transition-fps 120 --transition-type "
 # The lock screen shows the wallpaper too: tell it now, not at its next poll.
 qs ipc call lock wallpaper 2>/dev/null
 # Transient: a toast only, not kept in the notification center.
-notify-send -e "Wallpaper changed" "$image"
+notify-send -u low "Wallpaper changed" "$image"
