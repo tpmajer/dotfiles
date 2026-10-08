@@ -16,6 +16,17 @@ Singleton {
     // The brightness changed after startup (the keys, brightnessctl, anything).
     signal changed
 
+    // A fade is under way (scripts/idle-dim.sh), which is not announced.
+    // It ends by itself, should the script not say so.
+    property bool quiet: false
+    onQuietChanged: if (quiet)
+        quietEnd.restart()
+    Timer {
+        id: quietEnd
+        interval: 5000
+        onTriggered: root.quiet = false
+    }
+
     function update() {
         const max = Number(maxFile.text().trim());
         if (!(max > 0))
@@ -23,7 +34,7 @@ Singleton {
         const now = Math.round(Number(valueFile.text().trim()) * 100 / max);
         const differs = now !== percent;
         percent = now;
-        if (ready && differs)
+        if (ready && differs && !quiet)
             changed();
         ready = true;
     }

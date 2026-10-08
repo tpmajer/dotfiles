@@ -77,6 +77,16 @@ ShellRoot {
         }
     }
 
+    // `qs ipc call brightness quiet true`: no OSD for the brightness, while
+    // scripts/idle-dim.sh fades it.
+    IpcHandler {
+        target: "brightness"
+
+        function quiet(on: bool): void {
+            Brightness.quiet = on;
+        }
+    }
+
     // `qs ipc call notifications toggle`: the notification center on the
     // focused output's bar, driven from the keyboard. `toggleDnd`: do not
     // disturb. `dismissToasts`: the toasts go to the center. `clear`: what
