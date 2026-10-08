@@ -543,3 +543,7 @@ binds {
 
     Mod+Shift+P { power-off-monitors; }
 }
+
+// The palette quickshell switches to, scripts/palette-apply.sh: over the
+// colors above.
+include optional=true "palette.kdl"
