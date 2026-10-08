@@ -32,7 +32,7 @@ if [ -n "$init" ]; then
 fi
 
 # A file in Catppuccin Mocha's colors, in the palette's: for each of Mocha's
-# the nearest that Theme has.
+# the nearest that Theme has. 3e5767 is bat's own, a highlight.
 recolor() {
     [ -n "$c_base" ] || { cat "$1"; return; }
     local program="" pair
@@ -42,7 +42,8 @@ recolor() {
         89b4fa=$c_blue b4befe=$c_lavender cdd6f4=$c_text bac2de=$c_subtext1 \
         a6adc8=$c_subtext0 9399b2=$c_subtext0 7f849c=$c_subtext0 \
         6c7086=$c_surface1 585b70=$c_surface1 45475a=$c_surface1 \
-        313244=$c_surface0 1e1e2e=$c_base 181825=$c_base 11111b=$c_base; do
+        3e5767=$c_surface1 313244=$c_surface0 1e1e2e=$c_base 181825=$c_base \
+        11111b=$c_base; do
         program+="s/#${pair%%=*}/${pair#*=}/Ig;"
     done
     sed "$program" "$1"
