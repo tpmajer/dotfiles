@@ -18,7 +18,8 @@ config=${XDG_CONFIG_HOME:-$HOME/.config}
 state=${XDG_STATE_HOME:-$HOME/.local/state}/palette-apply
 ghostty=$config/ghostty/palette
 niri=$config/niri/palette.kdl
-fuzzel=$config/fuzzel/palette.ini
+# Where fuzzel.ini includes it from: it cannot name $XDG_CONFIG_HOME.
+fuzzel=$HOME/.config/fuzzel/palette.ini
 btop=$config/btop/themes/palette.theme
 helix=$config/helix/themes/palette.toml
 bat=$config/bat/themes/palette.tmTheme
