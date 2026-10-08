@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 # The palette for what else takes one, each from a file its configuration
-# names, kept out of git: ghostty, niri, fuzzel, btop, helix, bat and micro.
+# names, kept out of git: ghostty, niri, fuzzel, btop, helix, bat, micro and
+# GTK.
 #   palette-apply.sh [init|sync] [name=color ...] [ghostty=theme btop=theme helix=theme]
 # The colors are Theme's, as #rrggbb. With none it is Catppuccin Mocha, which
 # the configurations and their themes have.
@@ -29,7 +30,9 @@ btop=$config/btop/themes/palette.theme
 helix=$config/helix/themes/palette.toml
 bat=$config/bat/themes/palette.tmTheme
 micro=$config/micro/colorschemes/palette.micro
-files=("$ghostty" "$niri" "$fuzzel" "$btop" "$helix" "$bat" "$micro")
+gtk3=$config/gtk-3.0/palette.css
+gtk4=$config/gtk-4.0/palette.css
+files=("$ghostty" "$niri" "$fuzzel" "$btop" "$helix" "$bat" "$micro" "$gtk3" "$gtk4")
 
 # One at a time: a palette is not to be overwritten by the one before it.
 mkdir -p "${state%/*}"
@@ -163,6 +166,28 @@ printf 'inherits = "%s"\n' "${c_helix:-catppuccin_mocha}" > "$helix"
 # bat and micro have Catppuccin's alone: theirs for it, in the palette's colors.
 recolor "$config/bat/themes/Catppuccin Mocha.tmTheme" > "$bat"
 recolor "$config/micro/colorschemes/catppuccin-mocha-transparent.micro" > "$micro"
+
+# GTK's stylesheets import theirs over the colors they name, and so do the
+# copies Flatpak applications have, niri's scripts/flatpak-gtk-theme.sh.
+# Applications take it when started.
+gtk() {
+    [ -n "$c_base" ] || return 0
+    cat <<CSS
+@define-color accent $c_teal;
+@define-color red $c_red;
+@define-color green $c_green;
+@define-color text $c_text;
+@define-color surface_0 $c_surface0;
+@define-color base $c_base;
+@define-color crust $c_base;
+CSS
+}
+gtk > "$gtk3"
+gtk > "$gtk4"
+shopt -s nullglob
+for dir in "$HOME"/.var/app/*/config/gtk-[34].0; do
+    gtk > "$dir/palette.css"
+done
 
 printf '%s\n' "$applied" > "$state"
 
