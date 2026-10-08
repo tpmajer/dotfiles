@@ -2,29 +2,126 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
+import Quickshell.Io
 
-// Catppuccin colors and the bar geometry.
+// The colors, under Catppuccin's names, and the bar geometry.
 Singleton {
-    readonly property color base: "#1e1e2e"
-    readonly property color surface0: "#313244"
-    readonly property color surface1: "#45475a"
-    readonly property color text: "#cdd6f4"
-    readonly property color subtext1: "#bac2de"
-    readonly property color subtext0: "#a6adc8"
-    readonly property color white: "#ffffff"
-    readonly property color pink: "#f5c2e7"
+    // The palettes to choose from. Past Catppuccin Mocha, a palette's
+    // nearest colors stand in for Catppuccin's.
+    readonly property var palettes: ({
+            "catppuccin": {
+                base: "#1e1e2e",
+                surface0: "#313244",
+                surface1: "#45475a",
+                text: "#cdd6f4",
+                subtext1: "#bac2de",
+                subtext0: "#a6adc8",
+                white: "#ffffff",
+                pink: "#f5c2e7",
+                blue: "#89b4fa",
+                sky: "#89dceb",
+                sapphire: "#74c7ec",
+                teal: "#94e2d5",
+                green: "#a6e3a1",
+                yellow: "#f9e2af",
+                peach: "#fab387",
+                red: "#f38ba8",
+                maroon: "#eba0ac",
+                lavender: "#b4befe",
+                mauve: "#cba6f7"
+            },
+            "night": {
+                base: "#1a1b26",
+                surface0: "#292e42",
+                surface1: "#414868",
+                text: "#c0caf5",
+                subtext1: "#a9b1d6",
+                subtext0: "#9aa5ce",
+                white: "#ffffff",
+                pink: "#ff007c",
+                blue: "#7aa2f7",
+                sky: "#7dcfff",
+                sapphire: "#2ac3de",
+                teal: "#73daca",
+                green: "#9ece6a",
+                yellow: "#e0af68",
+                peach: "#ff9e64",
+                red: "#f7768e",
+                maroon: "#db4b4b",
+                lavender: "#bb9af7",
+                mauve: "#9d7cd8"
+            },
+            "storm": {
+                base: "#24283b",
+                surface0: "#3b4261",
+                surface1: "#545c7e",
+                text: "#c0caf5",
+                subtext1: "#a9b1d6",
+                subtext0: "#9aa5ce",
+                white: "#ffffff",
+                pink: "#ff007c",
+                blue: "#7aa2f7",
+                sky: "#7dcfff",
+                sapphire: "#2ac3de",
+                teal: "#73daca",
+                green: "#9ece6a",
+                yellow: "#e0af68",
+                peach: "#ff9e64",
+                red: "#f7768e",
+                maroon: "#db4b4b",
+                lavender: "#bb9af7",
+                mauve: "#9d7cd8"
+            }
+        })
 
-    readonly property color blue: "#89b4fa"
-    readonly property color sky: "#89dceb"
-    readonly property color sapphire: "#74c7ec"
-    readonly property color teal: "#94e2d5"
-    readonly property color green: "#a6e3a1"
-    readonly property color yellow: "#f9e2af"
-    readonly property color peach: "#fab387"
-    readonly property color red: "#f38ba8"
-    readonly property color maroon: "#eba0ac"
-    readonly property color lavender: "#b4befe"
-    readonly property color mauve: "#cba6f7"
+    // The one in use, kept across restarts. `qs ipc call theme set night`,
+    // `qs ipc call theme next`.
+    property string palette: "catppuccin"
+    readonly property var colors: palettes[palette] ?? palettes.catppuccin
+    FileView {
+        id: store
+        path: Quickshell.statePath("palette")
+        blockLoading: true
+        printErrors: false
+    }
+    Component.onCompleted: {
+        const kept = store.text().trim();
+        if (kept in palettes)
+            palette = kept;
+    }
+
+    function setPalette(name) {
+        if (!(name in palettes) || name === palette)
+            return;
+        palette = name;
+        store.setText(name);
+    }
+
+    function nextPalette() {
+        const names = Object.keys(palettes);
+        setPalette(names[(names.indexOf(palette) + 1) % names.length]);
+    }
+
+    readonly property color base: colors.base
+    readonly property color surface0: colors.surface0
+    readonly property color surface1: colors.surface1
+    readonly property color text: colors.text
+    readonly property color subtext1: colors.subtext1
+    readonly property color subtext0: colors.subtext0
+    readonly property color white: colors.white
+    readonly property color pink: colors.pink
+
+    readonly property color blue: colors.blue
+    readonly property color sky: colors.sky
+    readonly property color sapphire: colors.sapphire
+    readonly property color teal: colors.teal
+    readonly property color green: colors.green
+    readonly property color yellow: colors.yellow
+    readonly property color peach: colors.peach
+    readonly property color red: colors.red
+    readonly property color maroon: colors.maroon
+    readonly property color lavender: colors.lavender
+    readonly property color mauve: colors.mauve
 
     readonly property string font: "JetBrainsMono Nerd Font Propo"
     readonly property int fontSize: 17

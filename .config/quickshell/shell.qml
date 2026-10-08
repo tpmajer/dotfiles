@@ -77,6 +77,20 @@ ShellRoot {
         }
     }
 
+    // `qs ipc call theme set night`: the palette, one of Theme.palettes.
+    // `next`: the one after it.
+    IpcHandler {
+        target: "theme"
+
+        function set(name: string): void {
+            Theme.setPalette(name);
+        }
+
+        function next(): void {
+            Theme.nextPalette();
+        }
+    }
+
     // `qs ipc call brightness quiet true`: no OSD for the brightness, while
     // scripts/idle-dim.sh fades it.
     IpcHandler {
