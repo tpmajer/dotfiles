@@ -55,6 +55,14 @@ stow .
 Run the same command again to link files added later. On a conflict it aborts
 with a list of what is in the way and changes nothing.
 
+Fuzzel, btop, Helix, bat and micro take their colors from files made outside
+the repo, which niri makes at its start. Before the first session, make them
+by hand:
+
+```sh
+~/.config/quickshell/scripts/palette-apply.sh init
+```
+
 A file removed from the repo leaves its link behind in `~`, pointing at
 nothing: `stow .` only adds. Restow to have such links pruned, or list them
 and remove them by hand:
