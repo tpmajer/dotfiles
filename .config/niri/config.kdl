@@ -117,6 +117,8 @@ recent-windows {
 spawn-at-startup "~/.config/niri/scripts/flatpak-gtk-theme.sh"
 // Says so if the private window rules included at the top are not there.
 spawn-at-startup "~/.config/niri/scripts/private-rules-check.sh"
+// The palette files, if one is missing: fuzzel does not start without its own.
+spawn-at-startup "~/.config/quickshell/scripts/palette-apply.sh" "init"
 
 cursor {
     // Change the theme and size of the cursor as well as set the
