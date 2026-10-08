@@ -2,13 +2,18 @@
 
 # The palette for what else takes one, each from a file its configuration
 # names, kept out of git: ghostty, niri, fuzzel, btop, helix, bat and micro.
-#   palette-apply.sh [init] [name=color ...] [ghostty=theme btop=theme helix=theme]
+#   palette-apply.sh [init|sync] [name=color ...] [ghostty=theme btop=theme helix=theme]
 # The colors are Theme's, as #rrggbb. With none it is Catppuccin Mocha, which
-# the configurations and their themes have. `init` does nothing unless a
-# file is missing: btop, helix, bat and micro have no theme without theirs.
+# the configurations and their themes have.
+# `init` does nothing unless a file is missing: niri at its start, as fuzzel
+# does not start without its file, and btop, helix, bat and micro have no
+# theme without theirs. `sync` neither unless the palette applied last was
+# another: quickshell at its start.
 
-init=
-[ "$1" = init ] && init=1 && shift
+mode=
+case $1 in
+    init | sync) mode=$1 && shift ;;
+esac
 
 for pair in "$@"; do
     [[ ${pair%%=*} =~ ^[a-z0-9]+$ ]] && declare "c_${pair%%=*}=${pair#*=}"
@@ -31,12 +36,14 @@ mkdir -p "${state%/*}"
 exec 9> "$state.lock"
 flock 9
 
-if [ -n "$init" ]; then
-    missing=
+applied="applied: $*"
+if [ -n "$mode" ]; then
+    stale=
     for file in "${files[@]}"; do
-        [ -e "$file" ] || missing=1
+        [ -e "$file" ] || stale=1
     done
-    [ -n "$missing" ] || exit 0
+    [ "$mode" = sync ] && [ "$(cat "$state" 2> /dev/null)" != "$applied" ] && stale=1
+    [ -n "$stale" ] || exit 0
 fi
 
 for file in "${files[@]}"; do
@@ -156,6 +163,8 @@ printf 'inherits = "%s"\n' "${c_helix:-catppuccin_mocha}" > "$helix"
 # bat and micro have Catppuccin's alone: theirs for it, in the palette's colors.
 recolor "$config/bat/themes/Catppuccin Mocha.tmTheme" > "$bat"
 recolor "$config/micro/colorschemes/catppuccin-mocha-transparent.micro" > "$micro"
+
+printf '%s\n' "$applied" > "$state"
 
 # Open terminals, btop and helix take it at once; fuzzel, bat and micro when
 # started. Not one just started: before it handles the signal, it ends it.

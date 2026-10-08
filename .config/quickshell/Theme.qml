@@ -173,7 +173,7 @@ Singleton {
         const kept = store.text().trim();
         if (Object.keys(palettes).includes(kept))
             palette = kept;
-        pass(["init"]);
+        pass(["sync"]);
     }
 
     // The palette for what else takes one, scripts/palette-apply.sh. The
