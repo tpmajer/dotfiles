@@ -105,8 +105,8 @@ bat cache --build > /dev/null 2>&1
 recolor "$config/micro/colorschemes/catppuccin-mocha-transparent.micro" > "$micro"
 
 # Open terminals, btop and helix take it at once; fuzzel, bat and micro when
-# started.
-pkill -USR2 ghostty
-pkill -USR2 -x btop
-pkill -USR1 -x '\.?hx(-wrapped)?'
+# started. Not one just started: before it handles the signal, it ends it.
+pkill -USR2 --older 2 -x '\.?ghostty(-wrappe)?'
+pkill -USR2 --older 2 -x btop
+pkill -USR1 --older 2 -x '\.?hx(-wrapped)?'
 niri msg action load-config-file
