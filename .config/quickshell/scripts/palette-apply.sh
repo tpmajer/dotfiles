@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 # The palette for what else takes one, each from a file its configuration
-# names, kept out of git: ghostty, niri, fuzzel, btop, helix, bat, micro and
-# GTK.
+# names, kept out of git: ghostty, niri, fuzzel, btop, helix, bat, micro, mpv
+# and GTK.
 #   palette-apply.sh [init|sync] [name=color ...] [ghostty=theme btop=theme helix=theme]
 # The colors are Theme's, as #rrggbb. With none it is Catppuccin Mocha, which
 # the configurations and their themes have.
@@ -30,9 +30,10 @@ btop=$config/btop/themes/palette.theme
 helix=$config/helix/themes/palette.toml
 bat=$config/bat/themes/palette.tmTheme
 micro=$config/micro/colorschemes/palette.micro
+mpv=$config/mpv/palette.conf
 gtk3=$config/gtk-3.0/palette.css
 gtk4=$config/gtk-4.0/palette.css
-files=("$ghostty" "$niri" "$fuzzel" "$btop" "$helix" "$bat" "$micro" "$gtk3" "$gtk4")
+files=("$ghostty" "$niri" "$fuzzel" "$btop" "$helix" "$bat" "$micro" "$mpv" "$gtk3" "$gtk4")
 
 # One at a time: a palette is not to be overwritten by the one before it.
 mkdir -p "${state%/*}"
@@ -75,6 +76,7 @@ if [ -z "$c_base" ]; then
     : > "$ghostty"
     : > "$niri"
     : > "$fuzzel"
+    : > "$mpv"
 else
     printf 'theme = %s\n' "$c_ghostty" > "$ghostty"
 
@@ -146,6 +148,24 @@ selection-match=${c_mauve#\#}ff
 border=${c_teal#\#}ff
 counter=${c_mauve#\#}ff
 INI
+
+    # mpv's stats takes its colors as BBGGRR.
+    bgr() {
+        printf '%s' "${1:5:2}${1:3:2}${1:1:2}"
+    }
+    cat > "$mpv" <<CONF
+background-color='$c_base'
+osd-back-color='$c_base'
+osd-border-color='$c_base'
+osd-color='$c_text'
+osd-shadow-color='$c_base'
+script-opts-append=stats-border_color=$(bgr "$c_base")
+script-opts-append=stats-font_color=$(bgr "$c_text")
+script-opts-append=stats-plot_bg_border_color=$(bgr "$c_teal")
+script-opts-append=stats-plot_bg_color=$(bgr "$c_base")
+script-opts-append=stats-plot_color=$(bgr "$c_teal")
+script-opts-append=uosc-color=foreground=${c_teal#\#},foreground_text=${c_surface0#\#},background=${c_base#\#},background_text=${c_text#\#},curtain=${c_base#\#},success=${c_green#\#},error=${c_red#\#}
+CONF
 fi
 
 # btop has its own theme for each palette, with those that came with it or
@@ -191,8 +211,8 @@ done
 
 printf '%s\n' "$applied" > "$state"
 
-# Open terminals, btop and helix take it at once; fuzzel, bat and micro when
-# started. Not one just started: before it handles the signal, it ends it.
+# Open terminals, btop and helix take it at once; fuzzel, bat, micro and mpv
+# when started. Not one just started: before it handles the signal, it ends it.
 pkill -USR2 --older 2 -x '\.?ghostty(-wrappe)?'
 pkill -USR2 --older 2 -x btop
 pkill -USR1 --older 2 -x '\.?hx(-wrapped)?'
