@@ -155,12 +155,12 @@ Singleton {
     }
     Component.onCompleted: {
         const kept = store.text().trim();
-        if (kept in palettes)
+        if (Object.keys(palettes).includes(kept))
             palette = kept;
     }
 
     function setPalette(name) {
-        if (!(name in palettes) || name === palette)
+        if (!Object.keys(palettes).includes(name) || name === palette)
             return;
         palette = name;
         store.setText(name);
