@@ -43,7 +43,7 @@ Item {
     readonly property int bodyLines: 6
     readonly property int bodyLinesExpanded: 40
 
-    readonly property color accent: Notifications.urgencyColor(notification.urgency)
+    readonly property color accent: Notifications.urgencyColor(Notifications.urgency(notification))
     // Who it is from: the name the sender gives, or that of its desktop
     // entry, and its icon. An application's own icon is shown as it is: the
     // one the sender names, as such or as the notification's image (a

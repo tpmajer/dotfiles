@@ -38,14 +38,23 @@ Singleton {
         const over = tracked.values.length - Theme.notificationsKept;
         if (over <= 0)
             return;
-        const critical = n => n.urgency === NotificationUrgency.Critical;
+        const critical = n => urgency(n) === NotificationUrgency.Critical;
         const oldest = [...missed].reverse().concat(toasts.filter(n => !critical(n)), toasts.filter(critical));
         for (const n of oldest.slice(0, over))
             n.expire();
     }
 
+    // Senders whose notifications are low whatever they say, by desktop
+    // entry: ghostty sends all of its own as normal.
+    readonly property var lowSenders: ["com.mitchellh.ghostty"]
+
+    // How urgent a notification is taken to be.
+    function urgency(notification) {
+        return lowSenders.includes(notification.desktopEntry) ? NotificationUrgency.Low : notification.urgency;
+    }
+
     // The most urgent of those waiting in the center; low with none.
-    readonly property int missedUrgency: missed.reduce((u, n) => Math.max(u, n.urgency), NotificationUrgency.Low)
+    readonly property int missedUrgency: missed.reduce((u, n) => Math.max(u, urgency(n)), NotificationUrgency.Low)
 
     // An urgency's color: the line on a notification's card.
     function urgencyColor(urgency) {
@@ -83,7 +92,7 @@ Singleton {
     onCastingChanged: {
         if (!casting)
             return;
-        for (const n of toasts.filter(n => n.urgency !== NotificationUrgency.Critical))
+        for (const n of toasts.filter(n => urgency(n) !== NotificationUrgency.Critical))
             timedOut(n);
     }
 
@@ -98,7 +107,7 @@ Singleton {
     function timeout(notification) {
         if (notification.hints.category === "mpd")
             return 2000;
-        switch (notification.urgency) {
+        switch (urgency(notification)) {
         case NotificationUrgency.Low:
             return 8000;
         case NotificationUrgency.Critical:
@@ -254,7 +263,7 @@ Singleton {
     // now, or straight to the center under do not disturb. False for one
     // that is to be neither: a transient one under do not disturb.
     function arrived(notification) {
-        const toast = !quiet || notification.urgency === NotificationUrgency.Critical;
+        const toast = !quiet || urgency(notification) === NotificationUrgency.Critical;
         if (!toast && isTransient(notification))
             return false;
         const name = iconName(notification);
