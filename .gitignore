@@ -13,3 +13,5 @@ secrets.yml
 *.cache
 
 *~
+
+.config/quickshell/sounds/

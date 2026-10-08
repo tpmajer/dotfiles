@@ -267,7 +267,26 @@ Singleton {
             toast: toast,
             icon: isBatteryIcon(name) && before !== "" ? before : name
         });
+        const file = sounds[notification.desktopEntry];
+        // One at a time: a burst of notifications sounds once.
+        if (toast && file && !sound.running) {
+            sound.command = ["pw-play", file];
+            sound.running = true;
+        }
         return true;
+    }
+
+    // Senders whose toasts come with a sound, by desktop entry: the file.
+    // One that gets no toast, as under do not disturb, is silent. pop.ogg
+    // is Signal's own, kept out of git: silent where it was not copied.
+    readonly property string pop: Quickshell.shellDir + "/sounds/pop.ogg"
+    readonly property var sounds: ({
+            "thunderbird": pop,
+            "signal": pop
+        })
+
+    Process {
+        id: sound
     }
 
     // Writes a notification's entry, and drops those of the closed ones.
