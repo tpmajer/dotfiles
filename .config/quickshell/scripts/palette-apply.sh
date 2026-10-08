@@ -15,6 +15,7 @@ for pair in "$@"; do
 done
 
 config=${XDG_CONFIG_HOME:-$HOME/.config}
+state=${XDG_STATE_HOME:-$HOME/.local/state}/palette-apply
 ghostty=$config/ghostty/palette
 niri=$config/niri/palette.kdl
 fuzzel=$config/fuzzel/palette.ini
@@ -23,6 +24,11 @@ helix=$config/helix/themes/palette.toml
 bat=$config/bat/themes/palette.tmTheme
 micro=$config/micro/colorschemes/palette.micro
 files=("$ghostty" "$niri" "$fuzzel" "$btop" "$helix" "$bat" "$micro")
+
+# One at a time: a palette is not to be overwritten by the one before it.
+mkdir -p "${state%/*}"
+exec 9> "$state.lock"
+flock 9
 
 if [ -n "$init" ]; then
     missing=
