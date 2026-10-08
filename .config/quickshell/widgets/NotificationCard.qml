@@ -87,10 +87,19 @@ Item {
         const name = iconIsApp ? iconName : entry?.icon || "";
         return name === "" ? "" : Quickshell.iconPath(name, true);
     }
+    // The picture sent with it, such as a cover or the face of who wrote.
+    // Not one named as an icon, which is the sender's, nor an address.
+    readonly property string picture: notification.image.startsWith("image://") && !notification.image.startsWith("image://icon/") ? notification.image : ""
+    readonly property bool hasPicture: pictureImage.status === Image.Ready
+    // A square as high as a card of one line each: who it is from, the
+    // summary and the body. A higher card does not make it any larger.
+    // What the picture's column takes on the left, after the urgency.
+    readonly property real pictureColumn: hasPicture ? pictureSize + Theme.popupColumnGap : 0
+    readonly property real pictureSize: 2 * sender.height + summary.height / Math.max(1, summary.lineCount) + 2 * content.spacing
     readonly property var extraActions: notification.actions.filter(a => a.identifier !== "default")
 
     implicitWidth: Theme.notificationWidth
-    implicitHeight: content.implicitHeight + 2 * (Theme.popupPaddingV + Theme.popupTextInsetV)
+    implicitHeight: Math.max(content.implicitHeight, picture.height) + 2 * (Theme.popupPaddingV + Theme.popupTextInsetV)
 
     // A left click, or its key in the notification center.
     function activate() {
@@ -123,9 +132,29 @@ Item {
         color: card.accent
     }
 
+    ClippingRectangle {
+        id: picture
+        visible: card.hasPicture
+        x: Theme.popupPadding + Theme.popupTextInset
+        y: content.y
+        width: card.pictureSize
+        height: width
+        radius: Theme.moduleRadius
+        color: "transparent"
+
+        Image {
+            id: pictureImage
+            anchors.fill: parent
+            source: card.picture
+            asynchronous: true
+            fillMode: Image.PreserveAspectCrop
+            sourceSize.height: card.pictureSize * 2
+        }
+    }
+
     Column {
         id: content
-        x: Theme.popupPadding + Theme.popupTextInset
+        x: Theme.popupPadding + Theme.popupTextInset + card.pictureColumn
         y: Theme.popupPaddingV + Theme.popupTextInsetV
         width: parent.width - x - Theme.popupPadding - Theme.popupTextInset + 3
         spacing: 4
@@ -172,6 +201,7 @@ Item {
         }
 
         PopupText {
+            id: summary
             width: parent.width
             text: card.notification.summary
             textFormat: Text.PlainText
