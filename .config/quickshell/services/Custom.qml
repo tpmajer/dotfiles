@@ -26,7 +26,7 @@ Singleton {
         {label: "Screen off", after: 210},
         {label: "Suspend", after: 600}
     ]
-    readonly property int lockAfter: 180
+    readonly property int lockAfter: idleStages.find(s => s.label === "Lock").after
     // Idle is told after this long, in seconds.
     readonly property int idleAfter: 30
 
