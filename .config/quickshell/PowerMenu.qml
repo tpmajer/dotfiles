@@ -79,35 +79,17 @@ PanelWindow {
         height: menu.blurred ? box.height : 0
         radius: Theme.barRadius
 
-        // Inside the menu, so it blurs nothing new; see blurResend.
-        Region {
+        BlurBump {
+            id: blurBump
             x: shadowLayer.x + box.x + Theme.barRadius
             y: shadowLayer.y + box.y + Theme.barRadius
             width: menu.blurred ? 1 : 0
-            height: 1 + menu.blurResend % 2
         }
     }
 
-    // A new blur region can reach niri with a commit older than itself, and
-    // is then not applied until the region changes again (see PopupHost):
-    // the menu stays without its blur. So the region is sent a few more
-    // times once the menu is in it.
-    property int blurResend: 0
-    onBlurredChanged: if (blurred) {
-        blurResendTimer.left = 8;
-        blurResendTimer.restart();
-    }
-    Timer {
-        id: blurResendTimer
-        property int left: 0
-        interval: 48
-        repeat: true
-        onTriggered: {
-            menu.blurResend++;
-            if (--left <= 0)
-                stop();
-        }
-    }
+    // Sent anew once the menu is in it (BlurBump).
+    onBlurredChanged: if (blurred)
+        blurBump.send(8)
 
     Rectangle {
         anchors.fill: parent

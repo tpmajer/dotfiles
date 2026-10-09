@@ -33,12 +33,10 @@ Item {
         height: barRect.height
         radius: Theme.barRadius
 
-        // Inside the bar, so it blurs nothing new; see blurResend.
-        Region {
+        BlurBump {
+            id: blurBump
             x: barRect.x + Theme.barRadius
             y: barRect.y + Theme.barRadius
-            width: 1
-            height: 1 + root.blurResend % 2
         }
 
         Region {
@@ -66,35 +64,11 @@ Item {
         shown: root.popupOpen
     }
 
-    // With Qt's threaded render loop (the one that runs animations at the
-    // screen's refresh rate) a new blur region sometimes goes out right after a
-    // commit still waiting on its GPU fence; niri then applies it with that
-    // older commit and keeps blurring a closed popup until the region changes
-    // again. So change it a few more times once a popup closes: each bump
-    // resizes a 1 px region inside the bar, which sends the whole region anew.
-    // The same the other way round: the region with the popup in it can go
-    // out like that as the popup opens, or moves to another module, and the
-    // popup then stays without its blur. That region is only sent halfway
-    // through the opening, hence the longer run of bumps.
-    property int blurResend: 0
-    onPopupOpenChanged: resendBlur(popupOpen ? 8 : 4)
+    // The blur is sent anew as a popup closes, opens or moves (BlurBump). Its
+    // region is only sent halfway through the opening, hence the longer run.
+    onPopupOpenChanged: blurBump.send(popupOpen ? 8 : 4)
     onPopupOwnerChanged: if (popupOpen)
-        resendBlur(8)
-    function resendBlur(times) {
-        blurResendTimer.left = times;
-        blurResendTimer.restart();
-    }
-    Timer {
-        id: blurResendTimer
-        property int left: 0
-        interval: 48
-        repeat: true
-        onTriggered: {
-            root.blurResend++;
-            if (--left <= 0)
-                stop();
-        }
-    }
+        blurBump.send(8)
 
     readonly property real popupContentWidth: popupLoader.item ? popupLoader.item.implicitWidth : 0
     readonly property real popupContentHeight: popupLoader.item ? popupLoader.item.implicitHeight : 0

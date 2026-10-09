@@ -152,30 +152,16 @@ PanelWindow {
         height: menu.blurred ? content.height : 0
         radius: Theme.barRadius
 
-        Region {
+        BlurBump {
+            id: blurBump
             x: content.x + Theme.barRadius
             y: content.y + Theme.barRadius
             width: menu.blurred ? 1 : 0
-            height: 1 + menu.blurResend % 2
         }
     }
 
-    property int blurResend: 0
-    onBlurredChanged: if (blurred) {
-        blurResendTimer.left = 8;
-        blurResendTimer.restart();
-    }
-    Timer {
-        id: blurResendTimer
-        property int left: 0
-        interval: 48
-        repeat: true
-        onTriggered: {
-            menu.blurResend++;
-            if (--left <= 0)
-                stop();
-        }
-    }
+    onBlurredChanged: if (blurred)
+        blurBump.send(8)
 
     // The output dims, as under the power menu.
     Rectangle {
