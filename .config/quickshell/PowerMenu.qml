@@ -8,18 +8,16 @@ import qs.widgets
 // their names below, driven from the keyboard (Super+Esc in niri) or the mouse.
 // The surface covers the whole output, dimmed, so a click beside the menu
 // closes it.
-PanelWindow {
+Overlay {
     id: menu
 
-    property bool shown: false
     property int index: Power.defaultIndex
     // The session is locked.
     property bool locked: false
-    // The menu is gone, the dimming stays: an action was chosen and what it
-    // brings is not there yet. The lock's curtain fades in over the dimming,
-    // and the session ends under it; it would otherwise be gone for a moment
-    // before either.
-    property bool dimHeld: false
+    // The menu is gone, the dimming stays (dimHeld): an action was chosen
+    // and what it brings is not there yet. The lock's curtain fades in over
+    // the dimming, and the session ends under it; it would otherwise be gone
+    // for a moment before either.
     onLockedChanged: if (locked)
         dimHeld = false
 
@@ -29,12 +27,6 @@ PanelWindow {
         id: dimRelease
         interval: 5000
         onTriggered: menu.dimHeld = false
-    }
-
-    Pop {
-        id: pop
-        shown: menu.shown
-        mapped: menu.backingWindowVisible
     }
 
     function toggle() {
@@ -55,55 +47,14 @@ PanelWindow {
         Power.run(action.command);
     }
 
-    screen: Quickshell.screens.find(s => s.name === Niri.focusedOutput) ?? Quickshell.screens[0]
-    anchors {
-        top: true
-        bottom: true
-        left: true
-        right: true
+    boxWidth: tiles.width + 2 * Theme.popupPadding
+    boxHeight: tiles.height + 2 * Theme.popupPadding
+    onOutsideClicked: {
+        shown = false;
+        dimHeld = false;
     }
-    exclusionMode: ExclusionMode.Ignore
-    color: "transparent"
-    visible: shown || pop.openness > 0 || dimHeld
 
     WlrLayershell.namespace: "quickshell-power"
-    WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.keyboardFocus: shown ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
-
-    // Not under a menu half faded out, as with the OSD.
-    readonly property bool blurred: pop.openness > 0.5
-    BackgroundEffect.blurRegion: Region {
-        x: shadowLayer.x + box.x
-        y: shadowLayer.y + box.y
-        width: menu.blurred ? box.width : 0
-        height: menu.blurred ? box.height : 0
-        radius: Theme.barRadius
-
-        BlurBump {
-            id: blurBump
-            x: shadowLayer.x + box.x + Theme.barRadius
-            y: shadowLayer.y + box.y + Theme.barRadius
-            width: menu.blurred ? 1 : 0
-        }
-    }
-
-    // Sent anew once the menu is in it (BlurBump).
-    onBlurredChanged: if (blurred)
-        blurBump.send(8)
-
-    Rectangle {
-        anchors.fill: parent
-        color: "black"
-        opacity: 0.45 * (dimHeld ? 1 : Math.min(1, pop.openness))
-    }
-
-    MouseArea {
-        anchors.fill: parent
-        onClicked: {
-            menu.shown = false;
-            menu.dimHeld = false;
-        }
-    }
 
     Item {
         id: keyHandler
@@ -136,41 +87,11 @@ PanelWindow {
         }
     }
 
-    // Only as large as the menu and its shadow: the effect redraws its whole
-    // layer on every frame of the fade, and one the size of the output stutters.
-    Item {
-        id: shadowLayer
-        readonly property int room: 30
-        // Centered, on whole device pixels.
-        x: Theme.snap((parent.width - box.width) / 2, menu.devicePixelRatio) - room
-        y: Theme.snap((parent.height - box.height) / 2, menu.devicePixelRatio) - room
-        width: box.width + 2 * room
-        height: box.height + 2 * room
-
-        opacity: pop.openness
-        scale: pop.scale
-
-        layer.enabled: true
-        layer.effect: Shadow {}
-
-        Rectangle {
-            id: box
-            x: shadowLayer.room
-            y: shadowLayer.room
-            width: tiles.width + 2 * Theme.popupPadding
-            height: tiles.height + 2 * Theme.popupPadding
-            radius: Theme.barRadius
-            color: Theme.base
-        }
-    }
-
-    // Outside the shadow's layer: text drawn into it comes out soft.
+    // On whole device pixels, as the box is.
     Row {
         id: tiles
-        x: Theme.snap((parent.width - width) / 2, menu.devicePixelRatio)
-        y: Theme.snap((parent.height - height) / 2, menu.devicePixelRatio)
-        opacity: pop.openness
-        scale: pop.scale
+        x: Theme.snap(menu.boxX + Theme.popupPadding, menu.devicePixelRatio) - menu.boxX
+        y: Theme.snap(menu.boxY + Theme.popupPadding, menu.devicePixelRatio) - menu.boxY
         spacing: Theme.popupIconGap
 
         Repeater {
