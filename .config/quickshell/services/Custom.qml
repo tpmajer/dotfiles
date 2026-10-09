@@ -18,17 +18,56 @@ Singleton {
     property var idle: ({})
 
     // What hypridle does once nothing is touched, and after how many
-    // seconds: the listeners of ~/.config/hypr/hypridle.conf, to be kept the
-    // same as there.
-    readonly property var idleStages: [
+    // seconds: the listeners of its configuration, told by their commands.
+    readonly property var stageCommands: [
+        {label: "Dim", command: /idle-dim\.sh dim/},
+        {label: "Lock", command: /lock-session/},
+        {label: "Screen off", command: /power-off-monitors/},
+        {label: "Suspend", command: /systemctl suspend/}
+    ]
+    readonly property var idleStages: {
+        const stages = [];
+        for (const stage of stageCommands) {
+            const listener = listeners.find(l => stage.command.test(l.command));
+            if (listener)
+                stages.push({label: stage.label, after: listener.after});
+        }
+        stages.sort((a, b) => a.after - b.after);
+        return stages.some(s => s.label === "Lock") ? stages : fallbackStages;
+    }
+    // While the configuration is not read, or has no lock in it.
+    readonly property var fallbackStages: [
         {label: "Dim", after: 120},
         {label: "Lock", after: 180},
         {label: "Screen off", after: 210},
         {label: "Suspend", after: 600}
     ]
     readonly property int lockAfter: idleStages.find(s => s.label === "Lock").after
-    // Idle is told after this long, in seconds.
-    readonly property int idleAfter: 30
+    // Idle is told after this long, in seconds: its notification's listener.
+    readonly property int idleAfter: listeners.find(l => /notify-replace\.sh idle/.test(l.command))?.after ?? 30
+
+    // The listeners that are not commented out: [{ after: the timeout, in
+    // seconds; command: what it runs then, without its comment }].
+    property string hypridle: ""
+    readonly property var listeners: {
+        const found = [];
+        const block = /^[ \t]*listener\s*\{([^}]*)\}/gm;
+        for (let m = block.exec(hypridle); m; m = block.exec(hypridle)) {
+            const after = m[1].match(/^\s*timeout\s*=\s*(\d+)/m);
+            const command = m[1].match(/^\s*on-timeout\s*=\s*(.*)$/m);
+            if (after && command)
+                found.push({after: Number(after[1]), command: command[1].replace(/\s#.*$/, "")});
+        }
+        return found;
+    }
+
+    FileView {
+        path: Quickshell.env("HOME") + "/.config/hypr/hypridle.conf"
+        watchChanges: true
+        printErrors: false
+        onFileChanged: reload()
+        onLoaded: root.hypridle = text()
+    }
 
     // Nothing touched for idleAfter, and nothing holds the idle off: hypridle
     // is on its way to the lock. The script's inhibitor is logind's, which
