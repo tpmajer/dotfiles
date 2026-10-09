@@ -68,6 +68,10 @@ Singleton {
     // out around 350 Mb/s although the link still reads 2500 Mb/s.
     property int usbSpeed: 0
     readonly property bool slowUsb: usbSpeed > 0 && usbSpeed < 5000
+    // The cable's link under 1 Gb/s, whatever the USB: a bad cable or socket.
+    readonly property bool slowLink: wired && wiredDevice.linkSpeed > 0 && wiredDevice.linkSpeed < 1000
+    // Either way the cable is slow: its icon and the popup's row tell.
+    readonly property bool slowWired: slowUsb || slowLink
     readonly property string usbName: usbSpeed >= 5000 ? "USB 3" : usbSpeed >= 480 ? "USB 2.0" : usbSpeed >= 12 ? "USB 1.1" : "USB 1.0"
 
     onWiredDeviceChanged: {
@@ -85,7 +89,7 @@ Singleton {
         }
     }
 
-    // The bar shows the cable icon (red on slow USB) apart from the rest:
+    // The bar shows the cable icon (red on a slow cable) apart from the rest:
     // cable first, then Wi-Fi if it is connected too (it usually stays up).
     readonly property string wiredText: wired ? Theme.glyph(0xf0002) : ""
     readonly property string text: {
@@ -122,7 +126,7 @@ Singleton {
     readonly property var details: {
         const list = [];
         if (wired && wiredDevice.linkSpeed > 0)
-            list.push({label: "Link", value: wiredDevice.linkSpeed + " Mb/s" + (slowUsb ? "  " + usbName : ""), color: slowUsb ? Theme.maroon : Theme.subtext0});
+            list.push({label: "Link", value: wiredDevice.linkSpeed + " Mb/s" + (slowUsb ? "  " + usbName : ""), color: slowWired ? Theme.maroon : Theme.subtext0});
         if (wifiNetwork)
             list.push({label: "Signal", value: (frequency !== "" ? frequency + "  " : "") + signal + "%", color: signalLevel === 2 ? Theme.red : signalLevel === 1 ? Theme.peach : Theme.subtext0});
         if (address !== "")

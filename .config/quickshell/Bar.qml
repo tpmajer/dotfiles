@@ -293,7 +293,7 @@ PanelWindow {
             Module {
                 host: popups
                 prefix: Network.wiredText
-                prefixColor: Network.slowUsb ? Theme.maroon : Theme.teal
+                prefixColor: Network.slowWired ? Theme.maroon : Theme.teal
                 text: Network.text
                 // Red with no internet, or on Wi-Fi alone with nearly no signal.
                 color: Network.alarm ? Theme.red : Theme.teal
