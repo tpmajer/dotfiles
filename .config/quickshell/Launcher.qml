@@ -323,6 +323,8 @@ PanelWindow {
                 required property var modelData
                 required property int index
                 readonly property bool selected: index === menu.index
+                // Not menu.dmenu: it changes before the old rows are gone.
+                readonly property bool line: typeof modelData === "string"
 
                 width: list.width
                 height: menu.rowHeight
@@ -334,7 +336,7 @@ PanelWindow {
 
                 IconImage {
                     id: icon
-                    visible: !menu.dmenu && !row.modelData.glyph
+                    visible: !row.line && !row.modelData.glyph
                     x: Theme.popupTextInset
                     anchors.verticalCenter: parent.verticalCenter
                     implicitSize: 22
@@ -343,7 +345,7 @@ PanelWindow {
 
                 // An action has its glyph for an icon.
                 PopupText {
-                    visible: !menu.dmenu && !!row.modelData.glyph
+                    visible: !row.line && !!row.modelData.glyph
                     anchors.centerIn: icon
                     font.pixelSize: 22
                     text: visible ? Theme.glyph(row.modelData.glyph) : ""
@@ -354,15 +356,15 @@ PanelWindow {
                     font.pixelSize: menu.fontSize
                     id: name
                     anchors.verticalCenter: parent.verticalCenter
-                    x: menu.dmenu ? Theme.popupTextInset : icon.x + icon.width + Theme.popupColumnGap
+                    x: row.line ? Theme.popupTextInset : icon.x + icon.width + Theme.popupColumnGap
                     width: Math.min(implicitWidth, row.width - x - Theme.popupTextInset)
                     elide: Text.ElideRight
                     // The letters that answer what is typed stand out, as
                     // in fuzzel.
                     textFormat: Text.StyledText
-                    text: Apps.styled(input.text, menu.dmenu ? row.modelData : row.modelData.name, row.selected ? Theme.teal : Theme.red)
+                    text: Apps.styled(input.text, row.line ? row.modelData : row.modelData.name, row.selected ? Theme.teal : Theme.red)
                     // Lines from outside are laid out in columns.
-                    font.family: menu.dmenu ? Theme.monoFont : Theme.font
+                    font.family: row.line ? Theme.monoFont : Theme.font
                     color: row.selected ? Theme.text : Theme.subtext0
                     Behavior on color {
                         ColorAnimation { duration: Theme.hoverDuration }
@@ -371,7 +373,7 @@ PanelWindow {
 
                 PopupText {
                     font.pixelSize: menu.fontSize
-                    visible: !menu.dmenu
+                    visible: !row.line
                     anchors {
                         verticalCenter: parent.verticalCenter
                         left: name.right
@@ -381,7 +383,7 @@ PanelWindow {
                     }
                     horizontalAlignment: Text.AlignRight
                     elide: Text.ElideRight
-                    text: menu.dmenu ? "" : row.modelData.genericName
+                    text: row.line ? "" : row.modelData.genericName
                     color: Theme.surface1
                 }
 
