@@ -186,10 +186,9 @@ Singleton {
     // about, one at a time: a second click does not wait for the first.
     property var pending: []
 
-    // A click on a card: the default action, and the notification is closed.
-    // For a sender that may be running without a window the click leads to
-    // its window as well: brought up if there is none, focused if there is
-    // one, since the sender cannot take the focus by itself.
+    // A click on a card: the default action, the sender's window focused,
+    // and the notification is closed. For a sender that may be running
+    // without a window, the window is brought up if there is none.
     function activate(notification) {
         const app = windowless[notification.desktopEntry];
         if (!app) {
@@ -217,9 +216,7 @@ Singleton {
             // Not one closed in the meantime.
             if (notification && root.tracked.values.includes(notification)) {
                 if (exitCode !== 0) {
-                    const appId = notification.desktopEntry;
                     root.activateDefault(notification);
-                    Niri.focusApp(appId);
                 } else {
                     // Through niri, as from the launcher: a child of this
                     // service would go with it when it restarts.
@@ -232,15 +229,17 @@ Singleton {
     }
 
     // The default action, if there is one, and the notification is closed.
+    // The sender's window is focused: it cannot take the focus by itself.
     function activateDefault(notification) {
+        const appId = notification.desktopEntry;
         const action = notification.actions.find(a => a.identifier === "default");
-        if (action) {
+        // Invoking an action closes a notification that is not resident.
+        const closed = action && !notification.resident;
+        if (action)
             action.invoke();
-            // Invoking an action closes a notification that is not resident.
-            if (!notification.resident)
-                return;
-        }
-        notification.dismiss();
+        if (!closed)
+            notification.dismiss();
+        Niri.focusApp(appId);
     }
 
     // Closes what waits in the center; the toasts stay.
