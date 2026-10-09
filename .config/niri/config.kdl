@@ -356,6 +356,15 @@ layer-rule {
     }
 }
 
+// Quickshell authentication prompt, like the OSD.
+layer-rule {
+    match namespace="^quickshell-auth$"
+    opacity 0.9
+    background-effect {
+        xray false
+    }
+}
+
 // Quickshell notifications, like the OSD.
 layer-rule {
     match namespace="^quickshell-notifications$"
