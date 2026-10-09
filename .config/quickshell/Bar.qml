@@ -158,7 +158,7 @@ PanelWindow {
             }
             onClicked: m => {
                 if (m.button === Qt.RightButton)
-                    Quickshell.execDetached(["ghostty", "-e", "calcure"]);
+                    Quickshell.execDetached(Apps.inTerminal(["calcure"]));
                 else
                     alt = !alt;
             }
@@ -285,7 +285,7 @@ PanelWindow {
                 popup: CpuPopup {}
                 onClicked: m => {
                     if (m.button === Qt.RightButton)
-                        Quickshell.execDetached(["ghostty", "-e", "btop"]);
+                        Quickshell.execDetached(Apps.inTerminal(["btop"]));
                     else if (m.button === Qt.LeftButton)
                         openPopup();
                 }
@@ -300,7 +300,7 @@ PanelWindow {
                 popup: MemoryPopup {}
                 onClicked: m => {
                     if (m.button === Qt.RightButton)
-                        Quickshell.execDetached(["ghostty", "-e", "btop"]);
+                        Quickshell.execDetached(Apps.inTerminal(["btop"]));
                     else if (m.button === Qt.LeftButton)
                         openPopup();
                 }
@@ -335,7 +335,7 @@ PanelWindow {
                 popup: BluetoothPopup {}
                 onClicked: m => {
                     if (m.button === Qt.RightButton)
-                        Quickshell.execDetached(["ghostty", "-e", "bluetui"]);
+                        Quickshell.execDetached(Apps.inTerminal(["bluetui"]));
                     else if (m.button === Qt.LeftButton)
                         openPopup();
                 }
@@ -351,7 +351,7 @@ PanelWindow {
                 popup: VolumePopup {}
                 onClicked: m => {
                     if (m.button === Qt.RightButton)
-                        Quickshell.execDetached(["ghostty", "-e", "wiremix"]);
+                        Quickshell.execDetached(Apps.inTerminal(["wiremix"]));
                     else
                         Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"]);
                 }

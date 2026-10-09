@@ -141,6 +141,11 @@ Singleton {
         return found.concat(asked).sort((a, b) => b.score - a.score || byName(a.entry, b.entry)).map(r => r.entry);
     }
 
+    // A command as run in a terminal.
+    function inTerminal(command) {
+        return ["ghostty", "-e"].concat(command);
+    }
+
     // Started by niri, so that nothing started here ends with quickshell.
     function launch(entry) {
         if (entry.palette) {
@@ -154,7 +159,7 @@ Singleton {
         counts = Object.assign({}, counts, {[entry.id]: (counts[entry.id] ?? 0) + 1});
         store.setText(JSON.stringify(counts));
         const command = Array.from(entry.command);
-        Niri.send({Action: {Spawn: {command: entry.runInTerminal ? ["ghostty", "-e"].concat(command) : command}}});
+        Niri.send({Action: {Spawn: {command: entry.runInTerminal ? inTerminal(command) : command}}});
     }
 
     // A command line as typed.
