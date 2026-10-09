@@ -9,7 +9,7 @@ import qs.widgets
 // finger for, in the middle of the focused output, as the launcher is.
 // PAM asks the reader first and for the password only once the reader gives
 // up: a password typed meanwhile is kept and sent then. Esc cancels.
-PanelWindow {
+Overlay {
     id: auth
 
     // The session is locked: what is asked for is cancelled, then and while
@@ -19,7 +19,11 @@ PanelWindow {
         cancel()
 
     // There a moment longer once it is granted, for the green to be seen.
-    readonly property bool shown: agent.isActive || granted.running
+    shown: agent.isActive || granted.running
+    keyboard: agent.isActive
+    boxWidth: 460
+    boxHeight: column.implicitHeight + 2 * pad
+    readonly property int pad: Theme.popupPadding + Theme.popupTextInset
     // What is asked, kept while the window fades out.
     property string message: ""
     property string buffer: ""
@@ -227,57 +231,7 @@ PanelWindow {
         }
     }
 
-    Pop {
-        id: pop
-        shown: auth.shown
-        mapped: auth.backingWindowVisible
-    }
-
-    screen: Quickshell.screens.find(s => s.name === Niri.focusedOutput) ?? Quickshell.screens[0]
-    anchors {
-        top: true
-        bottom: true
-        left: true
-        right: true
-    }
-    exclusionMode: ExclusionMode.Ignore
-    color: "transparent"
-    visible: shown || pop.openness > 0
-
     WlrLayershell.namespace: "quickshell-auth"
-    WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.keyboardFocus: agent.isActive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
-
-    // The blur and its resending are the power menu's; see PowerMenu.
-    readonly property bool blurred: pop.openness > 0.5
-    BackgroundEffect.blurRegion: Region {
-        x: content.x
-        y: content.y
-        width: auth.blurred ? content.width : 0
-        height: auth.blurred ? content.height : 0
-        radius: Theme.barRadius
-
-        BlurBump {
-            id: blurBump
-            x: content.x + Theme.barRadius
-            y: content.y + Theme.barRadius
-            width: auth.blurred ? 1 : 0
-        }
-    }
-
-    onBlurredChanged: if (blurred)
-        blurBump.send(8)
-
-    // The output dims, as under the power menu. A click does not cancel.
-    Rectangle {
-        anchors.fill: parent
-        color: "black"
-        opacity: 0.45 * Math.min(1, pop.openness)
-    }
-
-    MouseArea {
-        anchors.fill: parent
-    }
 
     Item {
         id: keyHandler
@@ -317,141 +271,82 @@ PanelWindow {
         }
     }
 
-    // Only as large as the box and its shadow, as in the power menu.
-    Item {
-        id: shadowLayer
-        readonly property int room: 30
-        x: content.x - room
-        y: content.y - room
-        width: content.width + 2 * room
-        height: content.height + 2 * room
+    Column {
+        id: column
+        x: auth.pad
+        y: auth.pad
+        width: auth.boxWidth - 2 * auth.pad
+        spacing: Theme.popupGridGap
 
-        opacity: pop.openness
-        scale: pop.scale
-
-        layer.enabled: true
-        layer.effect: Shadow {}
-
-        Rectangle {
-            x: shadowLayer.room
-            y: shadowLayer.room
-            width: content.width
-            height: content.height
-            radius: Theme.barRadius
-            color: Theme.base
+        PopupText {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: Theme.glyph(0xf033e)
+            font.pixelSize: 44
+            color: Theme.white
         }
-    }
 
-    // Outside the shadow's layer: text drawn into it comes out soft.
-    Item {
-        id: content
-        readonly property int pad: Theme.popupPadding + Theme.popupTextInset
-        x: Theme.snap((parent.width - width) / 2, auth.devicePixelRatio)
-        y: Theme.snap((parent.height - height) / 2, auth.devicePixelRatio)
-        width: 460
-        height: column.implicitHeight + 2 * pad
-        opacity: pop.openness
-        scale: pop.scale
+        PopupText {
+            width: parent.width
+            horizontalAlignment: Text.AlignHCenter
+            text: auth.message
+            wrapMode: Text.Wrap
+        }
 
-        Column {
-            id: column
-            x: content.pad
-            y: content.pad
-            width: content.width - 2 * content.pad
-            spacing: Theme.popupGridGap
+        // The field: a mark per character, as on the lock.
+        Rectangle {
+            width: parent.width
+            height: 40
+            radius: Theme.moduleRadius
+            color: Theme.surface0
 
             PopupText {
+                anchors.centerIn: parent
+                visible: auth.marks === 0
+                text: auth.checking ? "checking…" : auth.prompt !== "" ? auth.prompt : "password"
+                color: Theme.subtext0
+            }
+
+            // An answer PAM lets be seen, as a second factor's code.
+            PopupText {
+                anchors.centerIn: parent
+                width: Math.min(implicitWidth, parent.width - 2 * Theme.popupTextInset)
+                elide: Text.ElideLeft
+                visible: auth.plain
+                text: auth.buffer
+                opacity: marksRow.opacity
+            }
+
+            // Dimmed too while the password waits for the reader.
+            Marks {
+                id: marksRow
+                visible: !auth.plain
+                marks: auth.marks
+                checking: auth.checking || auth.entered
+                accepted: auth.accepted
+                rejected: auth.rejected
+                most: 22
+            }
+        }
+
+        // The reader's icon and, under it, the line that tells what
+        // goes on, as on the lock. Both keep their place when empty.
+        Column {
+            width: parent.width
+            spacing: Theme.popupRowGap
+
+            FingerMark {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: Theme.glyph(0xf033e)
-                font.pixelSize: 44
-                color: Theme.white
+                mark: auth.finger
             }
 
             PopupText {
+                // Whatever PAM says stays inside the box.
                 width: parent.width
                 horizontalAlignment: Text.AlignHCenter
-                text: auth.message
-                wrapMode: Text.Wrap
-            }
-
-            // The field: a mark per character, as on the lock.
-            Rectangle {
-                width: parent.width
-                height: 40
-                radius: Theme.moduleRadius
-                color: Theme.surface0
-
-                PopupText {
-                    anchors.centerIn: parent
-                    visible: auth.marks === 0
-                    text: auth.checking ? "checking…" : auth.prompt !== "" ? auth.prompt : "password"
-                    color: Theme.subtext0
-                }
-
-                // An answer PAM lets be seen, as a second factor's code.
-                PopupText {
-                    anchors.centerIn: parent
-                    width: Math.min(implicitWidth, parent.width - 2 * Theme.popupTextInset)
-                    elide: Text.ElideLeft
-                    visible: auth.plain
-                    text: auth.buffer
-                    opacity: marksRow.opacity
-                }
-
-                Row {
-                    id: marksRow
-                    anchors.centerIn: parent
-                    spacing: 8
-                    visible: !auth.plain
-                    // Dimmed while the password waits or is checked.
-                    opacity: auth.checking || auth.entered ? 0.5 : 1
-                    Behavior on opacity {
-                        NumberAnimation { duration: 150 }
-                    }
-
-                    Repeater {
-                        // As many as the field is wide.
-                        model: 22
-
-                        PopupText {
-                            required property int index
-                            visible: index < auth.marks
-                            text: Theme.glyph(0xf14fb)
-                            color: auth.accepted ? Theme.green : auth.rejected ? Theme.red : Theme.subtext1
-                        }
-                    }
-                }
-            }
-
-            // The reader's icon and, under it, the line that tells what
-            // goes on, as on the lock. Both keep their place when empty.
-            Column {
-                width: parent.width
-                spacing: Theme.popupRowGap
-
-                PopupText {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: Theme.glyph(0xf0237)
-                    font.pixelSize: 36
-                    opacity: auth.finger === "" ? 0 : 1
-                    color: auth.finger === "ok" ? Theme.green : auth.finger === "bad" ? Theme.red : Theme.subtext0
-                    Behavior on opacity {
-                        NumberAnimation { duration: 150 }
-                    }
-                    Behavior on color {
-                        ColorAnimation { duration: 150 }
-                    }
-                }
-
-                PopupText {
-                    // Whatever PAM says stays inside the box.
-                    width: parent.width
-                    horizontalAlignment: Text.AlignHCenter
-                    elide: Text.ElideRight
-                    text: auth.entered ? "waiting for the reader" : auth.status !== "" ? auth.status : " "
-                    color: auth.entered || !auth.statusIsError ? Theme.subtext0 : Theme.red
-                    font.pixelSize: Theme.fontSize - 2
-                }
+                elide: Text.ElideRight
+                text: auth.entered ? "waiting for the reader" : auth.status !== "" ? auth.status : " "
+                color: auth.entered || !auth.statusIsError ? Theme.subtext0 : Theme.red
+                font.pixelSize: Theme.fontSize - 2
             }
         }
     }
