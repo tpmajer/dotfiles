@@ -206,124 +206,19 @@ Rectangle {
                 }
             }
 
-            // As in hyprlock: a mark fades and grows in at the end of the
-            // row, which stays centred by sliding, not jumping.
-            Row {
-                id: marksRow
-                x: (parent.width - width) / 2
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: 8
-
-                // Pulses while the password is checked: PAM takes a couple
-                // of seconds to say no.
-                SequentialAnimation {
-                    running: view.checking && view.animated
-                    loops: Animation.Infinite
-                    onStarted: pulseEnd.stop()
-                    onStopped: pulseEnd.start()
-
-                    NumberAnimation {
-                        target: marksRow
-                        property: "opacity"
-                        to: 0.35
-                        duration: 450
-                        easing.type: Easing.InOutSine
-                    }
-                    NumberAnimation {
-                        target: marksRow
-                        property: "opacity"
-                        to: 1
-                        duration: 450
-                        easing.type: Easing.InOutSine
-                    }
-                }
-
-                // Back to full from wherever the pulse was.
-                NumberAnimation {
-                    id: pulseEnd
-                    target: marksRow
-                    property: "opacity"
-                    to: 1
-                    duration: 150
-                }
-
-                Behavior on x {
-                    enabled: view.animated
-                    NumberAnimation {
-                        duration: 150
-                        easing.type: Easing.OutCubic
-                    }
-                }
-
-                Repeater {
-                    // As many as the field is wide, shown one per
-                    // character: a Repeater counting the characters
-                    // would make all of them anew at every key.
-                    model: 18
-
-                    // The bar's mark of the active workspace.
-                    PopupText {
-                        required property int index
-                        readonly property bool typed: index < view.marks
-
-                        text: Theme.glyph(0xf14fb)
-                        color: view.accepted ? Theme.green : view.rejected ? Theme.red : Theme.subtext1
-
-                        // Red comes in gradually. Green does not: the
-                        // curtain takes over within a few frames, and
-                        // has it at once.
-                        Behavior on color {
-                            enabled: view.animated && !view.accepted
-                            ColorAnimation {
-                                duration: 250
-                            }
-                        }
-                        opacity: typed ? 1 : 0
-                        scale: typed ? 1 : 0.4
-                        // Out of the row once faded: the row is as wide
-                        // as what was typed.
-                        visible: opacity > 0
-
-                        Behavior on opacity {
-                            enabled: view.animated
-                            NumberAnimation {
-                                duration: typed ? 150 : 100
-                            }
-                        }
-                        Behavior on scale {
-                            enabled: view.animated
-                            NumberAnimation {
-                                duration: typed ? 200 : 100
-                                easing.type: typed ? Easing.OutBack : Easing.InQuad
-                            }
-                        }
-                    }
-                }
+            Marks {
+                marks: view.marks
+                checking: view.checking
+                accepted: view.accepted
+                rejected: view.rejected
+                animated: view.animated
             }
         }
 
-        // The reader waits for a finger; red for one it did not
-        // recognise, green for one it did. Keeps its place when not
-        // shown, so nothing moves.
-        PopupText {
+        FingerMark {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: Theme.glyph(0xf0237)
-            font.pixelSize: 36
-            opacity: view.fingerMark === "" ? 0 : 1
-            color: view.fingerMark === "ok" ? Theme.green : view.fingerMark === "bad" ? Theme.red : Theme.subtext0
-
-            Behavior on opacity {
-                enabled: view.animated
-                NumberAnimation {
-                    duration: 150
-                }
-            }
-            Behavior on color {
-                enabled: view.animated
-                ColorAnimation {
-                    duration: 150
-                }
-            }
+            mark: view.fingerMark
+            animated: view.animated
         }
 
         PopupText {
