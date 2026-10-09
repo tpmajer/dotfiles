@@ -156,12 +156,8 @@ PanelWindow {
             popup: CalendarPopup {
                 now: systemClock.date
             }
-            onClicked: m => {
-                if (m.button === Qt.RightButton)
-                    Quickshell.execDetached(Apps.inTerminal(["calcure"]));
-                else
-                    alt = !alt;
-            }
+            rightCommand: Apps.inTerminal(["calcure"])
+            onClicked: alt = !alt
         }
 
         // weather, left of the clock; not there until it is known
@@ -172,10 +168,7 @@ PanelWindow {
             text: Weather.known ? Weather.icon + " " + Weather.temperatureText : ""
             color: Theme.sky
             popup: WeatherPopup {}
-            onClicked: m => {
-                if (m.button === Qt.LeftButton)
-                    openPopup();
-            }
+            clickOpens: true
         }
 
         // notifications, right of the clock: how many wait in the center,
@@ -198,11 +191,10 @@ PanelWindow {
             popup: NotificationsPopup {
                 panel: bar
             }
+            clickOpens: true
             onClicked: m => {
                 if (m.button === Qt.RightButton)
                     Notifications.toggleDnd();
-                else if (m.button === Qt.LeftButton)
-                    openPopup();
             }
 
             FontMetrics {
@@ -225,13 +217,12 @@ PanelWindow {
             color: Media.color
             content: Media.active ? mediaWave : null
             popup: MediaPopup {}
+            clickOpens: true
             onClicked: m => {
                 if (m.button === Qt.MiddleButton)
                     Media.playPause();
                 else if (m.button === Qt.RightButton)
                     Media.focusWindow();
-                else if (m.button === Qt.LeftButton)
-                    openPopup();
             }
             // Down for the next one, as down a list.
             onScrolled: steps => Media.scroll(-steps)
@@ -283,12 +274,8 @@ PanelWindow {
                 // with the temperature.
                 color: SysStats.cpuTempLevel === 2 ? Theme.red : Theme.lavender
                 popup: CpuPopup {}
-                onClicked: m => {
-                    if (m.button === Qt.RightButton)
-                        Quickshell.execDetached(Apps.inTerminal(["btop"]));
-                    else if (m.button === Qt.LeftButton)
-                        openPopup();
-                }
+                rightCommand: Apps.inTerminal(["btop"])
+                clickOpens: true
             }
 
             // memory
@@ -298,12 +285,8 @@ PanelWindow {
                 // Red with nearly all of it taken.
                 color: SysStats.memLevel === 2 ? Theme.red : Theme.peach
                 popup: MemoryPopup {}
-                onClicked: m => {
-                    if (m.button === Qt.RightButton)
-                        Quickshell.execDetached(Apps.inTerminal(["btop"]));
-                    else if (m.button === Qt.LeftButton)
-                        openPopup();
-                }
+                rightCommand: Apps.inTerminal(["btop"])
+                clickOpens: true
             }
 
             // custom/network
@@ -317,12 +300,8 @@ PanelWindow {
                 popup: NetworkPopup {
                     host: popups
                 }
-                onClicked: m => {
-                    if (m.button === Qt.RightButton)
-                        Quickshell.execDetached(["networkmanager_dmenu"]);
-                    else if (m.button === Qt.LeftButton)
-                        openPopup();
-                }
+                rightCommand: ["networkmanager_dmenu"]
+                clickOpens: true
             }
 
             // bluetooth
@@ -333,12 +312,8 @@ PanelWindow {
                 // Gray while bluetooth is off, as its row in the popup.
                 color: adapter && adapter.enabled ? Theme.sapphire : Theme.subtext0
                 popup: BluetoothPopup {}
-                onClicked: m => {
-                    if (m.button === Qt.RightButton)
-                        Quickshell.execDetached(Apps.inTerminal(["bluetui"]));
-                    else if (m.button === Qt.LeftButton)
-                        openPopup();
-                }
+                rightCommand: Apps.inTerminal(["bluetui"])
+                clickOpens: true
             }
 
             // wireplumber#sink
@@ -349,12 +324,8 @@ PanelWindow {
                 text: !ready ? "" : Audio.icon(sink) + (sink.audio.muted ? "" : " " + Audio.volume(sink) + "%")
                 color: Theme.yellow
                 popup: VolumePopup {}
-                onClicked: m => {
-                    if (m.button === Qt.RightButton)
-                        Quickshell.execDetached(Apps.inTerminal(["wiremix"]));
-                    else
-                        Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"]);
-                }
+                rightCommand: Apps.inTerminal(["wiremix"])
+                onClicked: Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"])
                 onScrolled: steps => Audio.changeVolume(sink, steps)
             }
 
