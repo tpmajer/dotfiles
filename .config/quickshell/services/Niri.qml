@@ -41,6 +41,9 @@ Singleton {
     // Focuses the window of an application, the one focused last if it has
     // several, on whatever workspace it is. False if it has none.
     function focusApp(appId) {
+        // No id is no application, not the windows that have none.
+        if (!appId)
+            return false;
         const stamp = w => w.focus_timestamp ? w.focus_timestamp.secs + w.focus_timestamp.nanos / 1e9 : 0;
         // By the id as it is; failing that whatever its case, and with a
         // Flatpak's domain before it (org.mozilla.firefox for firefox).
