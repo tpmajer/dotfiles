@@ -17,6 +17,7 @@ case "$1" in
             systemctl --user stop "$unit"
         else
             systemd-run --user --collect --quiet --unit="$unit" \
+                -p SuccessExitStatus=124 \
                 systemd-inhibit --what=idle --who=quickshell --why="Manual idle inhibit" \
                 timeout "$timeout" sleep infinity
         fi
