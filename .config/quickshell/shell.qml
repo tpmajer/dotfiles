@@ -47,6 +47,10 @@ ShellRoot {
         locked: lock.locked
     }
 
+    Keyring {
+        locked: lock.locked
+    }
+
     // The bar on the focused output.
     function focusedBar() {
         return bars.instances.find(b => b.screen.name === Niri.focusedOutput) ?? bars.instances[0];
