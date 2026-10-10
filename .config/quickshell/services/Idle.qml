@@ -33,16 +33,11 @@ Singleton {
                 stages.push({label: stage.label, after: listener.after});
         }
         stages.sort((a, b) => a.after - b.after);
-        return stages.some(s => s.label === "Lock") ? stages : fallbackStages;
+        return stages;
     }
-    // While the configuration is not read, or has no lock in it.
-    readonly property var fallbackStages: [
-        {label: "Dim", after: 120},
-        {label: "Lock", after: 180},
-        {label: "Screen off", after: 210},
-        {label: "Suspend", after: 600}
-    ]
-    readonly property int lockAfter: stages.find(s => s.label === "Lock").after
+    // 0 with no lock among the stages: nothing to count down to.
+    readonly property int lockAfter: stages.find(s => s.label === "Lock")?.after ?? 0
+    readonly property bool locks: lockAfter > 0
     // Idle is told after this long, in seconds: its notification's listener.
     readonly property int idleAfter: listeners.find(l => /notify-replace\.sh idle/.test(l.command))?.after ?? 30
 

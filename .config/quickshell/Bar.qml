@@ -259,8 +259,9 @@ PanelWindow {
             // idle inhibitor
             Module {
                 host: popups
-                // Idle: the time left until the lock, in a color that tells.
-                text: Theme.glyph(Idle.inhibited ? 0xf04b3 : 0xf04b2) + (Idle.systemIdle ? " " + Idle.lockCountdown(systemClock.date) : "")
+                // Idle: the time left until the lock, if there is one, in a
+                // color that tells.
+                text: Theme.glyph(Idle.inhibited ? 0xf04b3 : 0xf04b2) + (Idle.systemIdle && Idle.locks ? " " + Idle.lockCountdown(systemClock.date) : "")
                 color: Idle.inhibited ? Theme.sky : Idle.systemIdle ? Theme.peach : Theme.subtext0
                 popup: IdlePopup {}
                 onClicked: Idle.toggle()
