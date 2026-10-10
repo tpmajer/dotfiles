@@ -68,8 +68,8 @@ Scope {
     PamContext {
         id: pam
 
-        // GDM's service, borrowed: it has pam_fprintd, hyprlock's has not.
-        config: "gdm-fingerprint"
+        // pam_fprintd alone (~/.nixos, desktop.nix): hyprlock's has none.
+        config: "lock-fingerprint"
 
         // Its prompt for a finger, then an error for each one not recognised.
         onPamMessage: {
