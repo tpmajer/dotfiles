@@ -34,6 +34,9 @@ Column {
         // The touchpad too: on its own a WheelHandler takes only a mouse's wheel.
         acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
         onWheel: event => {
+            // A turn back starts anew, as in a bar module.
+            if (turned * event.angleDelta.y < 0)
+                turned = 0;
             turned += event.angleDelta.y;
             const months = Math.trunc(turned / 120);
             turned -= months * 120;
