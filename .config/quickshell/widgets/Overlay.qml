@@ -5,8 +5,9 @@ import qs
 import qs.services
 
 // A box in the middle of the focused output, over the output dimmed: the
-// launcher, the power menu, polkit's prompt. It pops in and out, blurred and
-// under a shadow as the bar is. Its children are what is in the box.
+// launcher, the power menu, polkit's prompt and the keyring's. It pops in and
+// out, blurred and under a shadow as the bar is. Its children are what is in
+// the box.
 PanelWindow {
     id: overlay
 
