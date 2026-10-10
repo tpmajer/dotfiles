@@ -319,7 +319,7 @@ PanelWindow {
                 color: Theme.yellow
                 popup: VolumePopup {}
                 rightCommand: Apps.inTerminal(["wiremix"])
-                onClicked: Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"])
+                onClicked: Audio.toggleMute(sink)
                 onScrolled: steps => Audio.changeVolume(sink, steps)
             }
 
