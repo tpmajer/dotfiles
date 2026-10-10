@@ -38,8 +38,9 @@ Singleton {
         send({Action: {FocusWorkspace: {reference: {Id: ws.id}}}});
     }
 
-    // Focuses the window of an application, the one focused last if it has
-    // several, on whatever workspace it is. False if it has none.
+    // Focuses the window of an application, on whatever workspace it is.
+    // If it has several, the one that asks for attention, or else the one
+    // focused last. False if it has none.
     function focusApp(appId) {
         // No id is no application, not the windows that have none.
         if (!appId)
@@ -53,7 +54,7 @@ Singleton {
         const own = (exact.length > 0 ? exact : all.filter(w => {
             const other = String(w.app_id ?? "").toLowerCase();
             return id !== "" && (other === id || other.endsWith("." + id));
-        })).sort((a, b) => stamp(b) - stamp(a));
+        })).sort((a, b) => (b.is_urgent ? 1 : 0) - (a.is_urgent ? 1 : 0) || stamp(b) - stamp(a));
         if (own.length === 0)
             return false;
         send({Action: {FocusWindow: {id: own[0].id}}});
@@ -161,6 +162,13 @@ Singleton {
                 return;
             const map = Object.assign({}, windows);
             map[id] = Object.assign({}, map[id], {focus_timestamp: focus_timestamp});
+            windows = map;
+        } else if (ev.WindowUrgencyChanged) {
+            const {id, urgent} = ev.WindowUrgencyChanged;
+            if (!(id in windows))
+                return;
+            const map = Object.assign({}, windows);
+            map[id] = Object.assign({}, map[id], {is_urgent: urgent});
             windows = map;
         } else if (ev.WindowFocusChanged) {
             const focusedId = ev.WindowFocusChanged.id;

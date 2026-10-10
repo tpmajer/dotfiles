@@ -230,6 +230,8 @@ Singleton {
 
     // The default action, if there is one, and the notification is closed.
     // The sender's window is focused: it cannot take the focus by itself.
+    // A moment after the action, for the window it is about to ask
+    // attention for, which niri then marks urgent.
     function activateDefault(notification) {
         const appId = notification.desktopEntry;
         const action = notification.actions.find(a => a.identifier === "default");
@@ -239,7 +241,19 @@ Singleton {
             action.invoke();
         if (!closed)
             notification.dismiss();
-        Niri.focusApp(appId);
+        if (!action) {
+            Niri.focusApp(appId);
+            return;
+        }
+        focusLater.appId = appId;
+        focusLater.restart();
+    }
+
+    Timer {
+        id: focusLater
+        property string appId: ""
+        interval: 150
+        onTriggered: Niri.focusApp(appId)
     }
 
     // Closes what waits in the center; the toasts stay.
