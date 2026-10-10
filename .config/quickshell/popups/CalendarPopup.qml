@@ -28,20 +28,15 @@ Column {
         return date.getFullYear() * 10000 + date.getMonth() * 100 + date.getDate();
     }
 
-    // A notch of the wheel is a month; a touchpad sends it in small parts.
+    // A notch of the wheel is a month.
     WheelHandler {
-        property real turned: 0
         // The touchpad too: on its own a WheelHandler takes only a mouse's wheel.
         acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-        onWheel: event => {
-            // A turn back starts anew, as in a bar module.
-            if (turned * event.angleDelta.y < 0)
-                turned = 0;
-            turned += event.angleDelta.y;
-            const months = Math.trunc(turned / 120);
-            turned -= months * 120;
-            cal.offset -= months;
-        }
+        onWheel: event => wheel.turn(event.angleDelta.y)
+    }
+    WheelSteps {
+        id: wheel
+        onStepped: months => cal.offset -= months
     }
     // Weeks start on Monday: getDay() is 0 for Sunday, so shift it to the end.
     readonly property int firstDay: (new Date(year, month, 1).getDay() + 6) % 7

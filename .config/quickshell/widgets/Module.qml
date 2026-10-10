@@ -158,16 +158,11 @@ Item {
                 root.clicked();
             }
         }
-        // A step per notch of a wheel; a touchpad sends many small turns.
-        property real turned: 0
-        onWheel: w => {
-            if (turned * w.angleDelta.y < 0)
-                turned = 0;
-            turned += w.angleDelta.y;
-            const steps = Math.trunc(turned / 120);
-            turned -= steps * 120;
-            if (steps !== 0)
-                root.scrolled(steps);
+        onWheel: w => wheel.turn(w.angleDelta.y)
+
+        WheelSteps {
+            id: wheel
+            onStepped: steps => root.scrolled(steps)
         }
         onContainsMouseChanged: if (root.host)
             root.host.moduleHovered(root, containsMouse)
