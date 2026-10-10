@@ -81,6 +81,8 @@ Singleton {
                     destroy();
                 }
             }
+            // One that never connects is not told as disconnected.
+            onError: destroy()
             parser: SplitParser {
                 onRead: line => {
                     if (!line.startsWith('{"Ok"'))
