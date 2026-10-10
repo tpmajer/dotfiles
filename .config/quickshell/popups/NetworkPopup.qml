@@ -103,6 +103,7 @@ Column {
             labelWidth: wgSwitches.labelWidth
             valueWidth: wgSwitches.valueWidth
             bright: Network.vpn
+            onColor: Theme.teal
             text: "WireGuard"
             value: Network.vpn ? "on" : "off"
             onTriggered: Network.toggleTunnel()
@@ -112,6 +113,7 @@ Column {
             labelWidth: wgSwitches.labelWidth
             valueWidth: wgSwitches.valueWidth
             bright: Network.wgAuto
+            onColor: Theme.teal
             text: "WireGuard auto"
             value: Network.wgAuto ? "on" : "off"
             onTriggered: Network.toggleWgAuto()

@@ -16,6 +16,8 @@ Rectangle {
     property string value: ""
     property color iconColor: Theme.text
     property bool bright: false
+    // The value's color in a bright row: its module's, for a switch.
+    property color onColor: Theme.text
     property bool highlighted: false
     readonly property bool hovered: mouse.containsMouse
     readonly property bool active: hovered || highlighted
@@ -96,7 +98,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             textFormat: Text.StyledText
             text: root.value
-            color: label.color
+            color: root.bright ? root.onColor : label.color
         }
     }
 

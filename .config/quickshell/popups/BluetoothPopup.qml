@@ -25,6 +25,7 @@ PopupList {
         labelWidth: btList.nameWidth
         valueWidth: btList.valueWidth
         bright: on
+        onColor: Theme.sapphire
         text: "Bluetooth"
         value: on ? "on" : "off"
         onTriggered: btList.adapter.enabled = !on

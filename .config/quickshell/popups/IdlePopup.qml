@@ -22,6 +22,7 @@ Column {
         id: inhibitor
         labelWidth: popup.wide - chromeWidth - valueImplicitWidth
         bright: popup.inhibited
+        onColor: Theme.sky
         text: "Idle inhibitor"
         value: popup.inhibited ? "on" : "off"
         onTriggered: Custom.toggleIdle()
