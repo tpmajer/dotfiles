@@ -15,7 +15,7 @@ Includes configuration for: [Niri](https://github.com/niri-wm/niri) · [Ghostty]
 One Quickshell configuration is the bar with its popups, the notifications,
 the volume and brightness OSD, the power menu and the session lock. The lock
 checks the password and the fingerprint through PAM services set up outside
-this repo (`hyprlock` and `gdm-fingerprint`), and is driven over IPC:
+this repo (`hyprlock` and `lock-fingerprint`), and is driven over IPC:
 
 ```sh
 qs ipc call lock lock        # lock, with the fade (hypridle's lock_cmd)
