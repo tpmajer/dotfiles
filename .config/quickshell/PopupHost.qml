@@ -165,7 +165,6 @@ Item {
     // ---- background: bar + popup, under one shadow ---------------------------
 
     Item {
-        id: shapes
         anchors.fill: parent
 
         layer.enabled: true

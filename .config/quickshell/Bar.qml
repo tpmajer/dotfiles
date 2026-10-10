@@ -245,7 +245,6 @@ PanelWindow {
         }
 
         Row {
-            id: rightRow
             anchors.right: parent.right
             height: parent.height
 
