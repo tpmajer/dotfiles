@@ -168,7 +168,7 @@ PanelWindow {
             text: Weather.known ? Weather.icon + " " + Weather.temperatureText : ""
             color: Theme.sky
             popup: WeatherPopup {}
-            clickOpens: true
+            clickOpensPopup: true
         }
 
         // notifications, right of the clock: how many wait in the center,
@@ -191,7 +191,7 @@ PanelWindow {
             popup: NotificationsPopup {
                 panel: bar
             }
-            clickOpens: true
+            clickOpensPopup: true
             onRightClicked: Notifications.toggleDnd()
 
             FontMetrics {
@@ -214,7 +214,7 @@ PanelWindow {
             color: Media.color
             content: Media.active ? mediaWave : null
             popup: MediaPopup {}
-            clickOpens: true
+            clickOpensPopup: true
             onMiddleClicked: Media.playPause()
             onRightClicked: Media.focusWindow()
             // Down for the next one, as down a list.
@@ -269,7 +269,7 @@ PanelWindow {
                 color: SysStats.cpuTempLevel === 2 ? Theme.red : Theme.lavender
                 popup: CpuPopup {}
                 rightCommand: Apps.inTerminal(["btop"])
-                clickOpens: true
+                clickOpensPopup: true
             }
 
             // memory
@@ -280,7 +280,7 @@ PanelWindow {
                 color: SysStats.memLevel === 2 ? Theme.red : Theme.peach
                 popup: MemoryPopup {}
                 rightCommand: Apps.inTerminal(["btop"])
-                clickOpens: true
+                clickOpensPopup: true
             }
 
             // network
@@ -295,7 +295,7 @@ PanelWindow {
                     host: popups
                 }
                 rightCommand: ["networkmanager_dmenu"]
-                clickOpens: true
+                clickOpensPopup: true
             }
 
             // bluetooth
@@ -307,7 +307,7 @@ PanelWindow {
                 color: adapter && adapter.enabled ? Theme.sapphire : Theme.subtext0
                 popup: BluetoothPopup {}
                 rightCommand: Apps.inTerminal(["bluetui"])
-                clickOpens: true
+                clickOpensPopup: true
             }
 
             // volume

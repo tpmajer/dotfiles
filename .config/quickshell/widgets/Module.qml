@@ -39,7 +39,7 @@ Item {
     // What a right click runs, and whether a left one shows the popup at
     // once. Each button has its signal, sent whatever else its click does.
     property var rightCommand: []
-    property bool clickOpens: false
+    property bool clickOpensPopup: false
 
     signal clicked
     signal rightClicked
@@ -153,7 +153,7 @@ Item {
             } else if (m.button === Qt.MiddleButton) {
                 root.middleClicked();
             } else {
-                if (root.clickOpens)
+                if (root.clickOpensPopup)
                     root.openPopup();
                 root.clicked();
             }
