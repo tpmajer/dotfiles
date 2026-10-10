@@ -18,12 +18,16 @@ Overlay {
     onLockedChanged: if (locked)
         cancel()
 
+    // polkit's prompt is on show: this one is out of its way until it is
+    // gone, what was typed kept. PAM would not wait, oo7 does.
+    property bool waits: false
+
     // The connection of the prompt on show.
     property var link: null
     // There a moment longer once it is taken, for the green to be seen, or
     // what went wrong to be read.
-    shown: link !== null || granted.running || failed.running
-    keyboard: link !== null
+    shown: !waits && (link !== null || granted.running || failed.running)
+    keyboard: !waits && link !== null
     boxWidth: 460
     boxHeight: column.implicitHeight + 2 * pad
     readonly property int pad: Theme.popupPadding + Theme.popupTextInset

@@ -44,11 +44,13 @@ ShellRoot {
     }
 
     Auth {
+        id: auth
         locked: lock.locked
     }
 
     Keyring {
         locked: lock.locked
+        waits: auth.shown
     }
 
     // The bar on the focused output.
