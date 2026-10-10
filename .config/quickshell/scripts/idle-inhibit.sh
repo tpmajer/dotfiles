@@ -6,6 +6,7 @@
 # inhibitor to the bar's surface, so niri ignores it while the bar is covered).
 # The inhibitor ends on toggle, after $timeout (wall clock), or on suspend
 # (before_sleep_cmd in hypridle.conf stops the unit).
+# Without an argument, exits 0 while the inhibitor is on.
 
 unit=idle-inhibit.service
 timeout=${IDLE_INHIBIT_TIMEOUT:-30m}
@@ -21,10 +22,6 @@ case "$1" in
         fi
         ;;
     *)
-        if systemctl --user is-active --quiet "$unit"; then
-            printf '{"text":"󰒳","class":"activated","tooltip":"Idle inhibitor on"}\n'
-        else
-            printf '{"text":"󰒲","class":"deactivated","tooltip":"Idle inhibitor off"}\n'
-        fi
+        systemctl --user is-active --quiet "$unit"
         ;;
 esac

@@ -260,10 +260,10 @@ PanelWindow {
             Module {
                 host: popups
                 // Idle: the time left until the lock, in a color that tells.
-                text: (Custom.idle.text || "") + (Custom.systemIdle ? " " + Custom.lockCountdown(systemClock.date) : "")
-                color: Custom.idle.class === "activated" ? Theme.sky : Custom.systemIdle ? Theme.peach : Theme.subtext0
-                popup: Custom.idle.tooltip ? idlePopup : null
-                onClicked: Custom.toggleIdle()
+                text: Theme.glyph(Idle.inhibited ? 0xf04b3 : 0xf04b2) + (Idle.systemIdle ? " " + Idle.lockCountdown(systemClock.date) : "")
+                color: Idle.inhibited ? Theme.sky : Idle.systemIdle ? Theme.peach : Theme.subtext0
+                popup: IdlePopup {}
+                onClicked: Idle.toggle()
             }
 
             // cpu
@@ -353,12 +353,5 @@ PanelWindow {
     SystemClock {
         id: systemClock
         precision: SystemClock.Seconds
-    }
-
-    // ---- popup contents live in popups/; this one is assigned conditionally --------
-
-    Component {
-        id: idlePopup
-        IdlePopup {}
     }
 }

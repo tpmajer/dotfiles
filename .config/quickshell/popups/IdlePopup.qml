@@ -10,7 +10,7 @@ Column {
     id: popup
 
     readonly property bool hasRows: true
-    readonly property bool inhibited: Custom.idle.class === "activated"
+    readonly property bool inhibited: Idle.inhibited
     // The switch's text and the rows below are as wide as the wider of the two.
     readonly property real wide: Math.max(details.implicitWidth, inhibitor.chromeWidth + inhibitor.labelImplicitWidth + inhibitor.valueImplicitWidth)
     spacing: Theme.popupRowGap
@@ -25,7 +25,7 @@ Column {
         onColor: Theme.sky
         text: "Idle inhibitor"
         value: popup.inhibited ? "on" : "off"
-        onTriggered: Custom.toggleIdle()
+        onTriggered: Idle.toggle()
     }
 
     PopupDetails {
@@ -34,6 +34,6 @@ Column {
         width: popup.wide
         // Nothing of it happens while the inhibitor is on.
         opacity: popup.inhibited ? 0.4 : 1
-        rows: Custom.idleStages.map(s => ({label: s.label, value: "after " + s.after / 60 + " min"}))
+        rows: Idle.stages.map(s => ({label: s.label, value: "after " + s.after / 60 + " min"}))
     }
 }

@@ -5,17 +5,17 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 
-// The idle inhibitor module, backed by scripts/idle-inhibit.sh, which prints
-// JSON: {"text", "tooltip", "class"}. Asked right after a toggle, and every
-// half a minute for what ends it elsewhere: its timeout, or a suspend.
-// The module also tells that the system is idle, and how long is left until
-// it locks.
+// The idle inhibitor module, backed by scripts/idle-inhibit.sh, which tells
+// by its exit code whether the inhibitor is on. Asked right after a toggle,
+// and every half a minute for what ends it elsewhere: its timeout, or a
+// suspend. The module also tells that the system is idle, and how long is
+// left until it locks.
 Singleton {
     id: root
 
     readonly property string scripts: Quickshell.shellDir + "/scripts/"
 
-    property var idle: ({})
+    property bool inhibited: false
 
     // What hypridle does once nothing is touched, and after how many
     // seconds: the listeners of its configuration, told by their commands.
@@ -25,7 +25,7 @@ Singleton {
         {label: "Screen off", command: /power-off-monitors/},
         {label: "Suspend", command: /systemctl suspend/}
     ]
-    readonly property var idleStages: {
+    readonly property var stages: {
         const stages = [];
         for (const stage of stageCommands) {
             const listener = listeners.find(l => stage.command.test(l.command));
@@ -42,7 +42,7 @@ Singleton {
         {label: "Screen off", after: 210},
         {label: "Suspend", after: 600}
     ]
-    readonly property int lockAfter: idleStages.find(s => s.label === "Lock").after
+    readonly property int lockAfter: stages.find(s => s.label === "Lock").after
     // Idle is told after this long, in seconds: its notification's listener.
     readonly property int idleAfter: listeners.find(l => /notify-replace\.sh idle/.test(l.command))?.after ?? 30
 
@@ -72,7 +72,7 @@ Singleton {
     // Nothing touched for idleAfter, and nothing holds the idle off: hypridle
     // is on its way to the lock. The script's inhibitor is logind's, which
     // the compositor, and so the monitor, knows nothing of.
-    readonly property bool systemIdle: idleMonitor.isIdle && idle.class !== "activated"
+    readonly property bool systemIdle: idleMonitor.isIdle && !inhibited
     // When the last thing was touched, in ms; told idleAfter later.
     property real idleSince: 0
 
@@ -89,24 +89,14 @@ Singleton {
             root.idleSince = Date.now() - root.idleAfter * 1000
     }
 
-    function parse(text) {
-        try {
-            return JSON.parse(text.trim());
-        } catch (e) {
-            return {};
-        }
-    }
-
-    function toggleIdle() {
+    function toggle() {
         idleToggle.running = true;
     }
 
     Process {
         id: idleStatus
         command: [root.scripts + "idle-inhibit.sh"]
-        stdout: StdioCollector {
-            onStreamFinished: root.idle = root.parse(text)
-        }
+        onExited: exitCode => root.inhibited = exitCode === 0
     }
 
     Process {
