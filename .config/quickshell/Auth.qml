@@ -1,8 +1,6 @@
 import QtQuick
-import Quickshell
 import Quickshell.Services.Polkit
 import Quickshell.Wayland
-import qs.services
 import qs.widgets
 
 // Polkit's authentication agent: what a program asks the password or a

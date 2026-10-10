@@ -2,7 +2,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
-import qs.services
 import qs.widgets
 
 // The keyring's prompt: the password oo7 asks for to unlock a keyring, or
