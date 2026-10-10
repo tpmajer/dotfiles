@@ -84,6 +84,9 @@ Overlay {
         } catch (e) {
             return;
         }
+        // A line that is JSON and no message, such as null.
+        if (!message)
+            return;
         if (message.event === "prompt") {
             // One at a time: the one on show gives way.
             if (link && link !== socket)
