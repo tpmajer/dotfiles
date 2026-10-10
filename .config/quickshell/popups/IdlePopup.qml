@@ -43,6 +43,6 @@ Column {
         width: popup.wide
         // Nothing of it happens while the inhibitor is on.
         opacity: popup.inhibited ? 0.4 : 1
-        rows: Idle.stages.map(s => ({label: s.label, value: "after " + popup.span(s.after)}))
+        rows: Idle.stages.map(s => ({label: s.label, value: popup.span(s.after)}))
     }
 }
