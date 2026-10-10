@@ -7,8 +7,6 @@ import Quickshell.Io
 import qs.services
 
 ShellRoot {
-    Arrival {}
-
     Variants {
         id: bars
         model: Quickshell.screens
