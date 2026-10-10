@@ -46,7 +46,9 @@ Singleton {
     property string hypridle: ""
     readonly property var listeners: {
         const found = [];
-        const block = /^[ \t]*listener\s*\{([^}]*)\}/gm;
+        // A block ends at the brace that starts a line, not at one in a
+        // command or a comment.
+        const block = /^[ \t]*listener\s*\{([\s\S]*?)^[ \t]*\}/gm;
         for (let m = block.exec(hypridle); m; m = block.exec(hypridle)) {
             const after = m[1].match(/^\s*timeout\s*=\s*(\d+)/m);
             const command = m[1].match(/^\s*on-timeout\s*=\s*(.*)$/m);
