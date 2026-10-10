@@ -134,8 +134,8 @@ Overlay {
     }
 
     PopupText {
-        font.pixelSize: menu.fontSize
         id: prompt
+        font.pixelSize: menu.fontSize
         x: Theme.popupPadding + Theme.popupTextInset
         anchors.verticalCenter: input.verticalCenter
         text: "❯"
@@ -253,8 +253,8 @@ Overlay {
             }
 
             PopupText {
-                font.pixelSize: menu.fontSize
                 id: name
+                font.pixelSize: menu.fontSize
                 anchors.verticalCenter: parent.verticalCenter
                 x: row.line ? Theme.popupTextInset : icon.x + icon.width + Theme.popupColumnGap
                 width: Math.min(implicitWidth, row.width - x - Theme.popupTextInset)
