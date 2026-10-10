@@ -307,15 +307,6 @@ layer-rule {
     }
 }
 
-layer-rule {
-    match namespace="logout_dialog"
-    opacity 0.9
-    background-effect {
-        blur true
-        xray false
-    }
-}
-
 // Quickshell bar (~/.config/quickshell). The surface is taller than the
 // bar so popups can grow out of it; the shape, shadow and blur region are drawn by
 // the bar itself, so no shadow or corner radius here.
