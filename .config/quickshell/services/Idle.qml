@@ -56,12 +56,31 @@ Singleton {
         return found;
     }
 
+    // Read when hypridle starts, not when the file changes: hypridle goes
+    // by what it read then.
     FileView {
+        id: configuration
         path: Quickshell.env("HOME") + "/.config/hypr/hypridle.conf"
-        watchChanges: true
         printErrors: false
-        onFileChanged: reload()
         onLoaded: root.hypridle = text()
+    }
+
+    // When hypridle was started, as systemd tells it; asked with the
+    // inhibitor.
+    property string hypridleStart: ""
+
+    Process {
+        id: hypridleStatus
+        command: ["systemctl", "--user", "show", "hypridle.service", "-p", "ExecMainStartTimestampMonotonic", "--value"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const start = text.trim();
+                if (start === root.hypridleStart)
+                    return;
+                root.hypridleStart = start;
+                configuration.reload();
+            }
+        }
     }
 
     // Nothing touched for idleAfter, and nothing holds the idle off: hypridle
@@ -121,6 +140,9 @@ Singleton {
         running: true
         repeat: true
         triggeredOnStart: true
-        onTriggered: idleStatus.running = true
+        onTriggered: {
+            idleStatus.running = true;
+            hypridleStatus.running = true;
+        }
     }
 }
