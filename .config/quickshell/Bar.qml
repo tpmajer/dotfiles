@@ -93,7 +93,7 @@ PanelWindow {
             id: leftRow
             height: parent.height
 
-            // custom/logo
+            // launcher
             Module {
                 host: popups
                 text: Theme.glyph(0xf313)
@@ -104,7 +104,7 @@ PanelWindow {
                 onClicked: bar.launcherRequested()
             }
 
-            // niri/workspaces
+            // workspaces
             Row {
                 id: workspaceRow
                 readonly property var workspaces: Niri.workspacesOn(bar.screen.name)
@@ -129,7 +129,7 @@ PanelWindow {
                 }
             }
 
-            // niri/window
+            // focused window
             Module {
                 id: windowModule
                 property bool alt: false
@@ -256,7 +256,7 @@ PanelWindow {
             anchors.right: parent.right
             height: parent.height
 
-            // custom/idle-inhibit
+            // idle inhibitor
             Module {
                 host: popups
                 // Idle: the time left until the lock, in a color that tells.
@@ -289,7 +289,7 @@ PanelWindow {
                 clickOpens: true
             }
 
-            // custom/network
+            // network
             Module {
                 host: popups
                 prefix: Network.wiredText
@@ -316,7 +316,7 @@ PanelWindow {
                 clickOpens: true
             }
 
-            // wireplumber#sink
+            // volume
             Module {
                 readonly property var sink: Audio.defaultSink
                 readonly property bool ready: !!sink && !!sink.audio
@@ -339,7 +339,7 @@ PanelWindow {
                 onClicked: alt = !alt
             }
 
-            // custom/power
+            // power menu
             Module {
                 host: popups
                 text: Theme.glyph(0xf0906)

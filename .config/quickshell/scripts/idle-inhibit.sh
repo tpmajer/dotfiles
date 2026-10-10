@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-# Manual idle inhibitor for the quickshell bar's idle-inhibit module.
+# Manual idle inhibitor for the quickshell bar's idle module.
 # Holds a logind "idle" inhibitor, which hypridle honours even when the bar is
-# hidden behind a fullscreen window (the built-in idle_inhibitor module ties the
-# inhibitor to the bar's surface, so niri ignores it while the bar is covered).
+# hidden behind a fullscreen window (a Wayland idle inhibitor is tied to the
+# bar's surface, so niri ignores it while the bar is covered).
 # The inhibitor ends on toggle, after $timeout (wall clock), or on suspend
 # (before_sleep_cmd in hypridle.conf stops the unit).
 # Without an argument, exits 0 while the inhibitor is on.
