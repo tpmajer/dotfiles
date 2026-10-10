@@ -89,6 +89,10 @@ Singleton {
             root.idleSince = Date.now() - root.idleAfter * 1000
     }
 
+    // A toggle ended while the state was being asked: the answer may be
+    // from before it, so it is asked again.
+    property bool stale: false
+
     function toggle() {
         idleToggle.running = true;
     }
@@ -96,13 +100,25 @@ Singleton {
     Process {
         id: idleStatus
         command: [root.scripts + "idle-inhibit.sh"]
-        onExited: exitCode => root.inhibited = exitCode === 0
+        onExited: exitCode => {
+            if (!root.stale) {
+                root.inhibited = exitCode === 0;
+                return;
+            }
+            root.stale = false;
+            Qt.callLater(() => idleStatus.running = true);
+        }
     }
 
     Process {
         id: idleToggle
         command: [root.scripts + "idle-inhibit.sh", "toggle"]
-        onExited: idleStatus.running = true
+        onExited: {
+            if (idleStatus.running)
+                root.stale = true;
+            else
+                idleStatus.running = true;
+        }
     }
 
     Timer {
