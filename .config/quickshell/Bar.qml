@@ -192,10 +192,7 @@ PanelWindow {
                 panel: bar
             }
             clickOpens: true
-            onClicked: m => {
-                if (m.button === Qt.RightButton)
-                    Notifications.toggleDnd();
-            }
+            onRightClicked: Notifications.toggleDnd()
 
             FontMetrics {
                 id: bellMetrics
@@ -218,12 +215,8 @@ PanelWindow {
             content: Media.active ? mediaWave : null
             popup: MediaPopup {}
             clickOpens: true
-            onClicked: m => {
-                if (m.button === Qt.MiddleButton)
-                    Media.playPause();
-                else if (m.button === Qt.RightButton)
-                    Media.focusWindow();
-            }
+            onMiddleClicked: Media.playPause()
+            onRightClicked: Media.focusWindow()
             // Down for the next one, as down a list.
             onScrolled: steps => Media.scroll(-steps)
 

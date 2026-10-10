@@ -37,11 +37,13 @@ Item {
     property int maxTextWidth: -1
 
     // What a right click runs, and whether a left one shows the popup at
-    // once. clicked() is for the clicks that do neither.
+    // once. Each button has its signal, sent whatever else its click does.
     property var rightCommand: []
     property bool clickOpens: false
 
-    signal clicked(var mouse)
+    signal clicked
+    signal rightClicked
+    signal middleClicked
     signal scrolled(int steps)
 
     // Shows the popup at once, without the wait a hover takes.
@@ -144,12 +146,17 @@ Item {
         hoverEnabled: true
         acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
         onClicked: m => {
-            if (m.button === Qt.RightButton && root.rightCommand.length > 0)
-                Quickshell.execDetached(root.rightCommand);
-            else if (m.button === Qt.LeftButton && root.clickOpens)
-                root.openPopup();
-            else
-                root.clicked(m);
+            if (m.button === Qt.RightButton) {
+                if (root.rightCommand.length > 0)
+                    Quickshell.execDetached(root.rightCommand);
+                root.rightClicked();
+            } else if (m.button === Qt.MiddleButton) {
+                root.middleClicked();
+            } else {
+                if (root.clickOpens)
+                    root.openPopup();
+                root.clicked();
+            }
         }
         // A step per notch of a wheel; a touchpad sends many small turns.
         property real turned: 0
