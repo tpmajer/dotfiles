@@ -35,24 +35,15 @@ Overlay {
     // fades out.
     property string role: "unlock"
     property string collection: ""
-    property string buffer: ""
     // A new keyring's password, until it is typed again.
     property string first: ""
-    // Sent, not answered yet.
-    property bool checking: false
-    // The marks, kept green or red for a moment after the answer.
-    property int frozenMarks: -1
-    property bool accepted: false
-    property bool rejected: false
-    readonly property int marks: frozenMarks >= 0 ? frozenMarks : buffer.length
     // The line below the field, an error.
     property string status: ""
 
     // What was typed is not kept past its use.
     function forget() {
-        buffer = "";
+        field.forget();
         first = "";
-        checking = false;
     }
 
     function tell(socket, message) {
@@ -68,24 +59,22 @@ Overlay {
 
     // The marks turn red for a moment.
     function refuse(text) {
-        frozenMarks = buffer.length;
-        rejected = true;
-        rejectionShown.restart();
-        forget();
+        field.refuse();
+        first = "";
         status = text;
     }
 
     function enter() {
-        if (buffer === "" || checking || !link)
+        if (field.buffer === "" || field.checking || !link)
             return;
         if (role === "create" && first === "") {
-            first = buffer;
-            buffer = "";
-        } else if (role === "create" && buffer !== first) {
+            first = field.buffer;
+            field.buffer = "";
+        } else if (role === "create" && field.buffer !== first) {
             refuse("the passwords differ");
         } else {
-            checking = true;
-            tell(link, {password: buffer});
+            field.checking = true;
+            tell(link, {password: field.buffer});
         }
     }
 
@@ -102,16 +91,13 @@ Overlay {
                 tell(link, {cancel: true});
             granted.stop();
             failed.stop();
-            rejectionShown.stop();
-            forget();
-            frozenMarks = -1;
-            accepted = false;
-            rejected = false;
+            field.clear();
+            first = "";
             status = "";
             role = message.role;
             collection = message.collection;
             link = socket;
-            keyHandler.forceActiveFocus();
+            field.forceActiveFocus();
             if (locked)
                 cancel();
         } else if (socket !== link) {
@@ -120,9 +106,8 @@ Overlay {
             // oo7's words for it are a sentence, and translated.
             refuse(role === "unlock" ? "wrong password" : message.reason);
         } else if (message.event === "done") {
-            frozenMarks = buffer.length;
-            accepted = true;
-            forget();
+            field.succeed();
+            first = "";
             status = "";
             granted.restart();
         } else if (message.event === "failed") {
@@ -163,52 +148,8 @@ Overlay {
         interval: 2000
     }
 
-    Timer {
-        id: rejectionShown
-        interval: 800
-        onTriggered: {
-            keyring.rejected = false;
-            keyring.frozenMarks = -1;
-        }
-    }
-
     // polkit's prompt's, for niri's rule for it.
     WlrLayershell.namespace: "quickshell-auth"
-
-    Item {
-        id: keyHandler
-        focus: true
-        Keys.onPressed: event => {
-            event.accepted = true;
-            if (event.key === Qt.Key_Escape) {
-                keyring.cancel();
-                return;
-            }
-            if (keyring.checking || keyring.accepted)
-                return;
-            // A key during the red marks starts the next attempt.
-            if (keyring.rejected) {
-                rejectionShown.stop();
-                keyring.rejected = false;
-                keyring.frozenMarks = -1;
-            }
-            switch (event.key) {
-            case Qt.Key_Return:
-            case Qt.Key_Enter:
-                keyring.enter();
-                break;
-            case Qt.Key_Backspace:
-                keyring.buffer = event.modifiers & Qt.ControlModifier ? "" : keyring.buffer.slice(0, -1);
-                break;
-            default:
-                // Printable characters only.
-                if (event.text.length > 0 && event.text >= " " && event.text !== "\x7f") {
-                    keyring.buffer += event.text;
-                    keyring.status = "";
-                }
-            }
-        }
-    }
 
     Column {
         id: column
@@ -231,26 +172,15 @@ Overlay {
             wrapMode: Text.Wrap
         }
 
-        // The field: a mark per character, as on the lock.
-        Rectangle {
+        PasswordField {
+            id: field
             width: parent.width
-            height: 40
-            radius: Theme.moduleRadius
-            color: Theme.surface0
-
-            PopupText {
-                anchors.centerIn: parent
-                visible: keyring.marks === 0
-                text: keyring.checking ? "checking…" : keyring.role !== "create" ? "password" : keyring.first === "" ? "new password" : "the password again"
-                color: Theme.subtext0
-            }
-
-            Marks {
-                marks: keyring.marks
-                checking: keyring.checking
-                accepted: keyring.accepted
-                rejected: keyring.rejected
-                most: 22
+            placeholder: keyring.role !== "create" ? "password" : keyring.first === "" ? "new password" : "the password again"
+            onEntered: keyring.enter()
+            onCancelled: keyring.cancel()
+            onEdited: typed => {
+                if (typed)
+                    keyring.status = "";
             }
         }
 

@@ -26,16 +26,8 @@ Overlay {
     readonly property int pad: Theme.popupPadding + Theme.popupTextInset
     // What is asked, kept while the window fades out.
     property string message: ""
-    property string buffer: ""
     // Enter was pressed: the answer goes out once it is asked for.
     property bool entered: false
-    // Sent, not answered yet.
-    property bool checking: false
-    // The marks, kept green or red for a moment after the answer.
-    property int frozenMarks: -1
-    property bool accepted: false
-    property bool rejected: false
-    readonly property int marks: frozenMarks >= 0 ? frozenMarks : buffer.length
     // What PAM asks for, "" for the password, and whether it may be seen.
     readonly property string prompt: (agent.flow?.inputPrompt ?? "").trim().replace(/:$/, "").replace(/^password$/i, "")
     readonly property bool plain: agent.flow?.responseVisible ?? false
@@ -56,9 +48,8 @@ Overlay {
 
     // What was typed is not kept past its use.
     function forget() {
-        buffer = "";
+        field.forget();
         entered = false;
-        checking = false;
     }
 
     function cancel() {
@@ -68,9 +59,9 @@ Overlay {
     }
 
     function send() {
-        checking = true;
+        field.checking = true;
         entered = false;
-        agent.flow.submit(buffer);
+        agent.flow.submit(field.buffer);
     }
 
     function sendEntered() {
@@ -79,7 +70,7 @@ Overlay {
     }
 
     function enter() {
-        if (buffer === "" || checking || !agent.flow)
+        if (field.buffer === "" || field.checking || !agent.flow)
             return;
         if (agent.flow.isResponseRequired)
             send();
@@ -89,9 +80,8 @@ Overlay {
 
     // Granted: the marks or the reader's icon turn green.
     function succeed() {
-        frozenMarks = buffer.length;
-        accepted = true;
-        forget();
+        field.succeed();
+        entered = false;
         if (finger !== "")
             finger = "ok";
         say("", false);
@@ -139,7 +129,7 @@ Overlay {
         if (!flow)
             return;
         message = flow.message;
-        keyHandler.forceActiveFocus();
+        field.forceActiveFocus();
         if (locked)
             Qt.callLater(cancel);
     }
@@ -154,10 +144,8 @@ Overlay {
 
         onAuthenticationRequestStarted: {
             granted.stop();
-            auth.forget();
-            auth.frozenMarks = -1;
-            auth.accepted = false;
-            auth.rejected = false;
+            field.clear();
+            auth.entered = false;
             auth.finger = "";
             auth.asked = false;
             auth.say("", false);
@@ -175,10 +163,10 @@ Overlay {
             auth.finger = "";
             auth.asked = true;
             auth.say("", false);
-            if (auth.checking) {
+            if (field.checking) {
                 // Another question after the answer: a second factor.
                 auth.forget();
-                auth.frozenMarks = -1;
+                field.frozenMarks = -1;
             } else if (auth.entered) {
                 // Once the flow is done setting the question up.
                 Qt.callLater(auth.sendEntered);
@@ -197,10 +185,8 @@ Overlay {
 
         // PAM starts over, with the reader.
         function onAuthenticationFailed() {
-            auth.frozenMarks = auth.buffer.length;
-            auth.rejected = true;
-            rejectionShown.restart();
-            auth.forget();
+            field.refuse();
+            auth.entered = false;
             auth.asked = false;
             auth.say("not authorised", true);
         }
@@ -222,54 +208,7 @@ Overlay {
         }
     }
 
-    Timer {
-        id: rejectionShown
-        interval: 800
-        onTriggered: {
-            auth.rejected = false;
-            auth.frozenMarks = -1;
-        }
-    }
-
     WlrLayershell.namespace: "quickshell-auth"
-
-    Item {
-        id: keyHandler
-        focus: true
-        Keys.onPressed: event => {
-            event.accepted = true;
-            if (event.key === Qt.Key_Escape) {
-                auth.cancel();
-                return;
-            }
-            if (auth.checking || auth.accepted)
-                return;
-            // A key during the red marks starts the next attempt.
-            if (auth.rejected) {
-                rejectionShown.stop();
-                auth.rejected = false;
-                auth.frozenMarks = -1;
-            }
-            switch (event.key) {
-            case Qt.Key_Return:
-            case Qt.Key_Enter:
-                auth.enter();
-                break;
-            case Qt.Key_Backspace:
-                auth.buffer = event.modifiers & Qt.ControlModifier ? "" : auth.buffer.slice(0, -1);
-                auth.entered = false;
-                break;
-            default:
-                // Printable characters only.
-                if (event.text.length > 0 && event.text >= " " && event.text !== "\x7f") {
-                    auth.buffer += event.text;
-                    auth.entered = false;
-                    if (auth.statusIsError)
-                        auth.say("", false);
-                }
-            }
-        }
-    }
 
     Column {
         id: column
@@ -292,39 +231,19 @@ Overlay {
             wrapMode: Text.Wrap
         }
 
-        // The field: a mark per character, as on the lock.
-        Rectangle {
+        // Its marks pulse while the password waits for the reader, too.
+        PasswordField {
+            id: field
             width: parent.width
-            height: 40
-            radius: Theme.moduleRadius
-            color: Theme.surface0
-
-            PopupText {
-                anchors.centerIn: parent
-                visible: auth.marks === 0
-                text: auth.checking ? "checking…" : auth.prompt !== "" ? auth.prompt : "password"
-                color: Theme.subtext0
-            }
-
-            // An answer PAM lets be seen, as a second factor's code.
-            PopupText {
-                anchors.centerIn: parent
-                width: Math.min(implicitWidth, parent.width - 2 * Theme.popupTextInset)
-                elide: Text.ElideLeft
-                visible: auth.plain
-                text: auth.buffer
-                opacity: marksRow.opacity
-            }
-
-            // Dimmed too while the password waits for the reader.
-            Marks {
-                id: marksRow
-                visible: !auth.plain
-                marks: auth.marks
-                checking: auth.checking || auth.entered
-                accepted: auth.accepted
-                rejected: auth.rejected
-                most: 22
+            placeholder: auth.prompt !== "" ? auth.prompt : "password"
+            plain: auth.plain
+            pending: auth.entered
+            onEntered: auth.enter()
+            onCancelled: auth.cancel()
+            onEdited: typed => {
+                auth.entered = false;
+                if (typed && auth.statusIsError)
+                    auth.say("", false);
             }
         }
 
