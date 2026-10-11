@@ -254,7 +254,7 @@ PanelWindow {
                 host: popups
                 // Idle: the time left until the lock, if there is one, in a
                 // color that tells.
-                text: Theme.glyph(Idle.inhibited ? 0xf0f4 : 0xf236) + (Idle.systemIdle && Idle.locks ? " " + Idle.lockCountdown(systemClock.date) : "")
+                text: Theme.glyph(0xf0f4) + (Idle.systemIdle && Idle.locks ? " " + Idle.lockCountdown(systemClock.date) : "")
                 color: Idle.inhibited ? Theme.sky : Idle.systemIdle ? Theme.peach : Theme.subtext0
                 popup: IdlePopup {}
                 onClicked: Idle.toggle()
