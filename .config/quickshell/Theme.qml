@@ -301,7 +301,7 @@ Singleton {
     readonly property var iconGlyphs: ({
             "audio-headphones": 0xf025,
             "audio-headset": 0xee59,
-            "audio-card": 0xf028,
+            "audio-card": 0xf04c3,
             "input-mouse": 0xefba,
             "input-keyboard": 0xf11c,
             "input-gaming": 0xf11b,
