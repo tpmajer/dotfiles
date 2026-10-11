@@ -29,6 +29,8 @@ Singleton {
     // 0 a signal that will do, 1 weak (under 40%), 2 nearly none (under 20%).
     // A level is left 5 points above where it is entered: the signal wavers.
     property int signalLevel: 0
+    // The arcs of the bar's icon: 2 from 50%, 1 from 30%, left the same way.
+    property int signalArcs: 2
     onSignalChanged: {
         if (!wifiNetwork)
             signalLevel = 0;
@@ -38,6 +40,14 @@ Singleton {
             signalLevel = 1;
         else
             signalLevel = 0;
+        if (!wifiNetwork)
+            signalArcs = 2;
+        else if (signal < 30 || (signalArcs === 0 && signal < 35))
+            signalArcs = 0;
+        else if (signal < 50 || (signalArcs <= 1 && signal < 55))
+            signalArcs = 1;
+        else
+            signalArcs = 2;
     }
 
     // Connected to a network that does not lead to the internet, by
@@ -97,7 +107,7 @@ Singleton {
     readonly property string text: {
         const parts = [];
         if (wifiNetwork) {
-            const icon = 0xf1eb;
+            const icon = [0x100000, 0x100001, 0xf1eb][signalArcs];
             parts.push(Theme.glyph(icon) + " " + ssid);
         } else if (Rfkill.airplane) {
             parts.push(Theme.glyph(0xf072));

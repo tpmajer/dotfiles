@@ -219,6 +219,11 @@ Singleton {
     readonly property color mauve: colors.mauve
 
     readonly property string font: "JetBrainsMono Nerd Font Propo"
+    // The Wi-Fi levels Font Awesome has no glyph for, built by
+    // scripts/bar-icons.py: text falls back to this font for them.
+    readonly property FontLoader icons: FontLoader {
+        source: Qt.resolvedUrl("fonts/bar-icons.ttf")
+    }
     readonly property int fontSize: 17
     // Icons a cell wide, for text laid out in columns.
     readonly property string monoFont: "JetBrainsMono Nerd Font"
