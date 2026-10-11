@@ -187,8 +187,8 @@ PanelWindow {
             // Gray only under do not disturb. Else in the color of the
             // most urgent notification in the center, as the line on its
             // card; with none there, or only low ones, whose line is gray,
-            // the bell is white, brighter than plain text.
-            color: Notifications.quiet ? Theme.subtext0 : Notifications.missedUrgency === NotificationUrgency.Low ? Theme.white : Notifications.urgencyColor(Notifications.missedUrgency)
+            // the bell is in the color of plain text.
+            color: Notifications.quiet ? Theme.subtext0 : Notifications.missedUrgency === NotificationUrgency.Low ? Theme.text : Notifications.urgencyColor(Notifications.missedUrgency)
             popup: NotificationsPopup {
                 panel: bar
             }
