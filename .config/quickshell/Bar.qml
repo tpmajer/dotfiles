@@ -152,7 +152,7 @@ PanelWindow {
             property bool alt: false
             anchors.horizontalCenter: parent.horizontalCenter
             host: popups
-            text: alt ? Theme.glyph(0xf00ed) + " " + Qt.formatDate(systemClock.date, "dd.MM.yyyy") : Theme.glyph(0xf017) + " " + Qt.formatTime(systemClock.date, "HH:mm:ss")
+            text: alt ? Qt.formatDate(systemClock.date, "dd.MM.yyyy") : Qt.formatTime(systemClock.date, "HH:mm:ss")
             color: Theme.mauve
             popup: CalendarPopup {
                 now: systemClock.date
