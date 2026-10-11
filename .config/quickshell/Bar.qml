@@ -263,7 +263,7 @@ PanelWindow {
             // cpu
             Module {
                 host: popups
-                text: "CPU " + SysStats.cpuUsage + "%"
+                text: Theme.glyph(0xf035b) + " " + SysStats.cpuUsage + "%"
                 // Red while the CPU is hot; warm shows only in the popup,
                 // with the temperature.
                 color: SysStats.cpuTempLevel === 2 ? Theme.red : Theme.lavender
@@ -275,7 +275,7 @@ PanelWindow {
             // memory
             Module {
                 host: popups
-                text: "RAM " + SysStats.memPercent + "%"
+                text: Theme.glyph(0xefc5) + " " + SysStats.memPercent + "%"
                 // Red with nearly all of it taken.
                 color: SysStats.memLevel === 2 ? Theme.red : Theme.peach
                 popup: MemoryPopup {}
