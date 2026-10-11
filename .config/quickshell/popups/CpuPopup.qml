@@ -13,7 +13,7 @@ Column {
 
         PopupText {
             id: load
-            text: "Load " + SysStats.loadAvg
+            text: "CPU load " + SysStats.loadAvg
         }
         PopupText {
             anchors.right: parent.right
