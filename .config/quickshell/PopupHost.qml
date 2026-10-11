@@ -17,6 +17,15 @@ Item {
     // Right before a module's popup is shown or switched to.
     signal aboutToShow(Item module)
 
+    // The bar's window is on screen: the bar pops in then, once.
+    property bool mapped: false
+
+    Pop {
+        id: arrival
+        shown: true
+        mapped: root.mapped
+    }
+
     readonly property real devicePixelRatio: QsWindow.window?.devicePixelRatio ?? 1
 
     // For the window: what takes input, and what the compositor blurs.
@@ -27,10 +36,12 @@ Item {
     }
 
     readonly property Region blurRegion: Region {
+        // Not under a bar that is still popping in.
+        readonly property bool shown: arrival.openness > 0.5
         x: barRect.x
         y: barRect.y
-        width: barRect.width
-        height: barRect.height
+        width: shown ? barRect.width : 0
+        height: shown ? barRect.height : 0
         radius: Theme.barRadius
 
         BlurBump {
@@ -178,6 +189,13 @@ Item {
             height: Theme.barHeight
             radius: Theme.barRadius
             color: Theme.base
+            opacity: arrival.openness
+            transform: Scale {
+                origin.x: barRect.width / 2
+                origin.y: barRect.height / 2
+                xScale: arrival.scale
+                yScale: arrival.scale
+            }
         }
 
         Rectangle {
@@ -285,6 +303,13 @@ Item {
         y: barRect.y
         width: barRect.width
         height: barRect.height
+        opacity: arrival.openness
+        transform: Scale {
+            origin.x: modules.width / 2
+            origin.y: modules.height / 2
+            xScale: arrival.scale
+            yScale: arrival.scale
+        }
 
         HoverHandler {
             id: barHover

@@ -79,6 +79,7 @@ PanelWindow {
     PopupHost {
         id: popups
         anchors.fill: parent
+        mapped: bar.backingWindowVisible
         pinned: bar.keyboardMode
         // Another module's popup is not driven from the keyboard. The owner
         // is still the previous one here.
