@@ -171,6 +171,14 @@ PanelWindow {
         }
     }
 
+    Connections {
+        target: KbdBacklight
+        function onChanged() {
+            const percent = KbdBacklight.percent;
+            osd.show(Theme.glyph(0xf11c), percent > 0 ? "text" : "subtext0", percent / 100, percent > 0 ? percent + "%" : "off");
+        }
+    }
+
     Timer {
         id: hideTimer
         interval: Theme.osdTimeout
