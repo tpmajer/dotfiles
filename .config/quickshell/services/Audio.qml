@@ -83,10 +83,10 @@ Singleton {
         if (!node || !node.audio)
             return "";
         if (node.audio.muted)
-            return Theme.glyph(0xf075f);
+            return Theme.glyph(0xeee8);
         if (isHeadphones(node))
             return Theme.glyph(0xf025);
-        return Theme.glyph([0xf057f, 0xf0580, 0xf057e][Math.min(2, Math.floor(volume(node) / (100 / 3)))]);
+        return Theme.glyph([0xf026, 0xf027, 0xf028][Math.min(2, Math.floor(volume(node) / (100 / 3)))]);
     }
 
     // One scroll step = 1%, capped at 100%.

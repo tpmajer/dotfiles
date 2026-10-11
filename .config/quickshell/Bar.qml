@@ -119,7 +119,7 @@ PanelWindow {
                         required property int index
                         readonly property var ws: workspaceRow.workspaces[index]
                         host: popups
-                        text: !ws ? "" : ws.is_active ? Theme.glyph(0xf14fb) : String(ws.name || ws.idx)
+                        text: !ws ? "" : ws.is_active ? Theme.glyph(0xf0c8) : String(ws.name || ws.idx)
                         bold: !!ws && ws.is_active
                         color: !ws ? Theme.subtext0 : ws.is_urgent ? Theme.red : (ws.is_active || hovered) ? Theme.text : Theme.subtext0
                         hPadding: 0
@@ -179,10 +179,10 @@ PanelWindow {
             id: bellModule
             anchors.left: clock.right
             host: popups
-            prefix: Theme.glyph(Notifications.quiet ? 0xf009b : 0xf009a)
+            prefix: Theme.glyph(Notifications.quiet ? 0xf1f6 : 0xf0f3)
             // Both bells in the wider one's width: the module keeps its
             // width, and its popup its place, as do not disturb is switched.
-            prefixWidth: Math.ceil(Math.max(bellMetrics.advanceWidth(Theme.glyph(0xf009a)), bellMetrics.advanceWidth(Theme.glyph(0xf009b))))
+            prefixWidth: Math.ceil(Math.max(bellMetrics.advanceWidth(Theme.glyph(0xf0f3)), bellMetrics.advanceWidth(Theme.glyph(0xf1f6))))
             text: Notifications.missedCount > 0 ? String(Notifications.missedCount) : ""
             // Gray only under do not disturb. Else in the color of the
             // most urgent notification in the center, as the line on its
@@ -254,7 +254,7 @@ PanelWindow {
                 host: popups
                 // Idle: the time left until the lock, if there is one, in a
                 // color that tells.
-                text: Theme.glyph(Idle.inhibited ? 0xf04b3 : 0xf04b2) + (Idle.systemIdle && Idle.locks ? " " + Idle.lockCountdown(systemClock.date) : "")
+                text: Theme.glyph(Idle.inhibited ? 0xf0f4 : 0xf236) + (Idle.systemIdle && Idle.locks ? " " + Idle.lockCountdown(systemClock.date) : "")
                 color: Idle.inhibited ? Theme.sky : Idle.systemIdle ? Theme.peach : Theme.subtext0
                 popup: IdlePopup {}
                 onClicked: Idle.toggle()
@@ -263,7 +263,7 @@ PanelWindow {
             // cpu
             Module {
                 host: popups
-                text: Theme.glyph(0xf035b) + " " + SysStats.cpuUsage + "%"
+                text: Theme.glyph(0xf2db) + " " + SysStats.cpuUsage + "%"
                 // Red while the CPU is hot; warm shows only in the popup,
                 // with the temperature.
                 color: SysStats.cpuTempLevel === 2 ? Theme.red : Theme.lavender
@@ -336,7 +336,7 @@ PanelWindow {
             // power menu
             Module {
                 host: popups
-                text: Theme.glyph(0xf0906)
+                text: Theme.glyph(0xf011)
                 color: Theme.subtext0
                 rightMargin: 6
                 onClicked: bar.powerMenuRequested()

@@ -38,8 +38,8 @@ Singleton {
     // the CPU, the memory and the Wi-Fi signal warn in.
     readonly property color color: !discharging ? Theme.green : state === "critical" ? Theme.red : state === "warning" ? Theme.peach : Theme.green
 
-    readonly property var chargingIcons: [0xf089c, 0xf0086, 0xf0087, 0xf0088, 0xf089d, 0xf0089, 0xf089e, 0xf008a, 0xf008b, 0xf0085]
-    readonly property var defaultIcons: [0xf007a, 0xf007b, 0xf007c, 0xf007d, 0xf007e, 0xf007f, 0xf0080, 0xf0081, 0xf0082, 0xf0079]
+    readonly property var chargingIcons: [0xf0e7, 0xf0e7, 0xf0e7, 0xf0e7, 0xf0e7, 0xf0e7, 0xf0e7, 0xf0e7, 0xf0e7, 0xf0e7]
+    readonly property var defaultIcons: [0xf244, 0xf243, 0xf243, 0xf243, 0xf242, 0xf242, 0xf241, 0xf241, 0xf240, 0xf240]
     readonly property string icon: Theme.glyph((charging ? chargingIcons : defaultIcons)[Math.min(9, Math.floor(capacity / 10))])
 
     readonly property string timeText: {

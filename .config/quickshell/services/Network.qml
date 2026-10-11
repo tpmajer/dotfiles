@@ -91,17 +91,17 @@ Singleton {
 
     // The bar shows the cable icon (red on a slow cable) apart from the rest:
     // cable first, then Wi-Fi if it is connected too (it usually stays up).
-    readonly property string wiredText: wired ? Theme.glyph(0xf0002) : ""
+    readonly property string wiredText: wired ? Theme.glyph(0xef44) : ""
     readonly property string text: {
         const parts = [];
         if (wifiNetwork) {
-            const icon = signal >= 80 ? 0xf0928 : signal >= 60 ? 0xf0925 : signal >= 40 ? 0xf0922 : signal >= 20 ? 0xf091f : 0xf092f;
+            const icon = 0xf1eb;
             parts.push(Theme.glyph(icon) + " " + ssid);
         }
         if (vpn)
-            parts.push(Theme.glyph(0xf0306));
+            parts.push(Theme.glyph(0xf084));
         if (!wired && !wifiNetwork)
-            return Theme.glyph(0xf092e);
+            return Theme.glyph(0xf127);
         return parts.join(" ");
     }
 

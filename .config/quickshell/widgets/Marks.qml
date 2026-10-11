@@ -72,7 +72,7 @@ Row {
             required property int index
             readonly property bool typed: index < root.marks
 
-            text: Theme.glyph(0xf14fb)
+            text: Theme.glyph(0xf0c8)
             color: root.accepted ? Theme.green : root.rejected ? Theme.red : Theme.subtext1
 
             // Red comes in gradually. Green does not: what shows it is
