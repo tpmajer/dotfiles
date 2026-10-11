@@ -289,8 +289,9 @@ PanelWindow {
                 prefix: Network.wiredText
                 prefixColor: Network.slowWired ? Theme.maroon : Theme.teal
                 text: Network.text
-                // Red with no internet, or on Wi-Fi alone with nearly no signal.
-                color: Network.alarm ? Theme.red : Theme.teal
+                // Red with no internet, or on Wi-Fi alone with nearly no signal;
+                // in airplane mode in its OSD's color.
+                color: Network.alarm ? Theme.red : Rfkill.airplane ? Theme.sky : Theme.teal
                 popup: NetworkPopup {
                     host: popups
                 }

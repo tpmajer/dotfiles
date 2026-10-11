@@ -57,7 +57,9 @@ Singleton {
         }
     }
     // For the bar: no internet, or on Wi-Fi alone with nearly no signal.
-    readonly property bool alarm: offline !== "" || (!wired && signalLevel === 2)
+    // Airplane mode with no cable: offline on purpose, so no alarm.
+    readonly property bool grounded: Rfkill.airplane && !wired
+    readonly property bool alarm: !grounded && (offline !== "" || (!wired && signalLevel === 2))
 
     property bool vpn: false
     property string frequency: ""
@@ -97,10 +99,12 @@ Singleton {
         if (wifiNetwork) {
             const icon = 0xf1eb;
             parts.push(Theme.glyph(icon) + " " + ssid);
+        } else if (Rfkill.airplane) {
+            parts.push(Theme.glyph(0xf072));
         }
         if (vpn)
             parts.push(Theme.glyph(0xf084));
-        if (!wired && !wifiNetwork)
+        if (!wired && !wifiNetwork && !Rfkill.airplane)
             return Theme.glyph(0xf127);
         return parts.join(" ");
     }
