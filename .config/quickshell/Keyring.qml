@@ -164,7 +164,7 @@ Overlay {
             anchors.horizontalCenter: parent.horizontalCenter
             text: Theme.glyph(0xf084)
             font.pixelSize: 44
-            color: Theme.white
+            color: Theme.text
         }
 
         PopupText {
