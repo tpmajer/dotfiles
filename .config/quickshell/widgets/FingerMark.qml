@@ -12,7 +12,7 @@ PopupText {
     property bool animated: true
 
     text: Theme.glyph(0xf0237)
-    font.pixelSize: 36
+    font.pixelSize: 44
     opacity: mark === "" ? 0 : 1
     color: mark === "ok" ? Theme.green : mark === "bad" ? Theme.red : Theme.subtext0
 
