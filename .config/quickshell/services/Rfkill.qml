@@ -17,6 +17,10 @@ Singleton {
     // False while the radios present at startup are still being listed.
     readonly property bool ready: !startup.running
 
+    function toggle() {
+        Quickshell.execDetached(["rfkill", airplane ? "unblock" : "block", "all"]);
+    }
+
     Process {
         id: events
         running: true
