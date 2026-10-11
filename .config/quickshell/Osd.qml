@@ -135,7 +135,7 @@ PanelWindow {
             if (spotifySettle.running)
                 return;
             const muted = Spotify.muted;
-            osd.show(Theme.glyph(0xf04c7), muted ? "subtext0" : "green", Spotify.player.volume, muted ? "muted" : Spotify.volume + "%");
+            osd.show(Theme.glyph(0xf1bc), muted ? "subtext0" : "green", Spotify.player.volume, muted ? "muted" : Spotify.volume + "%");
         }
     }
 
@@ -152,7 +152,7 @@ PanelWindow {
             if (settle.running)
                 return;
             const muted = Audio.defaultSource.audio.muted;
-            osd.show(Theme.glyph(muted ? 0xf036d : 0xf036c), muted ? "red" : "green", -1, muted ? "Microphone muted" : "Microphone on");
+            osd.show(Theme.glyph(muted ? 0xf131 : 0xf130), muted ? "red" : "green", -1, muted ? "Microphone muted" : "Microphone on");
         }
     }
 
@@ -160,7 +160,7 @@ PanelWindow {
         target: Rfkill
         function onAirplaneChanged() {
             if (Rfkill.ready)
-                osd.show(Theme.glyph(Rfkill.airplane ? 0xf001d : 0xf001e), Rfkill.airplane ? "sky" : "subtext0", -1, "Airplane mode " + (Rfkill.airplane ? "on" : "off"));
+                osd.show(Theme.glyph(0xf072), Rfkill.airplane ? "sky" : "subtext0", -1, "Airplane mode " + (Rfkill.airplane ? "on" : "off"));
         }
     }
 
@@ -274,7 +274,7 @@ PanelWindow {
         id: iconSize
         font.family: Theme.font
         font.pixelSize: Theme.fontSize
-        text: Theme.glyph(0xf057e)
+        text: Theme.glyph(0xf028)
     }
     TextMetrics {
         id: labelSize

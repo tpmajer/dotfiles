@@ -123,7 +123,7 @@ Singleton {
     // The power menu's actions and the palettes, to be listed like entries.
     // `below` is taken off the score: how far under an application.
     readonly property var actions: Power.actions.map(a => ({name: a.text, genericName: "Power", glyph: a.icon, color: a.color, action: a, loose: true, below: 15}))
-    readonly property var palettes: Object.keys(Theme.palettes).map(p => ({name: Theme.palettes[p].label + " palette", genericName: "Theme", glyph: 0xf03d8, color: Theme.palettes[p].mauve, palette: p, loose: false, below: 25}))
+    readonly property var palettes: Object.keys(Theme.palettes).map(p => ({name: Theme.palettes[p].label + " palette", genericName: "Theme", glyph: 0xefcc, color: Theme.palettes[p].mauve, palette: p, loose: false, below: 25}))
 
     // The entries that answer a query, best first; all of them for none.
     // Those started more often come first among equals. The actions

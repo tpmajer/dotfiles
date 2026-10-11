@@ -203,17 +203,17 @@ Column {
             spacing: Theme.popupColumnGap
 
             Control {
-                glyph: Theme.glyph(0xf04ae)
+                glyph: Theme.glyph(0xf048)
                 usable: Media.canSkip(popup.player, -1)
                 onTriggered: Media.skip(-1)
             }
             Control {
-                glyph: Theme.glyph(Media.playing ? 0xf03e4 : 0xf040a)
+                glyph: Theme.glyph(Media.playing ? 0xf04c : 0xf04b)
                 usable: !!popup.player && popup.player.canTogglePlaying
                 onTriggered: Media.playPause()
             }
             Control {
-                glyph: Theme.glyph(0xf04ad)
+                glyph: Theme.glyph(0xf051)
                 usable: Media.canSkip(popup.player, 1)
                 onTriggered: Media.skip(1)
             }

@@ -44,7 +44,7 @@ PopupList {
         PopupAction {
             labelWidth: sinkList.nameWidth
             valueWidth: sinkList.valueWidth
-            icon: Theme.glyph(0xf04c7)
+            icon: Theme.glyph(0xf1bc)
             iconColor: Spotify.muted ? Theme.subtext0 : Theme.green
             text: "Spotify"
             value: Spotify.muted ? "muted" : Spotify.volume + "%"
@@ -61,7 +61,7 @@ PopupList {
             required property var modelData
             labelWidth: sinkList.nameWidth
             valueWidth: sinkList.valueWidth
-            icon: Theme.glyph(modelData.audio.muted ? 0xf075f : 0xf0387)
+            icon: Theme.glyph(modelData.audio.muted ? 0xeee8 : 0xf001)
             iconColor: Theme.subtext0
             text: Audio.appName(modelData)
             value: sinkList.level(modelData)
@@ -79,7 +79,7 @@ PopupList {
             readonly property bool recording: Audio.recorders.length > 0
             labelWidth: sinkList.nameWidth
             valueWidth: sinkList.valueWidth
-            icon: Theme.glyph(modelData.audio.muted ? 0xf036d : 0xf036c)
+            icon: Theme.glyph(modelData.audio.muted ? 0xf131 : 0xf130)
             iconColor: modelData.audio.muted ? Theme.subtext0 : recording ? Theme.red : Theme.yellow
             bright: recording
             text: Audio.name(modelData)
@@ -96,7 +96,7 @@ PopupList {
             required property var modelData
             labelWidth: sinkList.nameWidth
             valueWidth: sinkList.valueWidth
-            icon: Theme.glyph(0xf044a)
+            icon: Theme.glyph(0xf111)
             iconColor: modelData.audio.muted ? Theme.subtext0 : Theme.red
             text: Audio.appName(modelData)
             value: sinkList.level(modelData)

@@ -55,11 +55,11 @@ Singleton {
 
     function glyphOf(player) {
         return Theme.glyph(({
-                spotify: 0xf04c7,
-                youtube: 0xf05c3,
-                browser: 0xf059f,
-                mpv: 0xf0381
-            })[sourceOf(player)] ?? 0xf075a);
+                spotify: 0xf1bc,
+                youtube: 0xf16a,
+                browser: 0xf0ac,
+                mpv: 0xf008
+            })[sourceOf(player)] ?? 0xf001);
     }
 
     function playPause() {

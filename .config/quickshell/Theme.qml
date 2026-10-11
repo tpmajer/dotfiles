@@ -295,20 +295,20 @@ Singleton {
     // a kind of device, a state. Headphones match the volume module.
     readonly property var iconGlyphs: ({
             "audio-headphones": 0xf025,
-            "audio-headset": 0xf02ce,
-            "audio-card": 0xf04c3,
-            "input-mouse": 0xf037d,
-            "input-keyboard": 0xf030c,
-            "input-gaming": 0xf0297,
-            "phone": 0xf011c,
-            "computer": 0xf0322,
+            "audio-headset": 0xee59,
+            "audio-card": 0xf028,
+            "input-mouse": 0xefba,
+            "input-keyboard": 0xf11c,
+            "input-gaming": 0xf11b,
+            "phone": 0xf10b,
+            "computer": 0xf109,
             "bluetooth": 0xf00af,
-            "battery": 0xf0079,
-            "network-wireless": 0xf0928,
-            "network-wired": 0xf0002,
-            "dialog-information": 0xf02fc,
-            "dialog-warning": 0xf0026,
-            "dialog-error": 0xf0028
+            "battery": 0xf240,
+            "network-wireless": 0xf1eb,
+            "network-wired": 0xef44,
+            "dialog-information": 0xf05a,
+            "dialog-warning": 0xf071,
+            "dialog-error": 0xf06a
         })
     // The glyph for such a name, "input-mouse" or "battery-low-symbolic",
     // by the longest of the names above it starts with; "" if it has none.

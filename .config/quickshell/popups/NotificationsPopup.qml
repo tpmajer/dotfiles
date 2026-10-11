@@ -138,7 +138,7 @@ Column {
                 PopupText {
                     id: dndLabel
                     anchors.centerIn: parent
-                    text: Theme.glyph(Notifications.dnd ? 0xf009b : 0xf009a)
+                    text: Theme.glyph(Notifications.dnd ? 0xf1f6 : 0xf0f3)
                     color: dndMouse.containsMouse || Notifications.dnd ? Theme.text : Theme.subtext0
                     Behavior on color {
                         ColorAnimation { duration: Theme.hoverDuration }
