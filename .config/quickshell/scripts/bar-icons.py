@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
-# Builds fonts/bar-icons.ttf: the Wi-Fi levels Font Awesome Free has no
-# glyph for, cut from its full one, which is two arcs and a dot apart. They
-# sit above U+100000, where the Nerd Font has nothing, with its metrics,
-# so the shell falls back to them in the same line of text.
+# Builds fonts/bar-icons.ttf: the glyphs Font Awesome Free has none for in
+# the Nerd Font, cut from the ones it has. The Wi-Fi levels come from the
+# full icon, which is two arcs and a dot apart, the filled moon from the
+# outlined one without its inner contour. They sit above U+100000, where
+# the Nerd Font has nothing, with its metrics, so the shell falls back to
+# them in the same line of text.
 #
 #   nix shell --impure --expr 'with import (builtins.getFlake "nixpkgs") {};
 #     python3.withPackages (p: [p.fonttools])' -c \
@@ -20,37 +22,37 @@ from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontTools.ttLib import TTFont
 
 WIFI = 0xF1EB
-# The glyph's contours from the outside in: the outer arc, the inner arc,
-# the dot. A level keeps the ones named.
-LEVELS = {
-    0x100000: ("wifi-weak", (2,)),
-    0x100001: ("wifi-fair", (1, 2)),
+MOON = 0xF186
+# A glyph's name, the one it is cut from, how many contours that one has
+# and which of them stay, counted from the top: the outer arc, the inner
+# arc and the dot of the Wi-Fi icon, the moon's edge and the hole in it.
+GLYPHS = {
+    0x100000: ("wifi-weak", WIFI, 3, (2,)),
+    0x100001: ("wifi-fair", WIFI, 3, (1, 2)),
+    0x100002: ("moon-filled", MOON, 2, (0,)),
 }
 
 source = TTFont(sys.argv[1])
 glyphs = source.getGlyphSet()
-name = source.getBestCmap()[WIFI]
-
-pen = DecomposingRecordingPen(glyphs)
-glyphs[name].draw(pen)
-contours, contour = [], []
-for step in pen.value:
-    contour.append(step)
-    if step[0] in ("closePath", "endPath"):
-        contours.append(contour)
-        contour = []
-if len(contours) != 3:
-    sys.exit(f"the Wi-Fi glyph has {len(contours)} contours, not 3")
+codes = source.getBestCmap()
 
 
 def top(contour):
     return max(point[1] for _, points in contour for point in points)
 
 
-contours.sort(key=top, reverse=True)
-
-
-def cut(kept):
+def cut(code, count, kept):
+    pen = DecomposingRecordingPen(glyphs)
+    glyphs[codes[code]].draw(pen)
+    contours, contour = [], []
+    for step in pen.value:
+        contour.append(step)
+        if step[0] in ("closePath", "endPath"):
+            contours.append(contour)
+            contour = []
+    if len(contours) != count:
+        sys.exit(f"U+{code:X} has {len(contours)} contours, not {count}")
+    contours.sort(key=top, reverse=True)
     pen = TTGlyphPen(None)
     for index in kept:
         for operator, points in contours[index]:
@@ -59,14 +61,16 @@ def cut(kept):
 
 
 outlines = {".notdef": TTGlyphPen(None).glyph()}
-outlines.update({glyph: cut(kept) for glyph, kept in LEVELS.values()})
-advance = glyphs[name].width
+advances = {".notdef": 0}
+for glyph, code, count, kept in GLYPHS.values():
+    outlines[glyph] = cut(code, count, kept)
+    advances[glyph] = glyphs[codes[code]].width
 
 font = FontBuilder(source["head"].unitsPerEm, isTTF=True)
 font.setupGlyphOrder(list(outlines))
-font.setupCharacterMap({code: glyph for code, (glyph, _) in LEVELS.items()})
+font.setupCharacterMap({code: glyph for code, (glyph, *_) in GLYPHS.items()})
 font.setupGlyf(outlines)
-font.setupHorizontalMetrics({glyph: (advance, font.font["glyf"][glyph].xMin if glyph != ".notdef" else 0) for glyph in outlines})
+font.setupHorizontalMetrics({glyph: (advances[glyph], font.font["glyf"][glyph].xMin if glyph != ".notdef" else 0) for glyph in outlines})
 font.setupHorizontalHeader(ascent=source["hhea"].ascent, descent=source["hhea"].descent, lineGap=source["hhea"].lineGap)
 font.setupNameTable({
     "familyName": "Bar Icons",

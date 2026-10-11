@@ -137,7 +137,7 @@ Singleton {
     function glyphFor(c, day) {
         let glyph;
         if (c === 0)
-            glyph = day ? 0xf185 : 0xf186;              // clear
+            glyph = day ? 0xf185 : 0x100002;            // clear
         else if (c <= 2)
             glyph = day ? 0xeef0 : 0xeeef;              // partly cloudy
         else if (c === 3)
