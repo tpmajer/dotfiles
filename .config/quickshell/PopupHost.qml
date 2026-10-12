@@ -30,7 +30,12 @@ Item {
 
     // For the window: what takes input, and what the compositor blurs.
     readonly property Region inputRegion: Region {
-        item: barRect
+        // Not barRect itself: an item comes with its transform, and the mask
+        // would keep the scale the bar pops in from.
+        x: barRect.x
+        y: barRect.y
+        width: barRect.width
+        height: barRect.height
         Region { item: popupHitArea }
         Region { item: popupGapArea }
     }
