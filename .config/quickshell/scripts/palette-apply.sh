@@ -175,11 +175,17 @@ CONF
         "subtext1=$c_subtext1" "subtext0=$c_subtext0" "green=$c_green" "peach=$c_peach" "red=$c_red" > "$greeter"
 fi
 
-# The session's VT has the backdrop it was started with as its colour 0
-# (~/.nixos, greeter-session), and shows it again as the machine goes down.
+# The session's VT has the palette it was started with as its colours
+# (~/.nixos, greeter-session), and shows them again as the machine goes down:
+# the backdrop, then plain text, bold, OK, failed and warnings.
 vt=/dev/$(cat /sys/class/tty/tty0/active 2> /dev/null)
-backdrop=${c_crust:-#11111b}
-[ -c "$vt" ] && [ -O "$vt" ] && printf '\033]P0%s' "${backdrop#\#}" > "$vt"
+if [ -c "$vt" ] && [ -O "$vt" ]; then
+    for pair in 0=${c_crust:-#11111b} 7=${c_subtext1:-#bac2de} F=${c_text:-#cdd6f4} \
+        2=${c_green:-#a6e3a1} A=${c_green:-#a6e3a1} 1=${c_red:-#f38ba8} \
+        9=${c_red:-#f38ba8} 3=${c_peach:-#fab387} B=${c_peach:-#fab387}; do
+        printf '\033]P%s%s' "${pair%%=*}" "${pair#*=\#}"
+    done > "$vt"
+fi
 
 # btop has its own theme for each palette, with those that came with it or
 # among the user's. Not copied as a file: one from the store is read-only.
