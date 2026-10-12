@@ -30,6 +30,9 @@ cursor-style-blink = true
 theme = Catppuccin Mocha
 # The palette quickshell switches to, scripts/palette-apply.sh: over the theme.
 config-file = ?palette
+# GTK's colors again, as it reads its own stylesheet at the start alone.
+gtk-custom-css = ../gtk-4.0/colors.css
+gtk-custom-css = ?../gtk-4.0/palette.css
 # No toast for a reload: quickshell reloads at each change of palette.
 app-notifications = no-config-reload
 font-family = JetBrainsMono Nerd Font
