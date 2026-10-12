@@ -1,5 +1,6 @@
 import QtQuick
 import qs
+import qs.services
 import qs.widgets
 
 // The clock's popup: today's date in full, and the month as a grid of weeks
@@ -37,6 +38,17 @@ Column {
     WheelSteps {
         id: wheel
         onStepped: months => cal.offset -= months
+    }
+    // A click anywhere in the popup opens the calendar application.
+    signal launched
+    TapHandler {
+        onTapped: {
+            Apps.run("gnome-calendar");
+            cal.launched();
+        }
+    }
+    HoverHandler {
+        cursorShape: Qt.PointingHandCursor
     }
     // Weeks start on Monday: getDay() is 0 for Sunday, so shift it to the end.
     readonly property int firstDay: (new Date(year, month, 1).getDay() + 6) % 7

@@ -156,6 +156,7 @@ PanelWindow {
             color: Theme.mauve
             popup: CalendarPopup {
                 now: systemClock.date
+                onLaunched: popups.popupOpen = false
             }
             rightCommand: Apps.inTerminal(["calcure"])
             onClicked: alt = !alt
