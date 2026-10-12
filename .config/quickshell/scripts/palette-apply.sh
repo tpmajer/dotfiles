@@ -2,7 +2,8 @@
 
 # The palette for what else takes one, each from a file its configuration
 # names, kept out of git: ghostty, niri, fuzzel, btop, helix, bat, micro, mpv
-# and GTK. The login screen's too, where there is one to take it.
+# and GTK, with its folders. The login screen's too, where there is one to
+# take it.
 #   palette-apply.sh [init|sync] [name=color ...] [ghostty=theme btop=theme helix=theme]
 # The colors are Theme's, as #rrggbb. With none it is Catppuccin Mocha, which
 # the configurations and their themes have.
@@ -227,6 +228,68 @@ shopt -s nullglob
 for dir in "$HOME"/.var/app/*/config/gtk-[34].0; do
     gtk > "$dir/palette.css"
 done
+
+# Papirus has its folders in Catppuccin Mocha's blue: a theme over it with
+# those alone, in the palette's teal. One for each palette, named by its
+# colors, as GTK takes icons again at a change of the theme's name alone.
+folders() {
+    command -v dconf > /dev/null || return 0
+    local key=/org/gnome/desktop/interface/icon-theme share papirus=
+    local -a shares
+    IFS=: read -ra shares <<< "${XDG_DATA_DIRS:-/usr/share}"
+    for share in "${shares[@]}"; do
+        [ -d "$share/icons/Papirus" ] && papirus=$(readlink -f "$share/icons/Papirus") && break
+    done
+    [ -n "$papirus" ] || { dconf reset "$key"; return; }
+
+    local front=${c_teal:-#94e2d5} paper=${c_text:-#cdd6f4} glyph=${c_surface0:-#313244}
+    local name=Papirus-palette-${front#\#}${paper#\#}${glyph#\#}
+    local theme=${XDG_DATA_HOME:-$HOME/.local/share}/icons/$name
+    # Made once, and again when Papirus is another: `source` is the one used.
+    if [ "$(cat "$theme/source" 2> /dev/null)" != "$papirus" ]; then
+        local build=$theme.new dir size
+        local -a found listed=()
+        rm -rf "$build"
+        mkdir -p "$build"
+        for dir in "$papirus"/*/places; do
+            size=${dir%/places}
+            size=${size##*/}
+            [ ! -L "$papirus/$size" ] || continue
+            mapfile -t found < <(grep -Rlis '#89b4fa' "$dir")
+            [ ${#found[@]} -gt 0 ] || continue
+            mkdir -p "$build/$size/places"
+            cp -P "${found[@]}" "$build/$size/places/"
+            listed+=("$size/places")
+        done
+        # A size at twice the scale is a link to the size itself.
+        for dir in "$papirus"/*@2x; do
+            size=${dir##*/}
+            [ -L "$dir" ] && [ -d "$build/$(readlink "$dir")/places" ] || continue
+            cp -P "$dir" "$build/$size"
+            listed+=("$size/places")
+        done
+        # The back of a folder is its front, darker.
+        local back
+        back=$(printf '#%02x%02x%02x' $((16#${front:1:2} * 88 / 100)) \
+            $((16#${front:3:2} * 88 / 100)) $((16#${front:5:2} * 88 / 100)))
+        find "$build" -type f -name '*.svg' -exec sed -i \
+            "s/#89b4fa/$front/Ig;s/#75a0e6/$back/Ig;s/#cdd6f4/$paper/Ig;s/#313244/$glyph/Ig" {} +
+        {
+            printf '[Icon Theme]\nName=%s\nComment=Papirus, its folders in the palette\n' "$name"
+            printf 'Inherits=Papirus,breeze,hicolor\nExample=folder\n'
+            (IFS=, && printf 'Directories=%s\n' "${listed[*]}")
+            for dir in "${listed[@]}"; do
+                printf '\n'
+                sed -n "/^\[${dir//\//\\/}\]/,/^\$/{/^\$/d;p}" "$papirus/index.theme"
+            done
+        } > "$build/index.theme"
+        printf '%s\n' "$papirus" > "$build/source"
+        rm -rf "$theme"
+        mv "$build" "$theme"
+    fi
+    dconf write "$key" "'$name'"
+}
+folders
 
 printf '%s\n' "$applied" > "$state"
 
