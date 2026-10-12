@@ -7,7 +7,20 @@ import qs.widgets
 // The weather now on the left, the week on the right, row by row: both have
 // the same spacing, and seven rows each.
 Row {
+    id: weather
     spacing: 32
+
+    // A click anywhere in the popup opens the weather application.
+    signal launched
+    TapHandler {
+        onTapped: {
+            Apps.run("gnome-weather");
+            weather.launched();
+        }
+    }
+    HoverHandler {
+        cursorShape: Qt.PointingHandCursor
+    }
 
     Column {
         spacing: Theme.popupRowGap

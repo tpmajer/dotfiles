@@ -169,7 +169,9 @@ PanelWindow {
             host: popups
             text: Weather.known ? Weather.icon + " " + Weather.temperatureText : ""
             color: Theme.sky
-            popup: WeatherPopup {}
+            popup: WeatherPopup {
+                onLaunched: popups.popupOpen = false
+            }
             clickOpensPopup: true
         }
 
