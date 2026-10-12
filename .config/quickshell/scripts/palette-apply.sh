@@ -171,8 +171,8 @@ script-opts-append=stats-plot_color=$(bgr "$c_teal")
 script-opts-append=uosc-color=foreground=${c_teal#\#},foreground_text=${c_surface0#\#},background=${c_base#\#},background_text=${c_text#\#},curtain=${c_base#\#},success=${c_green#\#},error=${c_red#\#}
 CONF
 
-    [ -z "$greeter" ] || printf '%s\n' "base=$c_base" "crust=$c_crust" "subtext1=$c_subtext1" \
-        "subtext0=$c_subtext0" "green=$c_green" "peach=$c_peach" "red=$c_red" > "$greeter"
+    [ -z "$greeter" ] || printf '%s\n' "base=$c_base" "crust=$c_crust" "text=$c_text" \
+        "subtext1=$c_subtext1" "subtext0=$c_subtext0" "green=$c_green" "peach=$c_peach" "red=$c_red" > "$greeter"
 fi
 
 # The session's VT has the backdrop it was started with as its colour 0
