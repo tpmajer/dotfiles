@@ -175,6 +175,12 @@ CONF
         "subtext0=$c_subtext0" "green=$c_green" "peach=$c_peach" "red=$c_red" > "$greeter"
 fi
 
+# The session's VT has the backdrop it was started with as its colour 0
+# (~/.nixos, greeter-session), and shows it again as the machine goes down.
+vt=/dev/$(cat /sys/class/tty/tty0/active 2> /dev/null)
+backdrop=${c_base:-#11111b}
+[ -c "$vt" ] && [ -O "$vt" ] && printf '\033]P0%s' "${backdrop#\#}" > "$vt"
+
 # btop has its own theme for each palette, with those that came with it or
 # among the user's. Not copied as a file: one from the store is read-only.
 # With none found it is btop's default, rather than the palette before.
