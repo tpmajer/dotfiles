@@ -12,6 +12,7 @@
 | Function | Usage | Description |
 |----------|-------|-------------|
 | `gitstat` | `gitstat` | Status of `~/.nixos` and `~/.dotfiles`: branch, ahead/behind origin (↑↓), last commit, changes |
+| `pushall` | `pushall` | `git push` in `~/.nixos` and `~/.dotfiles`, stops at the first failure |
 
 ## Processes and networking
 
