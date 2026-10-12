@@ -8,11 +8,13 @@ import Quickshell.Io
 Singleton {
     // The palettes to choose from. Past Catppuccin Mocha, a palette's
     // nearest colors stand in for Catppuccin's. `ghostty`, `btop` and `helix`
-    // are its theme in each.
+    // are its theme in each. `crust` is the overview's backdrop, darker
+    // than the base.
     readonly property var palettes: ({
             "catppuccin": {
                 label: "Catppuccin",
                 base: "#1e1e2e",
+                crust: "#11111b",
                 surface0: "#313244",
                 surface1: "#45475a",
                 text: "#cdd6f4",
@@ -38,6 +40,7 @@ Singleton {
                 btop: "tokyo-night",
                 helix: "tokyonight",
                 base: "#1a1b26",
+                crust: "#0c0e14",
                 surface0: "#292e42",
                 surface1: "#414868",
                 text: "#c0caf5",
@@ -63,6 +66,7 @@ Singleton {
                 btop: "tokyo-storm",
                 helix: "tokyonight_storm",
                 base: "#24283b",
+                crust: "#171a27",
                 surface0: "#3b4261",
                 surface1: "#545c7e",
                 text: "#c0caf5",
@@ -88,6 +92,7 @@ Singleton {
                 btop: "kanagawa-wave",
                 helix: "kanagawa",
                 base: "#1f1f28",
+                crust: "#16161d",
                 surface0: "#2a2a37",
                 surface1: "#363646",
                 text: "#dcd7ba",
@@ -113,6 +118,7 @@ Singleton {
                 btop: "dracula",
                 helix: "dracula",
                 base: "#282a36",
+                crust: "#191a21",
                 surface0: "#343746",
                 surface1: "#44475a",
                 text: "#f8f8f2",
@@ -138,6 +144,7 @@ Singleton {
                 btop: "gruvbox_material_dark",
                 helix: "gruvbox-material",
                 base: "#282828",
+                crust: "#1b1b1b",
                 surface0: "#3c3836",
                 surface1: "#504945",
                 text: "#d4be98",
