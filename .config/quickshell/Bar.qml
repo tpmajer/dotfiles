@@ -342,9 +342,14 @@ PanelWindow {
             Module {
                 host: popups
                 text: Theme.glyph(0xf011)
-                color: Theme.subtext0
+                // Red with failed units, peach with a restart due.
+                color: Machine.color
                 rightMargin: 6
-                onClicked: bar.powerMenuRequested()
+                popup: MachinePopup {}
+                onClicked: {
+                    popups.popupOpen = false;
+                    bar.powerMenuRequested();
+                }
             }
         }
     }
