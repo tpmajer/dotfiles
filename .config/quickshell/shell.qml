@@ -111,6 +111,16 @@ ShellRoot {
         }
     }
 
+    // `qs ipc call kbdBacklight quiet`: no OSD for the keyboard's backlight
+    // as hypridle turns it off or back on.
+    IpcHandler {
+        target: "kbdBacklight"
+
+        function quiet(): void {
+            KbdBacklight.quiet();
+        }
+    }
+
     // `qs ipc call notifications toggle`: the notification center on the
     // focused output's bar, driven from the keyboard. `toggleDnd`: do not
     // disturb. `dismissToasts`: the toasts go to the center. `clear`: what

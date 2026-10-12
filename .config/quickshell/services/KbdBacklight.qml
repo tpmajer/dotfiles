@@ -17,6 +17,16 @@ Singleton {
     // The backlight changed after startup.
     signal changed
 
+    // hypridle is about to turn it off or back on, which is not announced:
+    // the next second's change. Longer than the wait for a read.
+    function quiet() {
+        quietEnd.restart();
+    }
+    Timer {
+        id: quietEnd
+        interval: 1000
+    }
+
     function update() {
         const max = Number(maxFile.text().trim());
         if (!(max > 0))
@@ -24,7 +34,7 @@ Singleton {
         const now = Math.round(Number(valueFile.text().trim()) * 100 / max);
         const differs = now !== percent;
         percent = now;
-        if (ready && differs)
+        if (ready && differs && !quietEnd.running)
             changed();
         ready = true;
     }
