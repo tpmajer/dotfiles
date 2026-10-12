@@ -158,7 +158,7 @@ PanelWindow {
                 now: systemClock.date
                 onLaunched: popups.popupOpen = false
             }
-            rightCommand: Apps.inTerminal(["calcure"])
+            rightCommand: ["gnome-calendar"]
             onClicked: alt = !alt
         }
 
