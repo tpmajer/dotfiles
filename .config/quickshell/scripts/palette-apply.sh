@@ -2,7 +2,7 @@
 
 # The palette for what else takes one, each from a file its configuration
 # names, kept out of git: ghostty, niri, fuzzel, btop, helix, bat, micro, mpv
-# and GTK.
+# and GTK. The login screen's too, where there is one to take it.
 #   palette-apply.sh [init|sync] [name=color ...] [ghostty=theme btop=theme helix=theme]
 # The colors are Theme's, as #rrggbb. With none it is Catppuccin Mocha, which
 # the configurations and their themes have.
@@ -34,6 +34,9 @@ mpv=$config/mpv/palette.conf
 gtk3=$config/gtk-3.0/palette.css
 gtk4=$config/gtk-4.0/palette.css
 files=("$ghostty" "$niri" "$fuzzel" "$btop" "$helix" "$bat" "$micro" "$mpv" "$gtk3" "$gtk4")
+# The login screen reads its own at its start (~/.nixos, greeter/shell.qml).
+greeter=/var/cache/greeter
+[ -w "$greeter" ] && greeter+=/palette && files+=("$greeter") || greeter=
 
 # One at a time: a palette is not to be overwritten by the one before it.
 mkdir -p "${state%/*}"
@@ -77,6 +80,7 @@ if [ -z "$c_base" ]; then
     : > "$niri"
     : > "$fuzzel"
     : > "$mpv"
+    [ -z "$greeter" ] || : > "$greeter"
 else
     printf 'theme = %s\n' "$c_ghostty" > "$ghostty"
 
@@ -166,6 +170,9 @@ script-opts-append=stats-plot_bg_color=$(bgr "$c_base")
 script-opts-append=stats-plot_color=$(bgr "$c_teal")
 script-opts-append=uosc-color=foreground=${c_teal#\#},foreground_text=${c_surface0#\#},background=${c_base#\#},background_text=${c_text#\#},curtain=${c_base#\#},success=${c_green#\#},error=${c_red#\#}
 CONF
+
+    [ -z "$greeter" ] || printf '%s\n' "base=$c_base" "subtext1=$c_subtext1" \
+        "subtext0=$c_subtext0" "green=$c_green" "peach=$c_peach" "red=$c_red" > "$greeter"
 fi
 
 # btop has its own theme for each palette, with those that came with it or
