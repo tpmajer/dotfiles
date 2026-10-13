@@ -51,6 +51,11 @@ if [ -n "$mode" ]; then
         [ -e "$file" ] || stale=1
     done
     [ "$mode" = sync ] && [ "$(cat "$state" 2> /dev/null)" != "$applied" ] && stale=1
+    # Nor is the folders' theme GTK is told to take, if it is gone.
+    icons=$(dconf read /org/gnome/desktop/interface/icon-theme 2> /dev/null)
+    icons=${icons//\'/}
+    [[ $icons != Papirus-palette-* ]] ||
+        [ -e "${XDG_DATA_HOME:-$HOME/.local/share}/icons/$icons/index.theme" ] || stale=1
     [ -n "$stale" ] || exit 0
 fi
 
