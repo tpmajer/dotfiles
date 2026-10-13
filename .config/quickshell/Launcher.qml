@@ -102,8 +102,27 @@ Overlay {
     function answer(line) {
         if (!reply)
             return;
-        Quickshell.execDetached(["sh", "-c", '[ -p "$1" ] && printf "%s\\n" "$2" > "$1"', "sh", reply, line === null ? "-" : "+" + line]);
+        writer.createObject(menu, {fifo: reply, line: line === null ? "-" : "+" + line});
         reply = "";
+    }
+
+    // The answer goes to the FIFO by this one's input: a password is not
+    // for a command line, which any process can read.
+    Component {
+        id: writer
+
+        Process {
+            required property string fifo
+            required property string line
+            command: ["sh", "-c", '[ -p "$1" ] && cat > "$1"', "sh", fifo]
+            stdinEnabled: true
+            running: true
+            onStarted: {
+                write(line + "\n");
+                stdinEnabled = false;
+            }
+            onExited: destroy()
+        }
     }
 
     function accept() {
