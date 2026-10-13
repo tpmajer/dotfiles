@@ -24,6 +24,9 @@ Overlay {
         dimHeld = false;
     }
 
+    // Where the pointer was last seen over a tile.
+    property var pointer: null
+
     // The dimming goes even if nothing comes of the action. A click ends
     // it too.
     Timer {
@@ -39,6 +42,7 @@ Overlay {
             return;
         }
         index = Power.defaultIndex;
+        pointer = null;
         shown = true;
         keyHandler.forceActiveFocus();
     }
@@ -136,13 +140,19 @@ Overlay {
                     }
                 }
 
-                // One tile is always selected; the mouse moves the selection.
+                // One tile is always selected; the mouse moves the selection,
+                // by moving: not by lying where the menu comes up, which is
+                // reported as a move too.
                 MouseArea {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onContainsMouseChanged: if (containsMouse)
-                        menu.index = tile.index
+                    onPositionChanged: mouse => {
+                        const at = mapToItem(null, mouse.x, mouse.y);
+                        if (menu.pointer && (at.x !== menu.pointer.x || at.y !== menu.pointer.y))
+                            menu.index = tile.index;
+                        menu.pointer = at;
+                    }
                     onClicked: menu.runAction(tile.modelData)
                 }
             }
