@@ -229,10 +229,10 @@ for dir in "$HOME"/.var/app/*/config/gtk-[34].0; do
     gtk > "$dir/palette.css"
 done
 
-# Papirus has its folders in Catppuccin Mocha's blue: a theme over it with
-# those alone, in the palette's teal, and in Catppuccin Mocha's sky. One for
-# each palette, named by its colors, as GTK takes icons again at a change of
-# the theme's name alone.
+# Papirus has its folders in Catppuccin Mocha's blue, and is that palette's
+# as it is: for another, a theme over it with those alone, in the palette's
+# teal. One for each palette, named by its colors, as GTK takes icons again
+# at a change of the theme's name alone.
 folders() {
     command -v dconf > /dev/null || return 0
     local key=/org/gnome/desktop/interface/icon-theme share papirus=
@@ -241,9 +241,9 @@ folders() {
     for share in "${shares[@]}"; do
         [ -d "$share/icons/Papirus" ] && papirus=$(readlink -f "$share/icons/Papirus") && break
     done
-    [ -n "$papirus" ] || { dconf reset "$key"; return; }
+    [ -n "$papirus" ] && [ -n "$c_base" ] || { dconf reset "$key"; return; }
 
-    local front=${c_teal:-#89dceb} paper=${c_text:-#cdd6f4} glyph=${c_surface0:-#313244}
+    local front=$c_teal paper=$c_text glyph=$c_surface0
     local name=Papirus-palette-${front#\#}${paper#\#}${glyph#\#}
     local theme=${XDG_DATA_HOME:-$HOME/.local/share}/icons/$name
     # Made once, and again when Papirus is another: `source` is the one used.
@@ -269,9 +269,9 @@ folders() {
             cp -P "$dir" "$build/$size"
             listed+=("$size/places")
         done
-        # The back of a folder is its front, darker: Papirus' own for the sky.
-        local back=#75c8d7
-        [ -z "$c_base" ] || back=$(printf '#%02x%02x%02x' $((16#${front:1:2} * 88 / 100)) \
+        # The back of a folder is its front, darker.
+        local back
+        back=$(printf '#%02x%02x%02x' $((16#${front:1:2} * 88 / 100)) \
             $((16#${front:3:2} * 88 / 100)) $((16#${front:5:2} * 88 / 100)))
         find "$build" -type f -name '*.svg' -exec sed -i \
             "s/#89b4fa/$front/Ig;s/#75a0e6/$back/Ig;s/#cdd6f4/$paper/Ig;s/#313244/$glyph/Ig" {} +
