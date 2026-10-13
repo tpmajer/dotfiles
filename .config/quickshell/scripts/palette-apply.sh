@@ -243,7 +243,10 @@ folders() {
     done
     [ -n "$papirus" ] && [ -n "$c_base" ] || { dconf reset "$key"; return; }
 
-    local front=$c_teal paper=$c_text glyph=$c_surface0
+    local front=$c_teal paper=$c_text glyph=$c_surface0 color
+    for color in "$front" "$paper" "$glyph"; do
+        [[ $color =~ ^#[0-9a-fA-F]{6}$ ]] || { dconf reset "$key"; return; }
+    done
     local name=Papirus-palette-${front#\#}${paper#\#}${glyph#\#}
     local theme=${XDG_DATA_HOME:-$HOME/.local/share}/icons/$name
     # Made once, and again when Papirus is another: `source` is the one used.
