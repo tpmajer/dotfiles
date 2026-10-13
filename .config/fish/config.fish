@@ -7,6 +7,8 @@ set fish_greeting
 
 # fzf's bindings there override those of the fzf.fish plugin, so re-apply them
 fzf_configure_bindings
+# Its colors, in the palette's: quickshell's scripts/palette-apply.sh makes it.
+set -gx FZF_DEFAULT_OPTS_FILE ~/.config/fzf/palette
 if not set -q sponge_regex_patterns
     set -U sponge_regex_patterns 'nh os (switch|boot)'
 end
