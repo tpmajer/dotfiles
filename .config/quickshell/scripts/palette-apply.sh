@@ -301,6 +301,10 @@ folders() {
         fi
         rm -rf "$theme"
         mv "$build" "$theme"
+        # Those of another Papirus would be made again, if ever taken.
+        for dir in "${theme%/*}"/Papirus-palette-*/; do
+            [ "$(cat "$dir/source" 2> /dev/null)" = "$papirus" ] || rm -rf "$dir"
+        done
     fi
     dconf write "$key" "'$name'"
 }
