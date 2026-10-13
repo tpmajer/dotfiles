@@ -8,10 +8,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property string sysfs: "/sys/class/backlight/amdgpu_bl1/"
-
-    property int percent: 0
-    property bool ready: false
+    readonly property int percent: level.percent
 
     // The brightness changed after startup (the keys, brightnessctl, anything).
     signal changed
@@ -27,21 +24,12 @@ Singleton {
         onTriggered: root.quiet = false
     }
 
-    function update() {
-        const max = Number(maxFile.text().trim());
-        if (!(max > 0))
-            return;
-        const now = Math.round(Number(valueFile.text().trim()) * 100 / max);
-        const differs = now !== percent;
-        percent = now;
-        if (ready && differs && !quiet)
-            changed();
-        ready = true;
+    SysfsLevel {
+        id: level
+        sysfs: "/sys/class/backlight/amdgpu_bl1/"
+        quiet: root.quiet
+        onChanged: root.changed()
     }
-
-    FileView { id: maxFile; path: root.sysfs + "max_brightness"; blockLoading: true }
-    // reload() only starts the read; the new value is there in onLoaded.
-    FileView { id: valueFile; path: root.sysfs + "brightness"; onLoaded: root.update() }
 
     Process {
         id: udev
@@ -50,7 +38,7 @@ Singleton {
         stdout: SplitParser {
             onRead: line => {
                 if (line.includes("change"))
-                    valueFile.reload();
+                    level.reload();
             }
         }
         onExited: udevRestart.start()
