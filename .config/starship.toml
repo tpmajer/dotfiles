@@ -57,8 +57,6 @@ symbol = " "
 symbol = " "
 
 [git_branch]
-#symbol = " "
-#symbol = " "
 symbol = " "
 
 [git_commit]
