@@ -251,7 +251,7 @@ folders() {
     local theme=${XDG_DATA_HOME:-$HOME/.local/share}/icons/$name
     # Made once, and again when Papirus is another: `source` is the one used.
     if [ "$(cat "$theme/source" 2> /dev/null)" != "$papirus" ]; then
-        local build=$theme.new dir size
+        local build=$theme.new dir size failed=
         local -a found listed=()
         rm -rf "$build"
         mkdir -p "$build"
@@ -262,14 +262,14 @@ folders() {
             mapfile -t found < <(grep -Rlis '#89b4fa' "$dir")
             [ ${#found[@]} -gt 0 ] || continue
             mkdir -p "$build/$size/places"
-            cp -P "${found[@]}" "$build/$size/places/"
+            cp -P "${found[@]}" "$build/$size/places/" || failed=1
             listed+=("$size/places")
         done
         # A size at twice the scale is a link to the size itself.
         for dir in "$papirus"/*@2x; do
             size=${dir##*/}
             [ -L "$dir" ] && [ -d "$build/$(readlink "$dir")/places" ] || continue
-            cp -P "$dir" "$build/$size"
+            cp -P "$dir" "$build/$size" || failed=1
             listed+=("$size/places")
         done
         # The back of a folder is its front, darker.
@@ -277,7 +277,7 @@ folders() {
         back=$(printf '#%02x%02x%02x' $((16#${front:1:2} * 88 / 100)) \
             $((16#${front:3:2} * 88 / 100)) $((16#${front:5:2} * 88 / 100)))
         find "$build" -type f -name '*.svg' -exec sed -i \
-            "s/#89b4fa/$front/Ig;s/#75a0e6/$back/Ig;s/#cdd6f4/$paper/Ig;s/#313244/$glyph/Ig" {} +
+            "s/#89b4fa/$front/Ig;s/#75a0e6/$back/Ig;s/#cdd6f4/$paper/Ig;s/#313244/$glyph/Ig" {} + || failed=1
         {
             printf '[Icon Theme]\nName=%s\nComment=Papirus, its folders in the palette\n' "$name"
             printf 'Inherits=Papirus,breeze,hicolor\nExample=folder\n'
@@ -286,8 +286,14 @@ folders() {
                 printf '\n'
                 sed -n "/^\[${dir//\//\\/}\]/,/^\$/{/^\$/d;p}" "$papirus/index.theme"
             done
-        } > "$build/index.theme"
-        printf '%s\n' "$papirus" > "$build/source"
+        } > "$build/index.theme" || failed=1
+        printf '%s\n' "$papirus" > "$build/source" || failed=1
+        # Not kept unless whole: one with its `source` is not made again.
+        if [ -n "$failed" ] || [ ${#listed[@]} -eq 0 ]; then
+            rm -rf "$build"
+            dconf reset "$key"
+            return
+        fi
         rm -rf "$theme"
         mv "$build" "$theme"
     fi
