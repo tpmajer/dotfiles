@@ -74,7 +74,8 @@ Item {
         const glyph = Theme.glyph(Battery.defaultIcons[Math.min(9, Math.floor(parseInt(charge[0]) / 10))]);
         return text.slice(0, charge.index) + glyph + " " + text.slice(charge.index);
     }
-    readonly property bool iconIsFile: iconName.startsWith("/") || iconName.includes("://")
+    // A file here, not an address: nothing is fetched for a notification.
+    readonly property bool iconIsFile: iconName.startsWith("/") || iconName.startsWith("file://")
     readonly property bool iconIsApp: iconName !== "" && !iconIsFile && DesktopEntries.applications.values.some(e => e.icon === iconName)
     readonly property string glyph: iconName !== "" && !iconIsFile && !iconIsApp ? Theme.iconGlyph(iconName) : ""
     readonly property string icon: {
