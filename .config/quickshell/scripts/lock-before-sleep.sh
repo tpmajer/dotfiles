@@ -6,7 +6,9 @@
 
 qs ipc call lock lockNow 2>/dev/null || exit
 
-for _ in $(seq 40); do
+# By the clock, in microseconds: asking takes its time too.
+end=$((${EPOCHREALTIME/[.,]/} + 2000000))
+while [ "${EPOCHREALTIME/[.,]/}" -lt "$end" ]; do
     [ "$(qs ipc call lock isLocked 2>/dev/null)" = "true" ] && exit 0
     sleep 0.05
 done
