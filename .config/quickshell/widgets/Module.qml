@@ -35,6 +35,7 @@ Item {
     property Component popup: null
     readonly property bool hovered: mouse.containsMouse
     readonly property real centerX: leftMargin + bg.width / 2
+    // The most the text takes; no limit below 0.
     property int maxTextWidth: -1
 
     // What a right click runs, and whether a left one shows the popup at
@@ -128,7 +129,7 @@ Item {
                 font.family: Theme.font
                 font.pixelSize: root.fontSize
                 font.bold: root.bold
-                width: root.maxTextWidth > 0 ? Math.min(implicitWidth, root.maxTextWidth) : implicitWidth
+                width: root.maxTextWidth >= 0 ? Math.min(implicitWidth, root.maxTextWidth) : implicitWidth
                 elide: Text.ElideRight
                 anchors.verticalCenter: parent.verticalCenter
             }
