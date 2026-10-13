@@ -87,6 +87,8 @@ Overlay {
         answer(null);
         feed.path = file;
         feed.reload();
+        // Without the wait it is still the question before.
+        feed.waitForJob();
         const text = feed.text();
         lines = text ? text.replace(/\n$/, "").split("\n") : [];
         placeholder = prompt;
