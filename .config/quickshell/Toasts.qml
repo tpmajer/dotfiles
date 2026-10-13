@@ -307,37 +307,13 @@ PanelWindow {
                 onClicked: toasts.expanded = !toasts.expanded
             }
 
-            // Highlighted on hover as a popup's clickable row is.
-            Rectangle {
+            PopupButton {
                 anchors.right: parent.right
                 anchors.rightMargin: Theme.popupPadding
                 anchors.verticalCenter: parent.verticalCenter
-                width: closeAllLabel.implicitWidth + 2 * Theme.popupTextInset
-                height: closeAllLabel.implicitHeight + 8
-                radius: Theme.moduleRadius
-                color: closeAllMouse.containsMouse ? Theme.surface0 : Qt.rgba(Theme.surface0.r, Theme.surface0.g, Theme.surface0.b, 0)
-                Behavior on color {
-                    ColorAnimation { duration: Theme.hoverDuration }
-                }
-
-                PopupText {
-                    id: closeAllLabel
-                    anchors.centerIn: parent
-                    text: "Close all"
-                    color: closeAllMouse.containsMouse ? Theme.text : Theme.subtext0
-                    Behavior on color {
-                        ColorAnimation { duration: Theme.hoverDuration }
-                    }
-                    font.pixelSize: Theme.fontSize - 2
-                }
-
-                MouseArea {
-                    id: closeAllMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: toasts.closeAll()
-                }
+                text: "Close all"
+                font.pixelSize: Theme.fontSize - 2
+                onClicked: toasts.closeAll()
             }
         }
 

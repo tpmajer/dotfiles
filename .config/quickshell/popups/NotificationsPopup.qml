@@ -95,63 +95,20 @@ Column {
             anchors.verticalCenter: parent.verticalCenter
             spacing: 2
 
-            // Highlighted on hover as a popup's clickable row is.
-            Rectangle {
+            PopupButton {
+                id: clear
                 visible: center.list.length > 0
-                width: clearLabel.implicitWidth + 2 * Theme.popupTextInset
-                height: clearLabel.implicitHeight + 8
-                radius: Theme.moduleRadius
-                color: clearMouse.containsMouse ? Theme.surface0 : Qt.rgba(Theme.surface0.r, Theme.surface0.g, Theme.surface0.b, 0)
-                Behavior on color {
-                    ColorAnimation { duration: Theme.hoverDuration }
-                }
-
-                PopupText {
-                    id: clearLabel
-                    anchors.centerIn: parent
-                    text: "Clear"
-                    color: clearMouse.containsMouse ? Theme.text : Theme.subtext0
-                    Behavior on color {
-                        ColorAnimation { duration: Theme.hoverDuration }
-                    }
-                    font.pixelSize: Theme.fontSize - 2
-                }
-
-                MouseArea {
-                    id: clearMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: Notifications.clear()
-                }
+                text: "Clear"
+                font.pixelSize: Theme.fontSize - 2
+                onClicked: Notifications.clear()
             }
 
-            Rectangle {
-                width: dndLabel.implicitWidth + 2 * Theme.popupTextInset
-                height: clearLabel.implicitHeight + 8
-                radius: Theme.moduleRadius
-                color: dndMouse.containsMouse ? Theme.surface0 : Qt.rgba(Theme.surface0.r, Theme.surface0.g, Theme.surface0.b, 0)
-                Behavior on color {
-                    ColorAnimation { duration: Theme.hoverDuration }
-                }
-
-                PopupText {
-                    id: dndLabel
-                    anchors.centerIn: parent
-                    text: Theme.glyph(Notifications.dnd ? 0xf1f6 : 0xf0f3)
-                    color: dndMouse.containsMouse || Notifications.dnd ? Theme.text : Theme.subtext0
-                    Behavior on color {
-                        ColorAnimation { duration: Theme.hoverDuration }
-                    }
-                }
-
-                MouseArea {
-                    id: dndMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: Notifications.toggleDnd()
-                }
+            // As high as the word beside it.
+            PopupButton {
+                height: clear.implicitHeight
+                text: Theme.glyph(Notifications.dnd ? 0xf1f6 : 0xf0f3)
+                bright: Notifications.dnd
+                onClicked: Notifications.toggleDnd()
             }
         }
     }
