@@ -56,13 +56,10 @@ Overlay {
         }
     }
 
-    // Where the pointer was last seen over a row.
-    property var pointer: null
 
     function open() {
         input.text = "";
         index = 0;
-        pointer = null;
         shown = true;
         input.forceActiveFocus();
     }
@@ -309,17 +306,19 @@ Overlay {
             }
 
             // The pointer selects by moving, not by lying where a row
-            // comes up, which is reported as a move too.
+            // comes up.
+            Connections {
+                target: menu
+                function onPointerMoved() {
+                    if (rowMouse.containsMouse)
+                        menu.index = row.index;
+                }
+            }
             MouseArea {
+                id: rowMouse
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                onPositionChanged: mouse => {
-                    const at = mapToItem(null, mouse.x, mouse.y);
-                    if (menu.pointer && (at.x !== menu.pointer.x || at.y !== menu.pointer.y))
-                        menu.index = row.index;
-                    menu.pointer = at;
-                }
                 onClicked: {
                     menu.index = row.index;
                     menu.accept();

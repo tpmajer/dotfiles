@@ -30,6 +30,14 @@ PanelWindow {
     // A click beside the box.
     signal outsideClicked
 
+    // The pointer moved. Not sent for one lying where the box comes up, or
+    // where something in it changes: an item is told of a move then too,
+    // which is not to select it.
+    signal pointerMoved
+    property var pointerAt: null
+    onShownChanged: if (shown)
+        pointerAt = null
+
     Pop {
         id: pop
         shown: overlay.shown
@@ -104,6 +112,22 @@ PanelWindow {
             height: box.height
             radius: Theme.barRadius
             color: Theme.base
+        }
+    }
+
+    // On what everything is in, so in the way of nothing: where the pointer
+    // is in the window, whatever is under it and however that is scaled.
+    HoverHandler {
+        parent: overlay.contentItem
+        onPointChanged: {
+            if (!hovered)
+                return;
+            const at = point.scenePosition;
+            const moved = overlay.pointerAt && (at.x !== overlay.pointerAt.x || at.y !== overlay.pointerAt.y);
+            overlay.pointerAt = Qt.point(at.x, at.y);
+            // Once the items under it know where it is.
+            if (moved)
+                Qt.callLater(overlay.pointerMoved);
         }
     }
 
