@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 
 # The palette for what else takes one, each from a file its configuration
-# names, kept out of git: ghostty, niri, fuzzel, btop, helix, bat, micro, mpv
-# and GTK, with its folders. The login screen's too, where there is one to
+# names, kept out of git: ghostty, niri, fuzzel, btop, helix, bat, micro, fzf,
+# mpv and GTK, with its folders. The login screen's too, where there is one to
 # take it.
 #   palette-apply.sh [init|sync] [name=color ...] [ghostty=theme btop=theme helix=theme]
 # The colors are Theme's, as #rrggbb. With none it is Catppuccin Mocha, which
 # the configurations and their themes have.
 # `init` does nothing unless a file is missing: niri at its start, as fuzzel
-# does not start without its file, and btop, helix, bat and micro have no
-# theme without theirs. `sync` neither unless the palette applied last was
+# does not start without its file, nor fzf, and btop, helix, bat and micro have
+# no theme without theirs. `sync` neither unless the palette applied last was
 # another: quickshell at its start.
 
 mode=
@@ -31,10 +31,12 @@ btop=$config/btop/themes/palette.theme
 helix=$config/helix/themes/palette.toml
 bat=$config/bat/themes/palette.tmTheme
 micro=$config/micro/colorschemes/palette.micro
+# What fish names as $FZF_DEFAULT_OPTS_FILE.
+fzf=$config/fzf/palette
 mpv=$config/mpv/palette.conf
 gtk3=$config/gtk-3.0/palette.css
 gtk4=$config/gtk-4.0/palette.css
-files=("$ghostty" "$niri" "$fuzzel" "$btop" "$helix" "$bat" "$micro" "$mpv" "$gtk3" "$gtk4")
+files=("$ghostty" "$niri" "$fuzzel" "$btop" "$helix" "$bat" "$micro" "$fzf" "$mpv" "$gtk3" "$gtk4")
 # The login screen reads its own at its start (~/.nixos, greeter/shell.qml).
 greeter=/var/cache/greeter
 [ -w "$greeter" ] && greeter+=/palette && files+=("$greeter") || greeter=
@@ -212,6 +214,15 @@ printf 'inherits = "%s"\n' "${c_helix:-catppuccin_mocha}" > "$helix"
 recolor "$config/bat/themes/Catppuccin Mocha.tmTheme" > "$bat"
 recolor "$config/micro/colorschemes/catppuccin-mocha-transparent.micro" > "$micro"
 
+# fzf has no theme of its own: Catppuccin's for it, the same way.
+recolor /dev/stdin > "$fzf" <<'OPTS'
+--color=bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8
+--color=fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc
+--color=marker:#b4befe,fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8
+--color=selected-bg:#45475a
+--color=border:#6c7086,label:#cdd6f4
+OPTS
+
 # GTK's stylesheets import theirs over the colors they name, and so do the
 # copies Flatpak applications have, niri's scripts/flatpak-gtk-theme.sh.
 # Applications take it when started.
@@ -313,8 +324,8 @@ folders
 
 printf '%s\n' "$applied" > "$state"
 
-# Open terminals, btop and helix take it at once; fuzzel, bat, micro and mpv
-# when started. Not one just started: before it handles the signal, it ends it.
+# Open terminals, btop and helix take it at once; fuzzel, bat, micro, fzf and
+# mpv when started. Not one just started: before it handles the signal, it ends it.
 pkill -USR2 --older 2 -x '\.?ghostty(-wrappe)?'
 pkill -USR2 --older 2 -x btop
 pkill -USR1 --older 2 -x '\.?hx(-wrapped)?'
