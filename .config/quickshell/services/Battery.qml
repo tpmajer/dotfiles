@@ -76,7 +76,13 @@ Singleton {
         onExited: root.refresh()
     }
 
-    property string lastEvent: ""
+    // What was last told of: kept over a reload of the configuration, not to
+    // tell it again.
+    PersistentProperties {
+        id: told
+        reloadableId: "battery"
+        property string event: ""
+    }
 
     // reload() only starts the read; without the wait, text() is still the
     // previous content.
@@ -113,8 +119,8 @@ Singleton {
             event = "discharging-" + state;
         else if (charging && capacity >= fullAt)
             event = "charging-100";
-        if (event !== lastEvent) {
-            lastEvent = event;
+        if (event !== told.event) {
+            told.event = event;
             if (event === "discharging-warning")
                 Quickshell.execDetached(["notify-send", "-u", "normal", "Low Battery"]);
             else if (event === "discharging-critical")
