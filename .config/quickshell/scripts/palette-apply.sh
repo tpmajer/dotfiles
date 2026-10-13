@@ -234,7 +234,8 @@ for dir in "$HOME"/.var/app/*/config/gtk-[34].0; do
     gtk > "$dir/palette.css"
 done
 
-# Papirus has its folders in Catppuccin Mocha's blue, and is that palette's
+# Papirus has its folders in Catppuccin Mocha's blue (~/.nixos,
+# modules/packages.nix: the colors sought below), and is that palette's
 # as it is: for another, a theme over it with those alone, in the palette's
 # teal. One for each palette, named by its colors, as GTK takes icons again
 # at a change of the theme's name alone.
