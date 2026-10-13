@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Widgets
 import qs
+import qs.services
 
 // One bar module: colored text on a transparent background, a faint Surface 0
 // rectangle on hover and an optional popup below the bar.
@@ -147,8 +148,10 @@ Item {
         acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
         onClicked: m => {
             if (m.button === Qt.RightButton) {
+                // Through niri, as from the launcher: a child of this
+                // service would go with it when it restarts.
                 if (root.rightCommand.length > 0)
-                    Quickshell.execDetached(root.rightCommand);
+                    Niri.send({Action: {Spawn: {command: root.rightCommand}}});
                 root.rightClicked();
             } else if (m.button === Qt.MiddleButton) {
                 root.middleClicked();
