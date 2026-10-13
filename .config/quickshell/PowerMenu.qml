@@ -17,8 +17,12 @@ Overlay {
     // and what it brings is not there yet. The lock's curtain fades in over
     // the dimming, and the session ends under it; it would otherwise be gone
     // for a moment before either.
-    onLockedChanged: if (locked)
-        dimHeld = false
+    // The menu goes as well: it would be there at the unlock, with the
+    // keyboard.
+    onLockedChanged: if (locked) {
+        shown = false;
+        dimHeld = false;
+    }
 
     // The dimming goes even if nothing comes of the action. A click ends
     // it too.
