@@ -231,10 +231,22 @@ Overlay {
         width: parent.width - 2 * Theme.popupPadding
         height: Math.min(count, menu.maxRows) * menu.rowHeight
         clip: true
-        boundsBehavior: Flickable.StopAtBounds
+        // The wheel does not scroll it.
+        interactive: false
         model: menu.results
         currentIndex: menu.index
         highlightMoveDuration: 0
+
+        // A notch of the wheel is a row, as an arrow is, but it stops at
+        // the list's ends.
+        WheelHandler {
+            acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+            onWheel: event => wheel.turn(event.angleDelta.y)
+        }
+        WheelSteps {
+            id: wheel
+            onStepped: rows => menu.index = Math.max(0, Math.min(menu.results.length - 1, menu.index - rows))
+        }
 
         delegate: Rectangle {
             id: row
