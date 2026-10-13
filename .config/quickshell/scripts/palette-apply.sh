@@ -2,9 +2,9 @@
 
 # The palette for what else takes one, each from a file its configuration
 # names, kept out of git: ghostty, niri, fuzzel, btop, helix, bat, micro, fzf,
-# mpv and GTK, with its folders. The login screen's too, where there is one to
-# take it.
-#   palette-apply.sh [init|sync] [name=color ...] [ghostty=theme btop=theme helix=theme]
+# mpv and GTK, with its folders and the cursor. The login screen's too, where
+# there is one to take it.
+#   palette-apply.sh [init|sync] [name=color ...] [ghostty=theme btop=theme helix=theme cursor=theme]
 # The colors are Theme's, as #rrggbb. With none it is Catppuccin Mocha, which
 # the configurations and their themes have.
 # `init` does nothing unless a file is missing: niri at its start, as fuzzel
@@ -83,6 +83,16 @@ recolor() {
     sed "$program" "$1"
 }
 
+# Simp1e has a cursor for some palettes: niri and GTK take it where it is
+# installed, and else keep the configuration's.
+cursor=
+if [[ $c_cursor =~ ^[A-Za-z0-9-]+$ ]]; then
+    IFS=: read -ra shares <<< "${XDG_DATA_DIRS:-/usr/share}"
+    for share in "${shares[@]}"; do
+        [ -d "$share/icons/$c_cursor/cursors" ] && cursor=$c_cursor && break
+    done
+fi
+
 if [ -z "$c_base" ]; then
     : > "$ghostty"
     : > "$niri"
@@ -146,6 +156,7 @@ window-rule {
     }
 }
 KDL
+    [ -z "$cursor" ] || printf 'cursor {\n    xcursor-theme "%s"\n}\n' "$cursor" >> "$niri"
 
     cat > "$fuzzel" <<INI
 [colors]
@@ -321,6 +332,12 @@ folders() {
     dconf write "$key" "'$name'"
 }
 folders
+
+# GTK's applications take the cursor from there too.
+if command -v dconf > /dev/null; then
+    key=/org/gnome/desktop/interface/cursor-theme
+    [ -n "$cursor" ] && dconf write "$key" "'$cursor'" || dconf reset "$key"
+fi
 
 printf '%s\n' "$applied" > "$state"
 

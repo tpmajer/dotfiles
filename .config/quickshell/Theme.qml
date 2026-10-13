@@ -8,8 +8,8 @@ import Quickshell.Io
 Singleton {
     // The palettes to choose from. Past Catppuccin Mocha, a palette's
     // nearest colors stand in for Catppuccin's. `ghostty`, `btop` and `helix`
-    // are its theme in each. `crust` is the overview's backdrop, darker
-    // than the base.
+    // are its theme in each, and `cursor` Simp1e's, where it has one.
+    // `crust` is the overview's backdrop, darker than the base.
     readonly property var palettes: ({
             "catppuccin": {
                 label: "Catppuccin",
@@ -39,6 +39,7 @@ Singleton {
                 ghostty: "TokyoNight Night",
                 btop: "tokyo-night",
                 helix: "tokyonight",
+                cursor: "Simp1e-Tokyo-Night",
                 base: "#1a1b26",
                 crust: "#0c0e14",
                 surface0: "#292e42",
@@ -65,6 +66,7 @@ Singleton {
                 ghostty: "TokyoNight Storm",
                 btop: "tokyo-storm",
                 helix: "tokyonight_storm",
+                cursor: "Simp1e-Tokyo-Night-Storm",
                 base: "#24283b",
                 crust: "#171a27",
                 surface0: "#3b4261",
@@ -143,6 +145,7 @@ Singleton {
                 ghostty: "Gruvbox Material Dark",
                 btop: "gruvbox_material_dark",
                 helix: "gruvbox-material",
+                cursor: "Simp1e-Gruvbox-Dark",
                 base: "#282828",
                 crust: "#1b1b1b",
                 surface0: "#3c3836",
