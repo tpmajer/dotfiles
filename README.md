@@ -55,8 +55,8 @@ stow .
 Run the same command again to link files added later. On a conflict it aborts
 with a list of what is in the way and changes nothing.
 
-Fuzzel, btop, Helix, bat and micro take their colors from files made outside
-the repo, which niri makes at its start. Before the first session, make them
+Fuzzel, btop, Helix, bat, micro and fzf take their colors from files made
+outside the repo, which niri makes at its start. Before the first session, make them
 by hand:
 
 ```sh
