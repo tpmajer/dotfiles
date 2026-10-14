@@ -332,7 +332,9 @@ PanelWindow {
             Module {
                 property bool alt: false
                 host: popups
-                text: Battery.icon + " " + (alt && Battery.timeText !== "" ? Battery.timeText : Battery.capacity + "%")
+                prefix: Battery.icon
+                prefixSize: Theme.fontSize + 3
+                text: alt && Battery.timeText !== "" ? Battery.timeText : Battery.capacity + "%"
                 color: Battery.color
                 popup: BatteryPopup {}
                 onClicked: alt = !alt
