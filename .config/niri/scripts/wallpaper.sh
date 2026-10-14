@@ -19,6 +19,17 @@ if [ ${#images[@]} -eq 0 ]; then
     exit 1
 fi
 
+# With two or more, not the one shown.
+if [ ${#images[@]} -gt 1 ]; then
+    current=$(awww query 2>/dev/null | sed -n 's/.*currently displaying: image: //p' | head -n 1)
+    current=$(readlink -f "$current" 2>/dev/null)
+    others=()
+    for image in "${images[@]}"; do
+        [ "$(readlink -f "$image")" = "$current" ] || others+=("$image")
+    done
+    [ ${#others[@]} -gt 0 ] && images=("${others[@]}")
+fi
+
 image="${images[RANDOM % ${#images[@]}]}"
 
 awww img "$image" --transition-step 255 --transition-fps 120 --transition-type "$transition" --transition-duration 1 --transition-angle 30 --resize crop
