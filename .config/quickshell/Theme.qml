@@ -199,6 +199,8 @@ Singleton {
         palette = name;
         store.setText(name);
         pass([]);
+        // One of its wallpapers, if it has any: ~/Pictures/.palettes/<name>.
+        Quickshell.execDetached([Quickshell.shellDir + "/scripts/palette-wallpaper.sh", name]);
         Quickshell.execDetached([Quickshell.shellDir + "/scripts/notify-replace.sh", "palette", "-u", "low", "Palette changed", palettes[name].label]);
     }
 
