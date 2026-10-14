@@ -116,18 +116,34 @@ Rectangle {
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: 24
 
-            PopupText {
-                text: Battery.icon + " " + Battery.capacity + "%"
+            // The icon a little larger than the text, as in the bar.
+            Row {
                 // Coloured only when low and not charging, as the
                 // bar's warning; the bar's green for charging would read
                 // as good.
-                color: Battery.discharging && (Battery.state === "warning" || Battery.state === "critical") ? Battery.color : Theme.subtext0
+                readonly property color color: Battery.discharging && (Battery.state === "warning" || Battery.state === "critical") ? Battery.color : Theme.subtext0
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 6
+
+                PopupText {
+                    text: Battery.icon
+                    color: parent.color
+                    font.pixelSize: Theme.fontSize + 3
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+
+                PopupText {
+                    text: Battery.capacity + "%"
+                    color: parent.color
+                    anchors.verticalCenter: parent.verticalCenter
+                }
             }
 
             PopupText {
                 visible: Weather.known
                 text: Weather.icon + " " + Weather.temperatureText
                 color: Theme.subtext0
+                anchors.verticalCenter: parent.verticalCenter
             }
 
             // How many notifications wait, under the bar's bell; none, and
@@ -136,6 +152,7 @@ Rectangle {
                 visible: Notifications.waitingCount > 0
                 text: Theme.glyph(Notifications.quiet ? 0xf1f6 : 0xf0f3) + " " + Notifications.waitingCount
                 color: Theme.subtext0
+                anchors.verticalCenter: parent.verticalCenter
             }
         }
 
