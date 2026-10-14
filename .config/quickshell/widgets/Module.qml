@@ -17,6 +17,7 @@ Item {
     // A width for the prefix, which is centered in it: for an icon that
     // changes, so that the module keeps its width. Its own width otherwise.
     property real prefixWidth: -1
+    property int prefixSize: fontSize
     property bool bold: false
     property int fontSize: Theme.fontSize
     property string iconSource: ""
@@ -110,7 +111,7 @@ Item {
                     ColorAnimation { duration: Theme.hoverDuration }
                 }
                 font.family: Theme.font
-                font.pixelSize: root.fontSize
+                font.pixelSize: root.prefixSize
                 width: root.prefixWidth > 0 ? root.prefixWidth : implicitWidth
                 horizontalAlignment: Text.AlignHCenter
                 anchors.verticalCenter: parent.verticalCenter
