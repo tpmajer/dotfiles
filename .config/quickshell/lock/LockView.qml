@@ -29,9 +29,76 @@ Rectangle {
     // The line below the field.
     property bool capsLock: false
     property string status: ""
+    // Hidden while the screen is off; shown again, the lines come in one
+    // after another.
+    property bool concealed: false
+    // The cascade's time, 0 to 1.
+    property real entrance: 1
+
+    readonly property int stepDelay: 60
+    readonly property int stepTime: 250
+    readonly property int steps: 6
+
+    function ease(t) {
+        const c = Math.max(0, Math.min(1, t));
+        return 1 - Math.pow(1 - c, 3);
+    }
+
+    // How far in the line at the given place in the cascade is.
+    function stage(order) {
+        const total = stepTime + (steps - 1) * stepDelay;
+        return ease((entrance * total - order * stepDelay) / stepTime);
+    }
+
+    // Made concealed: no change to react to.
+    Component.onCompleted: {
+        if (concealed)
+            entrance = 0;
+    }
+
+    onConcealedChanged: {
+        entering.stop();
+        if (concealed)
+            entrance = 0;
+        else if (animated)
+            entering.restart();
+        else
+            entrance = 1;
+    }
+
+    NumberAnimation {
+        id: entering
+        target: view
+        property: "entrance"
+        from: 0
+        to: 1
+        duration: view.stepTime + (view.steps - 1) * view.stepDelay
+    }
+
+    // A line of the cascade: fades in, 12 px up into its place.
+    component Step: Item {
+        id: step
+
+        property int order: 0
+        default property alias content: holder.data
+        readonly property real shown: view.stage(order)
+
+        anchors.horizontalCenter: parent?.horizontalCenter
+        implicitWidth: holder.childrenRect.width
+        implicitHeight: holder.childrenRect.height
+        opacity: shown
+        transform: Translate {
+            y: 12 * (1 - step.shown)
+        }
+
+        Item {
+            id: holder
+            anchors.fill: parent
+        }
+    }
 
     SystemClock {
-        id: clock
+        id: day
         precision: SystemClock.Minutes
     }
 
@@ -92,67 +159,76 @@ Rectangle {
         anchors.centerIn: parent
         spacing: 24
 
-        PopupText {
-            anchors.horizontalCenter: parent.horizontalCenter
-            text: Qt.formatDateTime(clock.date, "HH:mm")
-            font.pixelSize: 96
-            font.bold: true
-            color: Theme.subtext1
-            opacity: 0.9
-            // Qt's default renderer leaves text this large with rough,
-            // colour-fringed edges.
-            renderType: Text.CurveRendering
+        Step {
+            order: 0
+
+            PopupText {
+                text: Qt.formatDateTime(day.date, "HH:mm")
+                font.pixelSize: 96
+                font.bold: true
+                color: Theme.subtext1
+                opacity: 0.9
+                // Qt's default renderer leaves text this large with rough,
+                // colour-fringed edges.
+                renderType: Text.CurveRendering
+            }
         }
 
-        PopupText {
-            anchors.horizontalCenter: parent.horizontalCenter
-            text: Qt.formatDateTime(clock.date, "dddd, d MMMM")
-            color: Theme.subtext0
+        Step {
+            order: 1
+
+            PopupText {
+                text: Qt.formatDateTime(day.date, "dddd, d MMMM")
+                color: Theme.subtext0
+            }
         }
 
         // The battery, the weather when it is known, and the notifications
         // when there are any.
-        Row {
-            anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 24
+        Step {
+            order: 2
 
-            // The icon a little larger than the text, as in the bar.
             Row {
-                // Coloured only when low and not charging, as the
-                // bar's warning; the bar's green for charging would read
-                // as good.
-                readonly property color color: Battery.discharging && (Battery.state === "warning" || Battery.state === "critical") ? Battery.color : Theme.subtext0
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: 6
+                spacing: 24
 
-                PopupText {
-                    text: Battery.icon
-                    color: parent.color
-                    font.pixelSize: Theme.fontSize + 3
+                // The icon a little larger than the text, as in the bar.
+                Row {
+                    // Coloured only when low and not charging, as the
+                    // bar's warning; the bar's green for charging would read
+                    // as good.
+                    readonly property color color: Battery.discharging && (Battery.state === "warning" || Battery.state === "critical") ? Battery.color : Theme.subtext0
                     anchors.verticalCenter: parent.verticalCenter
+                    spacing: 6
+
+                    PopupText {
+                        text: Battery.icon
+                        color: parent.color
+                        font.pixelSize: Theme.fontSize + 3
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+
+                    PopupText {
+                        text: Battery.capacity + "%"
+                        color: parent.color
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
                 }
 
                 PopupText {
-                    text: Battery.capacity + "%"
-                    color: parent.color
+                    visible: Weather.known
+                    text: Weather.icon + " " + Weather.temperatureText
+                    color: Theme.subtext0
                     anchors.verticalCenter: parent.verticalCenter
                 }
-            }
 
-            PopupText {
-                visible: Weather.known
-                text: Weather.icon + " " + Weather.temperatureText
-                color: Theme.subtext0
-                anchors.verticalCenter: parent.verticalCenter
-            }
-
-            // How many notifications wait, under the bar's bell; none, and
-            // it is not there.
-            PopupText {
-                visible: Notifications.waitingCount > 0
-                text: Theme.glyph(Notifications.quiet ? 0xf1f6 : 0xf0f3) + " " + Notifications.waitingCount
-                color: Theme.subtext0
-                anchors.verticalCenter: parent.verticalCenter
+                // How many notifications wait, under the bar's bell; none, and
+                // it is not there.
+                PopupText {
+                    visible: Notifications.waitingCount > 0
+                    text: Theme.glyph(Notifications.quiet ? 0xf1f6 : 0xf0f3) + " " + Notifications.waitingCount
+                    color: Theme.subtext0
+                    anchors.verticalCenter: parent.verticalCenter
+                }
             }
         }
 
@@ -161,91 +237,100 @@ Rectangle {
             height: 24
         }
 
-        // The password field: a mark per character typed.
-        Item {
-            anchors.horizontalCenter: parent.horizontalCenter
-            width: 320
-            height: Theme.barHeight
+        Step {
+            order: 3
 
-            // The bar's shape and shadow (PopupHost), see-through as a
-            // whole the way niri's layer rule makes the bar, only more:
-            // the wallpaper under it is blurred already.
+            // The password field: a mark per character typed.
             Item {
-                anchors.fill: parent
-                opacity: 0.7
+                width: 320
+                height: Theme.barHeight
 
-                layer.enabled: true
-                layer.effect: Shadow {}
-
-                Rectangle {
+                // The bar's shape and shadow (PopupHost), see-through as a
+                // whole the way niri's layer rule makes the bar, only more:
+                // the wallpaper under it is blurred already.
+                Item {
                     anchors.fill: parent
-                    radius: Theme.barRadius
-                    color: Theme.base
-                }
-            }
+                    opacity: 0.7
 
-            PopupText {
-                id: placeholder
-                readonly property bool shown: view.marks === 0
+                    layer.enabled: true
+                    layer.effect: Shadow {}
 
-                anchors.centerIn: parent
-
-                text: view.rejection !== "" ? view.rejection : view.checking ? "checking…" : "password"
-                color: view.rejection !== "" ? Theme.red : Theme.subtext0
-
-                Behavior on color {
-                    enabled: view.animated
-                    ColorAnimation {
-                        duration: 250
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: Theme.barRadius
+                        color: Theme.base
                     }
                 }
 
-                // Gone at the first key; back once the marks have faded.
-                states: State {
-                    name: "typing"
-                    when: !placeholder.shown
-                    PropertyChanges {
-                        placeholder.opacity: 0
-                    }
-                }
-                transitions: Transition {
-                    from: "typing"
-                    enabled: view.animated
-                    SequentialAnimation {
-                        PauseAnimation {
-                            duration: 100
-                        }
-                        NumberAnimation {
-                            property: "opacity"
-                            duration: 150
+                PopupText {
+                    id: placeholder
+                    readonly property bool shown: view.marks === 0
+
+                    anchors.centerIn: parent
+
+                    text: view.rejection !== "" ? view.rejection : view.checking ? "checking…" : "password"
+                    color: view.rejection !== "" ? Theme.red : Theme.subtext0
+
+                    Behavior on color {
+                        enabled: view.animated
+                        ColorAnimation {
+                            duration: 250
                         }
                     }
+
+                    // Gone at the first key; back once the marks have faded.
+                    states: State {
+                        name: "typing"
+                        when: !placeholder.shown
+                        PropertyChanges {
+                            placeholder.opacity: 0
+                        }
+                    }
+                    transitions: Transition {
+                        from: "typing"
+                        enabled: view.animated
+                        SequentialAnimation {
+                            PauseAnimation {
+                                duration: 100
+                            }
+                            NumberAnimation {
+                                property: "opacity"
+                                duration: 150
+                            }
+                        }
+                    }
+                }
+
+                Marks {
+                    marks: view.marks
+                    checking: view.checking
+                    accepted: view.accepted
+                    rejected: view.rejected
+                    animated: view.animated
                 }
             }
+        }
 
-            Marks {
-                marks: view.marks
-                checking: view.checking
-                accepted: view.accepted
-                rejected: view.rejected
+        Step {
+            order: 4
+
+            FingerMark {
+                mark: view.fingerMark
                 animated: view.animated
             }
         }
 
-        FingerMark {
-            anchors.horizontalCenter: parent.horizontalCenter
-            mark: view.fingerMark
-            animated: view.animated
-        }
+        Step {
+            order: 5
 
-        PopupText {
-            anchors.horizontalCenter: parent.horizontalCenter
-            // Caps Lock, which matters while typing, else what the
-            // reader or PAM had to say. Keeps its line when empty, so
-            // nothing moves.
-            text: view.capsLock ? "caps lock is on" : view.status !== "" ? view.status : " "
-            color: view.capsLock ? Theme.peach : Theme.red
-            font.pixelSize: Theme.fontSize - 2
+            PopupText {
+                // Caps Lock, which matters while typing, else what the
+                // reader or PAM had to say. Keeps its line when empty, so
+                // nothing moves.
+                text: view.capsLock ? "caps lock is on" : view.status !== "" ? view.status : " "
+                color: view.capsLock ? Theme.peach : Theme.red
+                font.pixelSize: Theme.fontSize - 2
+            }
         }
     }
 }
