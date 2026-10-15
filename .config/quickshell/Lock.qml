@@ -51,6 +51,8 @@ Scope {
     property bool unlocking: false
     // The screen is off with the lock up: its lines wait to come in.
     property bool concealed: false
+    // Locked with the screen on: the lines come in once the lock is drawn.
+    property bool arriving: false
 
     function conceal() {
         if (state.locked)
@@ -91,19 +93,24 @@ Scope {
         curtain = true;
     }
 
-    function engage() {
+    // arrive: the lines come in once the lock is drawn; else they wait for
+    // screenOn.
+    function engage(arrive = true) {
         if (!locking)
             return;
         locking = false;
         lockDeadline.stop();
         fadeIn.stop();
         shade = 1;
+        arriving = arrive;
+        concealed = true;
         state.locked = true;
         curtainDrop.restart();
     }
 
     // accepted: by the password, which turns its marks green.
     function unlock(accepted = false) {
+        arriving = false;
         uncover();
         if (pam.active)
             pam.abort();
@@ -384,6 +391,13 @@ Scope {
         id: sessionLock
         locked: state.locked
 
+        onSecureChanged: {
+            if (secure && root.arriving) {
+                root.arriving = false;
+                root.uncover();
+            }
+        }
+
         WlSessionLockSurface {
             id: surface
             color: Theme.base
@@ -494,6 +508,9 @@ Scope {
                 anchors.fill: parent
                 output: modelData?.name ?? ""
                 animated: false
+                // Fading in, the wallpaper only, until the lock is drawn: it
+                // brings the lines. Nor while the lock keeps them hidden.
+                concealed: root.locking || root.arriving || root.concealed
                 opacity: root.shade
                 // Fades as one picture, not layer by layer.
                 layer.enabled: root.shade < 1
@@ -515,7 +532,9 @@ Scope {
         // Before a suspend: no fade, the session locks at once.
         function lockNow(): void {
             root.lock();
-            root.engage();
+            root.engage(false);
+            // Locked already, engage() does nothing: the lines still wait
+            // for the wake.
             root.conceal();
         }
 
