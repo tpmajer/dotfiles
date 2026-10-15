@@ -34,6 +34,10 @@ Rectangle {
     property bool concealed: false
     // The cascade's time, 0 to 1.
     property real entrance: 1
+    // Unlocking, on the curtain: 0 to 1, linear in time. The lines grow and
+    // fade over the first 70%, the wallpaper sharpens.
+    property real leaving: 0
+    readonly property real fade: ease(leaving / 0.7)
 
     readonly property int stepDelay: 60
     readonly property int stepTime: 250
@@ -142,7 +146,7 @@ Rectangle {
             anchors.fill: parent
             source: image
             blurEnabled: true
-            blur: 1
+            blur: 1 - view.ease(view.leaving)
             blurMax: 64
             autoPaddingEnabled: false
         }
@@ -158,6 +162,8 @@ Rectangle {
     Column {
         anchors.centerIn: parent
         spacing: 24
+        opacity: 1 - view.fade
+        scale: 1 + 0.06 * view.fade
 
         Step {
             order: 0
