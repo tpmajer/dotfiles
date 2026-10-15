@@ -49,6 +49,25 @@ Scope {
     property bool locking: false
     // The password is accepted, the curtain is not mapped under the lock yet.
     property bool unlocking: false
+    // The screen is off with the lock up: its lines wait to come in.
+    property bool concealed: false
+
+    function conceal() {
+        if (state.locked)
+            concealed = true;
+    }
+
+    function uncover() {
+        revealFallback.stop();
+        concealed = false;
+    }
+
+    // A key or the pointer: the screen is surely on, even if hypridle
+    // does not say so.
+    function nudge() {
+        if (concealed && !revealFallback.running)
+            revealFallback.start();
+    }
 
     function lock() {
         if (state.locked || locking)
@@ -85,6 +104,7 @@ Scope {
 
     // accepted: by the password, which turns its marks green.
     function unlock(accepted = false) {
+        uncover();
         if (pam.active)
             pam.abort();
         endRejection();
@@ -186,6 +206,12 @@ Scope {
         id: lockDeadline
         interval: 600
         onTriggered: root.engage()
+    }
+
+    Timer {
+        id: revealFallback
+        interval: 1500
+        onTriggered: root.concealed = false
     }
 
     // The red marks go, the field is empty again. They stay red while they
@@ -368,11 +394,21 @@ Scope {
                 acceptedButtons: Qt.NoButton
                 hoverEnabled: true
                 cursorShape: Qt.BlankCursor
+
+                // The first event is the lock showing up under the pointer,
+                // not a move.
+                property point seen: Qt.point(-1, -1)
+                onPositionChanged: mouse => {
+                    if (seen.x >= 0 && (mouse.x !== seen.x || mouse.y !== seen.y))
+                        root.nudge();
+                    seen = Qt.point(mouse.x, mouse.y);
+                }
             }
 
             View {
                 anchors.fill: parent
                 output: surface.screen?.name ?? ""
+                concealed: root.concealed
                 focus: true
                 // Caps Lock goes on when the key is pressed, off when it is
                 // released.
@@ -381,6 +417,7 @@ Scope {
                         capsDelay.restart();
                 }
                 Keys.onPressed: event => {
+                    root.nudge();
                     if (event.key === Qt.Key_CapsLock)
                         capsDelay.restart();
                     if (root.checking)
@@ -479,6 +516,7 @@ Scope {
         function lockNow(): void {
             root.lock();
             root.engage();
+            root.conceal();
         }
 
         // The compositor has locked the session and the lock is drawn.
@@ -494,6 +532,15 @@ Scope {
         // hypridle's after_sleep_cmd.
         function woke(): void {
             finger.woke();
+        }
+
+        // hypridle, as it turns the screens off and on.
+        function screenOff(): void {
+            root.conceal();
+        }
+
+        function screenOn(): void {
+            root.uncover();
         }
 
         function unlock(): void {
