@@ -87,6 +87,7 @@ Scope {
         if (fadeOut.running)
             shade = shade * (1 - leave);
         fadeOut.stop();
+        fadeDelay.stop();
         leave = 0;
         endRejection();
         rejection = "";
@@ -161,7 +162,14 @@ Scope {
         unlocking = false;
         unlockDeadline.stop();
         state.locked = false;
-        fadeOut.start();
+        fadeDelay.restart();
+    }
+
+    // A moment at full shade after the unlock, before the curtain goes.
+    Timer {
+        id: fadeDelay
+        interval: 150
+        onTriggered: fadeOut.start()
     }
 
     NumberAnimation {
