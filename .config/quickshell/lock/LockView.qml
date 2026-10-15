@@ -32,73 +32,15 @@ Rectangle {
     // Hidden while the screen is off; shown again, the lines come in one
     // after another.
     property bool concealed: false
-    // The cascade's time, 0 to 1.
-    property real entrance: 1
     // Unlocking, on the curtain: 0 to 1, linear in time. The lines grow and
     // fade over the first 70%, the wallpaper sharpens.
     property real leaving: 0
-    readonly property real fade: ease(leaving / 0.7)
+    readonly property real fade: lines.ease(leaving / 0.7)
 
-    readonly property int stepDelay: 60
-    readonly property int stepTime: 250
-    readonly property int steps: 6
-
-    function ease(t) {
-        const c = Math.max(0, Math.min(1, t));
-        return 1 - Math.pow(1 - c, 3);
-    }
-
-    // How far in the line at the given place in the cascade is.
-    function stage(order) {
-        const total = stepTime + (steps - 1) * stepDelay;
-        return ease((entrance * total - order * stepDelay) / stepTime);
-    }
-
-    // Made concealed: no change to react to.
-    Component.onCompleted: {
-        if (concealed)
-            entrance = 0;
-    }
-
-    onConcealedChanged: {
-        entering.stop();
-        if (concealed)
-            entrance = 0;
-        else if (animated)
-            entering.restart();
-        else
-            entrance = 1;
-    }
-
-    NumberAnimation {
-        id: entering
-        target: view
-        property: "entrance"
-        from: 0
-        to: 1
-        duration: view.stepTime + (view.steps - 1) * view.stepDelay
-    }
-
-    // A line of the cascade: fades in, 12 px up into its place.
-    component Step: Item {
-        id: step
-
-        property int order: 0
-        default property alias content: holder.data
-        readonly property real shown: view.stage(order)
-
-        anchors.horizontalCenter: parent?.horizontalCenter
-        implicitWidth: holder.childrenRect.width
-        implicitHeight: holder.childrenRect.height
-        opacity: shown
-        transform: Translate {
-            y: 12 * (1 - step.shown)
-        }
-
-        Item {
-            id: holder
-            anchors.fill: parent
-        }
+    Cascade {
+        id: lines
+        concealed: view.concealed
+        animated: view.animated
     }
 
     SystemClock {
@@ -146,7 +88,7 @@ Rectangle {
             anchors.fill: parent
             source: image
             blurEnabled: true
-            blur: 1 - view.ease(view.leaving)
+            blur: 1 - lines.ease(view.leaving)
             blurMax: 64
             autoPaddingEnabled: false
         }
@@ -166,6 +108,7 @@ Rectangle {
         scale: 1 + 0.06 * view.fade
 
         Step {
+            cascade: lines
             order: 0
 
             PopupText {
@@ -181,6 +124,7 @@ Rectangle {
         }
 
         Step {
+            cascade: lines
             order: 1
 
             PopupText {
@@ -192,6 +136,7 @@ Rectangle {
         // The battery, the weather when it is known, and the notifications
         // when there are any.
         Step {
+            cascade: lines
             order: 2
 
             Row {
@@ -244,6 +189,7 @@ Rectangle {
         }
 
         Step {
+            cascade: lines
             order: 3
 
             // The password field: a mark per character typed.
@@ -318,6 +264,7 @@ Rectangle {
         }
 
         Step {
+            cascade: lines
             order: 4
 
             FingerMark {
@@ -327,6 +274,7 @@ Rectangle {
         }
 
         Step {
+            cascade: lines
             order: 5
 
             PopupText {
