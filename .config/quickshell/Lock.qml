@@ -45,6 +45,8 @@ Scope {
     property bool capsLock: false
     property bool curtain: false
     property real shade: 0
+    // The curtain's way out, 0 to 1 (LockView's leaving).
+    property real leave: 0
     // Asked to lock, the curtain is not at full shade yet.
     property bool locking: false
     // The password is accepted, the curtain is not mapped under the lock yet.
@@ -80,7 +82,12 @@ Scope {
         capsQuery.running = true;
         Weather.refreshIfStale();
         finger.mark = "";
+        // Locked again while it leaves: it fades in from the shade it has
+        // reached, with the wallpaper only.
+        if (fadeOut.running)
+            shade = shade * (1 - leave);
         fadeOut.stop();
+        leave = 0;
         endRejection();
         rejection = "";
         frozenMarks = -1;
@@ -170,12 +177,13 @@ Scope {
     NumberAnimation {
         id: fadeOut
         target: root
-        property: "shade"
-        to: 0
-        duration: 250
-        easing.type: Easing.InOutQuad
+        property: "leave"
+        to: 1
+        duration: 350
         onFinished: {
             root.curtain = false;
+            root.shade = 0;
+            root.leave = 0;
             root.frozenMarks = -1;
             root.accepted = false;
         }
@@ -511,9 +519,12 @@ Scope {
                 // Fading in, the wallpaper only, until the lock is drawn: it
                 // brings the lines. Nor while the lock keeps them hidden.
                 concealed: root.locking || root.arriving || root.concealed
-                opacity: root.shade
+                leaving: root.leave
+                // Fades all the way out, as the wallpaper sharpens: the windows
+                // come through from the start.
+                opacity: root.shade * (1 - root.leave)
                 // Fades as one picture, not layer by layer.
-                layer.enabled: root.shade < 1
+                layer.enabled: root.shade < 1 || root.leave > 0
             }
         }
     }
