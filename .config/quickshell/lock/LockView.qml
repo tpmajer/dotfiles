@@ -165,11 +165,23 @@ Rectangle {
                     }
                 }
 
-                PopupText {
+                Row {
                     visible: Weather.known
-                    text: Weather.icon + " " + Weather.temperatureText
-                    color: Theme.subtext0
                     anchors.verticalCenter: parent.verticalCenter
+                    spacing: 6
+
+                    PopupText {
+                        text: Weather.icon
+                        color: Theme.subtext0
+                        font.pixelSize: Theme.fontSize + 2
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+
+                    PopupText {
+                        text: Weather.temperatureText
+                        color: Theme.subtext0
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
                 }
 
                 // How many notifications wait, under the bar's bell; none, and
