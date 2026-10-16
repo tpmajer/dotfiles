@@ -146,6 +146,14 @@ Item {
             hideTimer.restart();
     }
 
+    // Closes the popup, and one that a hover is about to open: for a module
+    // whose click opens something else.
+    function dismiss() {
+        showTimer.stop();
+        pendingOwner = null;
+        popupOpen = false;
+    }
+
     function moduleHovered(module, hovered) {
         if (hovered) {
             if (!module.popup) {

@@ -368,10 +368,8 @@ PanelWindow {
                 color: Machine.color
                 rightMargin: 6
                 popup: MachinePopup {}
-                onClicked: {
-                    popups.popupOpen = false;
-                    bar.powerMenuRequested();
-                }
+                clickDismissesPopup: true
+                onClicked: bar.powerMenuRequested()
             }
         }
     }

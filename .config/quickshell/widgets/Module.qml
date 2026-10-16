@@ -45,6 +45,9 @@ Item {
     // once. Each button has its signal, sent whatever else its click does.
     property var rightCommand: []
     property bool clickOpensPopup: false
+    // Whether a left click closes the popup, or keeps one from opening: for
+    // a click that opens something else.
+    property bool clickDismissesPopup: false
 
     signal clicked
     signal rightClicked
@@ -162,6 +165,8 @@ Item {
             } else {
                 if (root.clickOpensPopup)
                     root.openPopup();
+                else if (root.clickDismissesPopup && root.host)
+                    root.host.dismiss();
                 root.clicked();
             }
         }
