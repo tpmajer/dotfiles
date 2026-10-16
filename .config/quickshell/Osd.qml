@@ -167,7 +167,7 @@ PanelWindow {
     Connections {
         target: Brightness
         function onChanged() {
-            osd.show(Theme.glyph(0xf05a8), "peach", Brightness.percent / 100, Brightness.percent + "%");
+            osd.show(Theme.glyph(0xf00df), "peach", Brightness.percent / 100, Brightness.percent + "%");
         }
     }
 
