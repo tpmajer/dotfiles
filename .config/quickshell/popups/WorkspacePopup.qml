@@ -19,6 +19,10 @@ Item {
 
     signal launched
 
+    // Its first tiles are there whole; those that come later grow in.
+    property bool ready: false
+    Component.onCompleted: Qt.callLater(() => ready = true)
+
     // niri's gaps, and the map's height; lower only for a strip that would
     // not fit across otherwise.
     readonly property real gap: 12
@@ -33,8 +37,10 @@ Item {
     // With no place in the columns, a window goes with the floating ones.
     readonly property var floating: own.filter(w => w.is_floating || !w.layout?.pos_in_scrolling_layout)
 
-    // [{ width, height, windows: as drawn, top to bottom; tabs: how many
-    // there are, 0 for a column not in tabs }], left to right.
+    // [{ key: its first window's id; width, height, windows: as drawn, top
+    // to bottom; keys: theirs, the window's id, or the column's in tabs;
+    // tabs: how many there are, 0 for a column not in tabs }], left to
+    // right.
     readonly property var columns: {
         const byIndex = {};
         for (const w of own) {
@@ -53,9 +59,11 @@ Item {
             const tabbed = windows.length > 1 && stacked > screenHeight;
             const shown = !tabbed ? windows : [windows.find(w => w.id === ws.active_window_id) ?? windows.slice().sort((a, b) => stamp(b) - stamp(a))[0]];
             return {
+                key: windows[0].id,
                 width: Math.max(...windows.map(w => w.layout.tile_size[0])),
                 height: tabbed ? shown[0].layout.tile_size[1] : stacked,
                 windows: shown,
+                keys: tabbed ? [windows[0].id] : shown.map(w => w.id),
                 tabs: tabbed ? windows.length : 0
             };
         });
@@ -78,8 +86,10 @@ Item {
         return Math.floor(w.layout.tile_size[1] * mapScale);
     }
 
-    // The popup's size, from the layout.
-    readonly property real mapWidth: columns.reduce((sum, c) => sum + tileWidth(c), 0) + scaledGap * gapCount
+    // The size the popup ends up at, from the layout rather than from the
+    // tiles: as they animate, the popup would chase them, a step behind.
+    // A column on its way out holds its place while it pops.
+    readonly property real mapWidth: columns.reduce((sum, c) => sum + tileWidth(c), 0) + scaledGap * gapCount + holdWidth
     readonly property real mapContentHeight: Math.max(0, ...columns.map(c => c.windows.reduce((sum, w) => sum + tileHeight(w), 0) + scaledGap * (c.windows.length - 1)))
     // The floating windows' row, wrapped where it would be wider than
     // maxWidth.
@@ -88,46 +98,155 @@ Item {
     readonly property real floatingWidth: Math.min(floating.length, floatingPerRow) * (floatingSize + floatingSpacing) - floatingSpacing
     readonly property real floatingHeight: floatingRows * (floatingSize + floatingSpacing) - floatingSpacing
     readonly property var parts: [
-        own.length === 0 ? [empty.implicitWidth, empty.implicitHeight] : null,
-        columns.length > 0 ? [mapWidth, mapContentHeight] : null,
+        own.length === 0 && holdWidth === 0 ? [empty.implicitWidth, empty.implicitHeight] : null,
+        columns.length > 0 || holdWidth > 0 ? [mapWidth, mapContentHeight] : null,
         floating.length > 0 ? [floatingWidth, floatingHeight] : null
     ].filter(part => part)
     implicitWidth: Math.max(0, ...parts.map(part => part[0]))
     implicitHeight: parts.reduce((sum, part) => sum + part[1], 0) + spacing * Math.max(0, parts.length - 1)
+
+    // The places held by columns that pop, by key.
+    property var held: ({})
+    readonly property real holdWidth: Object.values(held).reduce((sum, w) => sum + w, 0)
+    function hold(key, width) {
+        held = Object.assign({}, held, {[key]: width});
+    }
+    function release(key) {
+        const rest = Object.assign({}, held);
+        delete rest[key];
+        held = rest;
+    }
+
+    // How what comes and goes moves: as the popup itself resizes, a pop out
+    // as the popup's own (Pop), then its place closing.
+    readonly property int moveDuration: Theme.popupDuration
+    readonly property int popDuration: 120
+    // A new one fades in evenly, and longer than it moves: in the move's
+    // own curve it would be all but there at once.
+    readonly property int fadeDuration: 260
 
     Column {
         spacing: popup.spacing
 
         PopupText {
             id: empty
-            visible: popup.own.length === 0
+            visible: popup.own.length === 0 && popup.holdWidth === 0
             text: "Empty"
             color: Theme.subtext0
         }
 
         Row {
-            visible: popup.columns.length > 0
-            spacing: popup.scaledGap
+            visible: popup.columns.length > 0 || popup.holdWidth > 0
 
-            // A delegate on its way out may still see an index past the end.
+            // By keys, not by the arrays: a new array would make every tile
+            // anew, and their sizes could not animate; a column or window
+            // that comes or goes does so where it is.
             Repeater {
-                model: popup.columns
+                model: Keyed {
+                    id: columnSlots
+                    keys: popup.columns.map(c => c.key)
+                }
 
-                Column {
-                    id: column
-                    required property var modelData
-                    readonly property var col: modelData
-                    spacing: popup.scaledGap
+                // A column's place, the gap before it included, so that the
+                // gap opens and closes with it. A new one grows from nothing
+                // with the column sliding in from the left as it fades in; one
+                // that goes pops, then its place closes.
+                Item {
+                    id: slot
+                    required property int key
+                    required property int index
+                    required property bool leaving
+                    // What it last was, for while it goes.
+                    readonly property var col: popup.columns.find(c => c.key === key)
+                    property var shown: col
+                    onColChanged: if (col)
+                        shown = col
 
-                    Repeater {
-                        model: column.col?.windows ?? []
+                    readonly property real gapBefore: index > 0 ? popup.scaledGap : 0
+                    readonly property real columnWidth: shown ? popup.tileWidth(shown) : 0
+                    readonly property real targetWidth: columnWidth + gapBefore
 
-                        Tile {
-                            required property var modelData
-                            win: modelData
-                            tabs: column.col?.tabs ?? 0
-                            width: column.col ? popup.tileWidth(column.col) : 0
-                            height: win ? popup.tileHeight(win) : 0
+                    property bool appeared: false
+                    property bool entering: false
+                    property bool closing: false
+                    Component.onCompleted: {
+                        entering = popup.ready;
+                        appeared = true;
+                    }
+                    onWidthChanged: if (entering && width >= targetWidth)
+                        entering = false
+
+                    width: appeared && !closing ? targetWidth : 0
+                    height: stack.height
+                    clip: entering || leaving
+                    Behavior on width {
+                        enabled: popup.ready
+                        NumberAnimation {
+                            duration: popup.moveDuration
+                            easing.type: Easing.OutCubic
+                        }
+                    }
+
+                    onLeavingChanged: if (leaving) {
+                        popup.hold(key, width);
+                        popOut.start();
+                    }
+                    Timer {
+                        id: popOut
+                        interval: popup.popDuration
+                        onTriggered: {
+                            popup.release(slot.key);
+                            slot.closing = true;
+                            gone.start();
+                        }
+                    }
+                    Timer {
+                        id: gone
+                        interval: popup.moveDuration
+                        onTriggered: columnSlots.remove(slot.index)
+                    }
+                    Component.onDestruction: popup.release(key)
+
+                    Pop {
+                        id: pop
+                        shown: !slot.leaving
+                    }
+
+                    Column {
+                        id: stack
+                        x: slot.entering ? slot.width - slot.columnWidth : slot.gapBefore
+                        width: slot.columnWidth
+                        spacing: popup.scaledGap
+                        // Fades in as it slides; pops out as it goes.
+                        opacity: slot.leaving ? pop.openness : slot.fade
+                        scale: slot.leaving ? pop.scale : 1
+
+                        Repeater {
+                            model: Keyed {
+                                id: windowSlots
+                                keys: slot.shown?.keys ?? []
+                            }
+
+                            Tile {
+                                required property int index
+                                win: slot.col?.windows[slot.col.keys.indexOf(key)]
+                                tabs: slot.shown?.tabs ?? 0
+                                targetWidth: slot.columnWidth
+                                targetHeight: shownWin ? popup.tileHeight(shownWin) : 0
+                                // Comes and goes with its column, or else in it, by its
+                                // height.
+                                stacked: (slot.shown?.windows.length ?? 1) > 1 || leaving
+                                onGone: windowSlots.remove(index)
+                            }
+                        }
+                    }
+
+                    property real fade: appeared ? 1 : 0
+                    Behavior on fade {
+                        enabled: popup.ready
+                        NumberAnimation {
+                            duration: popup.fadeDuration
+                            easing.type: Easing.InOutQuad
                         }
                     }
                 }
@@ -140,57 +259,175 @@ Item {
             spacing: popup.floatingSpacing
 
             Repeater {
-                model: popup.floating
+                model: Keyed {
+                    id: floatingSlots
+                    keys: popup.floating.map(w => w.id)
+                }
 
                 Tile {
-                    required property var modelData
-                    win: modelData
-                    width: popup.floatingSize
-                    height: popup.floatingSize
+                    required property int index
+                    win: popup.floating.find(w => w.id === key)
+                    targetWidth: popup.floatingSize
+                    targetHeight: popup.floatingSize
+                    stacked: true
+                    onGone: floatingSlots.remove(index)
                 }
             }
         }
     }
 
-    component Tile: Rectangle {
+    // An element for each key, in their order: those whose keys go are
+    // marked leaving, for their delegates to remove when they have gone;
+    // new ones are inserted where they are and the rest moved, so that the
+    // delegates of the others stay.
+    component Keyed: ListModel {
+        property var keys: []
+        function fit() {
+            for (let i = 0; i < count; i++)
+                if (!get(i).leaving && !keys.includes(get(i).key))
+                    setProperty(i, "leaving", true);
+            let i = 0;
+            for (const key of keys) {
+                while (i < count && get(i).leaving)
+                    i++;
+                if (i < count && get(i).key === key) {
+                    i++;
+                    continue;
+                }
+                let from = -1;
+                for (let j = i + 1; j < count && from < 0; j++)
+                    if (!get(j).leaving && get(j).key === key)
+                        from = j;
+                if (from >= 0)
+                    move(from, i, 1);
+                else
+                    insert(i, {key: key, leaving: false});
+                i++;
+            }
+        }
+        onKeysChanged: fit()
+        Component.onCompleted: fit()
+    }
+
+    // A window's tile. In a column of one, it comes and goes with the column;
+    // stacked, it does by its own height: fading in as it grows, popping
+    // out, then closing.
+    component Tile: Item {
         id: tile
+        required property int key
+        required property bool leaving
         property var win
+        // What it last showed, for while it goes.
+        property var shownWin: win
+        onWinChanged: if (win)
+            shownWin = win
         // How many tabs the column has; 0 for none.
         property int tabs: 0
+        property real targetWidth
+        property real targetHeight
+        property bool stacked: false
 
-        radius: Theme.moduleRadius
-        color: mouse.containsMouse ? Theme.surface1 : Theme.surface0
-        Behavior on color {
-            ColorAnimation { duration: Theme.hoverDuration }
+        signal gone
+
+        property bool appeared: false
+        property bool entering: false
+        property bool closing: false
+        Component.onCompleted: {
+            entering = popup.ready && stacked;
+            appeared = true;
         }
-        border.width: win && (win.is_urgent || win.id === popup.ws?.active_window_id) ? 2 : 0
-        border.color: win?.is_urgent ? Theme.red : Theme.blue
+        onHeightChanged: if (entering && height >= targetHeight)
+            entering = false
 
-        IconImage {
-            anchors.centerIn: parent
-            implicitSize: Math.max(0, Math.min(32, tile.width - 8, tile.height - 8))
-            source: tile.win ? Apps.icon(tile.win.app_id, "application-x-executable") : ""
+        width: targetWidth
+        height: (appeared || !stacked) && !closing ? targetHeight : 0
+        clip: entering || leaving
+        Behavior on height {
+            enabled: popup.ready
+            NumberAnimation {
+                duration: popup.moveDuration
+                easing.type: Easing.OutCubic
+            }
+        }
+        Behavior on width {
+            enabled: popup.ready
+            NumberAnimation {
+                duration: popup.moveDuration
+                easing.type: Easing.OutCubic
+            }
         }
 
-        PopupText {
-            visible: tile.tabs > 0
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            anchors.margins: 4
-            text: tile.tabs
-            color: Theme.subtext0
-            font.pixelSize: Theme.fontSize - 4
+        onLeavingChanged: if (leaving && stacked)
+            popOut.start()
+        Timer {
+            id: popOut
+            interval: popup.popDuration
+            onTriggered: {
+                tile.closing = true;
+                closed.start();
+            }
+        }
+        Timer {
+            id: closed
+            interval: popup.moveDuration
+            onTriggered: tile.gone()
+        }
+
+        Pop {
+            id: pop
+            shown: !(tile.leaving && tile.stacked)
+        }
+        property real fade: appeared || !stacked ? 1 : 0
+        Behavior on fade {
+            enabled: popup.ready
+            NumberAnimation {
+                duration: popup.fadeDuration
+                easing.type: Easing.InOutQuad
+            }
+        }
+
+        // Whole as it grows, its bottom edge on its place's.
+        Rectangle {
+            y: tile.entering ? tile.height - height : 0
+            width: tile.width
+            height: tile.entering || tile.leaving ? tile.targetHeight : tile.height
+            radius: Theme.moduleRadius
+            opacity: tile.leaving && tile.stacked ? pop.openness : tile.fade
+            scale: tile.leaving && tile.stacked ? pop.scale : 1
+            color: mouse.containsMouse ? Theme.surface1 : Theme.surface0
+            Behavior on color {
+                ColorAnimation { duration: Theme.hoverDuration }
+            }
+            border.width: tile.shownWin && (tile.shownWin.is_urgent || tile.shownWin.id === popup.ws?.active_window_id) ? 2 : 0
+            border.color: tile.shownWin?.is_urgent ? Theme.red : Theme.blue
+
+            IconImage {
+                anchors.centerIn: parent
+                implicitSize: Math.max(0, Math.min(32, parent.width - 8, parent.height - 8))
+                source: tile.shownWin ? Apps.icon(tile.shownWin.app_id, "application-x-executable") : ""
+            }
+
+            PopupText {
+                visible: tile.tabs > 0
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                anchors.margins: 4
+                text: tile.tabs
+                color: Theme.subtext0
+                font.pixelSize: Theme.fontSize - 4
+            }
         }
 
         MouseArea {
             id: mouse
             anchors.fill: parent
+            enabled: !tile.leaving
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onClicked: {
-                if (!tile.win)
+                if (!tile.shownWin)
                     return;
-                Niri.focusWindow(tile.win.id);
+                Niri.focusWindow(tile.shownWin.id);
                 popup.launched();
             }
         }
