@@ -35,6 +35,8 @@ Item {
     property var host: null            // the PopupHost, which owns the popup
     property Component popup: null
     readonly property bool hovered: mouse.containsMouse
+    // Shown as hovered without the pointer on it: a drop target.
+    property bool highlighted: false
     readonly property real centerX: leftMargin + bg.width / 2
     // The most the text takes; no limit below 0.
     property int maxTextWidth: -1
@@ -67,7 +69,7 @@ Item {
         height: root.height - 12
         radius: Theme.moduleRadius
         // Fade only the alpha: animating from "transparent" (black) flashes dark.
-        color: mouse.containsMouse ? Theme.surface0 : Qt.rgba(Theme.surface0.r, Theme.surface0.g, Theme.surface0.b, 0)
+        color: mouse.containsMouse || root.highlighted ? Theme.surface0 : Qt.rgba(Theme.surface0.r, Theme.surface0.g, Theme.surface0.b, 0)
         Behavior on color {
             ColorAnimation { duration: Theme.hoverDuration }
         }
@@ -84,7 +86,7 @@ Item {
             radius: height / 2
             color: root.color
             visible: root.underline
-            opacity: mouse.containsMouse ? 1 : 0
+            opacity: mouse.containsMouse || root.highlighted ? 1 : 0
             Behavior on opacity {
                 NumberAnimation { duration: Theme.hoverDuration }
             }
