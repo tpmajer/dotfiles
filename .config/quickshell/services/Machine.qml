@@ -17,6 +17,8 @@ Singleton {
     property string kernel: ""
     // 0 if the running system is no generation.
     property int generation: 0
+    // When the generation was made, in milliseconds since the epoch.
+    property real generationAt: 0
     // What runs is no longer what the system would boot.
     property bool restartPending: false
     property string nextKernel: ""
@@ -76,6 +78,7 @@ Singleton {
                 root.wokeAt = state.woke * 1000;
                 root.kernel = state.kernel;
                 root.generation = state.generation;
+                root.generationAt = state.generationAt * 1000;
                 root.restartPending = state.restart;
                 root.nextKernel = state.nextKernel;
                 root.failedUnits = state.failed;

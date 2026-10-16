@@ -19,7 +19,7 @@ Column {
         if (Machine.kernel !== "")
             list.push({label: "Kernel", value: Machine.kernel});
         if (Machine.generation > 0)
-            list.push({label: "Generation", value: String(Machine.generation)});
+            list.push({label: "Generation", value: Machine.generation + (Machine.generationAt > 0 ? " (" + Qt.formatDate(new Date(Machine.generationAt), "yyyy-MM-dd") + ")" : "")});
         if (/^\d{8}$/.test(build[2] ?? ""))
             list.push({label: "nixpkgs", value: build[2].replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3") + (build[3] ? " (" + build[3] + ")" : "")});
         return list;

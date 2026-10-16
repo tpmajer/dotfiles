@@ -50,19 +50,20 @@ def woke():
     return max((int(t) for t in re.findall(r"@(\d+)", out)), default=0)
 
 
-# The newest generation that is the running system: 0 if none is, as after
-# `nixos-rebuild test`.
+# The newest generation that is the running system, and when its link was
+# made: 0 and 0 if none is, as after `nixos-rebuild test`.
 def generation():
     current = os.path.realpath(CURRENT)
-    numbers = []
+    found = []
     try:
         for name in os.listdir(PROFILES):
             m = re.fullmatch(r"system-(\d+)-link", name)
-            if m and os.path.realpath(os.path.join(PROFILES, name)) == current:
-                numbers.append(int(m.group(1)))
+            link = os.path.join(PROFILES, name)
+            if m and os.path.realpath(link) == current:
+                found.append((int(m.group(1)), round(os.lstat(link).st_mtime)))
     except OSError:
         pass
-    return max(numbers, default=0)
+    return max(found, default=(0, 0))
 
 
 # Only what a switch cannot replace: the initrd is not in use once booted.
@@ -79,6 +80,8 @@ def next_kernel():
         return ""
 
 
+number, made = generation()
+
 blockers = [
     i["who"]
     for i in parsed("systemd-inhibit", "--list", "--json=short")
@@ -89,7 +92,8 @@ print(json.dumps({
     "booted": round(time.time() - float(read("/proc/uptime").split()[0])),
     "woke": woke(),
     "kernel": os.uname().release,
-    "generation": generation(),
+    "generation": number,
+    "generationAt": made,
     "restart": restart(),
     "nextKernel": next_kernel(),
     "failed": failed() + failed("--user"),
