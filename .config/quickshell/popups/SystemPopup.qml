@@ -27,6 +27,8 @@ Column {
     readonly property real wide: Math.max(title.implicitWidth, details.implicitWidth)
 
     spacing: Theme.popupSectionGap
+    // Opened in place of another popup, it is shown from the start.
+    Component.onCompleted: Machine.refresh()
     onVisibleChanged: if (visible) {
         osRelease.reload();
         arch.reload();
