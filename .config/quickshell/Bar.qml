@@ -102,6 +102,8 @@ PanelWindow {
                 fontSize: 22
                 leftMargin: 5
                 hPadding: 9
+                popup: SystemPopup {}
+                clickDismissesPopup: true
                 onClicked: bar.launcherRequested()
             }
 
