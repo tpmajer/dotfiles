@@ -5,8 +5,9 @@ import Quickshell
 import Quickshell.Io
 import qs
 
-// The machine's state for the power module: read every minute by
-// scripts/machine.py, and at once as the module's popup opens.
+// The machine's state for the power module, and what it runs for the
+// launcher's: read every minute by scripts/machine.py, and at once as either
+// module's popup opens.
 Singleton {
     id: root
 
@@ -51,10 +52,6 @@ Singleton {
             list.push({label: "Uptime", value: span(now - bootedAt)});
         if (wokeAt > 0)
             list.push({label: "Awake", value: span(now - wokeAt)});
-        if (kernel !== "")
-            list.push({label: "Kernel", value: kernel});
-        if (generation > 0)
-            list.push({label: "Generation", value: String(generation)});
         if (restartPending)
             list.push({label: "Restart", value: nextKernel !== "" && nextKernel !== kernel ? "to " + nextKernel : "needed", color: Theme.peach});
         if (failedUnits.length > 0)
