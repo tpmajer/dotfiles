@@ -467,7 +467,8 @@ Scope {
                     root.nudge();
                     if (event.key === Qt.Key_CapsLock)
                         capsDelay.restart();
-                    if (root.checking)
+                    // Nothing more once the password is accepted.
+                    if (root.checking || root.unlocking)
                         return;
                     // A key during the red marks starts the next attempt.
                     root.endRejection();
