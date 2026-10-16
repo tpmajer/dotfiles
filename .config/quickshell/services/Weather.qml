@@ -137,23 +137,23 @@ Singleton {
     function glyphFor(c, day) {
         let glyph;
         if (c === 0)
-            glyph = day ? 0xf185 : 0x100002;            // clear
+            glyph = day ? 0xe30d : 0xe32b;              // clear
         else if (c <= 2)
-            glyph = day ? 0xeef0 : 0xeeef;              // partly cloudy
+            glyph = day ? 0xe302 : 0xe379;              // partly cloudy
         else if (c === 3)
-            glyph = 0xf0c2;                             // overcast
+            glyph = 0xe33d;                             // overcast
         else if (c === 45 || c === 48)
-            glyph = 0xef29;                             // fog
+            glyph = 0xe313;                             // fog
         else if (c === 65 || c === 82)
-            glyph = 0xef1d;                             // heavy rain
+            glyph = 0xe318;                             // heavy rain
         else if ((c >= 51 && c <= 67) || (c >= 80 && c <= 82))
-            glyph = 0xef1c;                             // drizzle, rain
+            glyph = 0xe31b;                             // drizzle, rain
         else if ((c >= 71 && c <= 77) || c === 85 || c === 86)
-            glyph = 0xf2dc;                             // snow
+            glyph = 0xe31a;                             // snow
         else if (c >= 95)
-            glyph = 0xef2c;                             // thunderstorm
+            glyph = 0xe31d;                             // thunderstorm
         else
-            glyph = 0xf0c2;
+            glyph = 0xe33d;
         return Theme.glyph(glyph);
     }
 
