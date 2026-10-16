@@ -335,7 +335,7 @@ PanelWindow {
                 property bool alt: false
                 host: popups
                 prefix: Battery.icon
-                prefixSize: Theme.fontSize + 2
+                prefixSize: Theme.fontSize + (Battery.charging ? 1 : 2)
                 text: alt && Battery.timeText !== "" ? Battery.timeText : Battery.capacity + "%"
                 color: Battery.color
                 popup: BatteryPopup {}

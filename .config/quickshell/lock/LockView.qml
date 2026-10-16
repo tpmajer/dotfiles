@@ -154,7 +154,7 @@ Rectangle {
                     PopupText {
                         text: Battery.icon
                         color: parent.color
-                        font.pixelSize: Theme.fontSize + 2
+                        font.pixelSize: Theme.fontSize + (Battery.charging ? 1 : 2)
                         anchors.verticalCenter: parent.verticalCenter
                     }
 
