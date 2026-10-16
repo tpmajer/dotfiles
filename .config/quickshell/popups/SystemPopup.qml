@@ -6,20 +6,22 @@ import qs.services
 import qs.widgets
 
 // The system's release and architecture, and below them the kernel and the
-// generation it runs. Read anew as the popup opens.
+// generation it runs, and the nixpkgs it was built from. Read anew as the
+// popup opens.
 Column {
     id: popup
 
-    readonly property string release: {
-        const line = osRelease.text().split("\n").find(l => l.startsWith("PRETTY_NAME="));
-        return line ? line.slice(12).replace(/^"|"$/g, "") : "";
-    }
+    readonly property string release: field("PRETTY_NAME")
+    // "26.11.20261014.55bfb4d": the release, the date and the revision.
+    readonly property var build: field("BUILD_ID").split(".")
     readonly property var rows: {
         const list = [];
         if (Machine.kernel !== "")
             list.push({label: "Kernel", value: Machine.kernel});
         if (Machine.generation > 0)
             list.push({label: "Generation", value: String(Machine.generation)});
+        if (/^\d{8}$/.test(build[2] ?? ""))
+            list.push({label: "nixpkgs", value: build[2].replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3") + (build[3] ? " (" + build[3] + ")" : "")});
         return list;
     }
     readonly property real wide: Math.max(title.implicitWidth, details.implicitWidth)
@@ -29,6 +31,12 @@ Column {
         osRelease.reload();
         arch.reload();
         Machine.refresh();
+    }
+
+    // A value of /etc/os-release, without its quotes.
+    function field(name) {
+        const line = osRelease.text().split("\n").find(l => l.startsWith(name + "="));
+        return line ? line.slice(name.length + 1).replace(/^"|"$/g, "") : "";
     }
 
     PopupText {
