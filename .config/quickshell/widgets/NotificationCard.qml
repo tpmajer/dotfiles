@@ -99,7 +99,7 @@ Item {
     readonly property var extraActions: notification.actions.filter(a => a.identifier !== "default")
 
     implicitWidth: Theme.notificationWidth
-    implicitHeight: Math.max(content.implicitHeight, picture.height) + 2 * (Theme.popupPaddingV + Theme.popupTextInsetV)
+    implicitHeight: Math.max(content.implicitHeight, hasPicture ? picture.height : 0) + 2 * (Theme.popupPaddingV + Theme.popupTextInsetV)
 
     // A left click, or its key in the notification center.
     function activate() {
