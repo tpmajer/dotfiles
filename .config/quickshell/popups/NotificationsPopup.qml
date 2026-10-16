@@ -134,9 +134,13 @@ Column {
             id: rows
             spacing: 2
 
+            // By the notifications, not the array: a new array would make
+            // every card anew, an expanded body collapsing.
             Repeater {
                 id: cards
-                model: center.list
+                model: ScriptModel {
+                    values: center.list
+                }
 
                 Rectangle {
                     id: row
