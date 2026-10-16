@@ -66,7 +66,14 @@ Overlay {
 
     function close() {
         answer(null);
+        forget();
         shown = false;
+    }
+
+    // A password is not kept in the hidden field until the next question.
+    function forget() {
+        if (dmenu && password)
+            input.text = "";
     }
 
     function toggle() {
@@ -130,6 +137,7 @@ Overlay {
             Apps.launch(item);
         else if (input.text.trim())
             Apps.run(input.text);
+        forget();
         shown = false;
     }
 
