@@ -67,6 +67,10 @@ Item {
 
     // ---- popup state ------------------------------------------------------
 
+    // Something is dragged out of the popup (its dragging): it stays open
+    // as the pointer leaves it, and the closed hand shows all the way.
+    readonly property bool popupDragging: popupLoader.item?.dragging === true
+
     property Item popupOwner: null
     property Item pendingOwner: null
     property bool popupOpen: false
@@ -123,7 +127,7 @@ Item {
     // or over the strip of bar right above the popup (the way between the two).
     // This is state, not enter/leave events, whose order Qt doesn't guarantee.
     readonly property bool popupHovered: {
-        if (pinned)
+        if (pinned || popupDragging)
             return true;
         if (popupOwner && popupOwner.hovered)
             return true;
@@ -323,5 +327,14 @@ Item {
         HoverHandler {
             id: barHover
         }
+    }
+
+    // The closed hand while something is dragged out of the popup: the
+    // cursor of what is dragged goes once the pointer leaves it.
+    MouseArea {
+        anchors.fill: parent
+        visible: root.popupDragging
+        acceptedButtons: Qt.NoButton
+        cursorShape: Qt.ClosedHandCursor
     }
 }

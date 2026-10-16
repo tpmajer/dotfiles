@@ -18,6 +18,9 @@ Item {
     required property real maxWidth
 
     signal launched
+    // A window is being dragged out, to a workspace in the bar.
+    readonly property bool dragging: draggedId >= 0
+    property int draggedId: -1
 
     // Its first tiles are there whole; those that come later grow in.
     property bool ready: false
@@ -373,6 +376,11 @@ Item {
             onTriggered: tile.gone()
         }
 
+        // A tile gone in the middle of its drag, as its window closed or
+        // the columns changed, ends it.
+        Component.onDestruction: if (dragged.windowId >= 0 && popup.draggedId === dragged.windowId)
+            popup.draggedId = -1
+
         Pop {
             id: pop
             shown: !(tile.leaving && tile.stacked)
@@ -392,7 +400,7 @@ Item {
             width: tile.width
             height: tile.entering || tile.leaving ? tile.targetHeight : tile.height
             radius: Theme.moduleRadius
-            opacity: tile.leaving && tile.stacked ? pop.openness : tile.fade
+            opacity: (tile.leaving && tile.stacked ? pop.openness : tile.fade) * (popup.draggedId >= 0 && popup.draggedId === tile.shownWin?.id ? 0.4 : 1)
             scale: tile.leaving && tile.stacked ? pop.scale : 1
             color: mouse.containsMouse ? Theme.surface1 : Theme.surface0
             Behavior on color {
@@ -418,12 +426,35 @@ Item {
             }
         }
 
+        // What is dragged, unseen: the window's id, to a DropArea in the
+        // bar. It starts under the pointer, and the id is the one pressed
+        // on, whatever the tile shows by the time it is dropped.
+        Item {
+            id: dragged
+            property int windowId: -1
+            Drag.active: mouse.drag.active
+            Drag.keys: ["niri-window"]
+        }
+
         MouseArea {
             id: mouse
             anchors.fill: parent
             enabled: !tile.leaving
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
+            drag.target: dragged
+            onPressed: mouse => {
+                dragged.x = mouse.x;
+                dragged.y = mouse.y;
+                dragged.windowId = tile.shownWin?.id ?? -1;
+            }
+            drag.onActiveChanged: {
+                popup.draggedId = drag.active ? dragged.windowId : -1;
+                if (!drag.active)
+                    dragged.windowId = -1;
+            }
+            onReleased: if (drag.active)
+                dragged.Drag.drop()
             onClicked: {
                 if (!tile.shownWin)
                     return;

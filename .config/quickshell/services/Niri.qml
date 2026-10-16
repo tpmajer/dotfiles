@@ -43,6 +43,11 @@ Singleton {
         send({Action: {FocusWindow: {id: id}}});
     }
 
+    // Moves a window to a workspace, the focus staying where it is.
+    function moveWindowToWorkspace(id, ws) {
+        send({Action: {MoveWindowToWorkspace: {window_id: id, reference: {Id: ws.id}, focus: false}}});
+    }
+
     // Focuses the window of an application, on whatever workspace it is.
     // If it has several, the one that asks for attention, or else the one
     // focused last. False if it has none.

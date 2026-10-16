@@ -122,16 +122,29 @@ PanelWindow {
                         host: popups
                         text: !ws ? "" : ws.is_active ? Theme.glyph(0xf0c8) : String(ws.name || ws.idx)
                         bold: !!ws && ws.is_active
-                        color: !ws ? Theme.subtext0 : ws.is_urgent ? Theme.red : (ws.is_active || hovered) ? Theme.text : Theme.subtext0
+                        color: !ws ? Theme.subtext0 : ws.is_urgent ? Theme.red : (ws.is_active || hovered || highlighted) ? Theme.text : Theme.subtext0
                         hPadding: 0
                         minWidth: 46
                         underline: false
+                        highlighted: drop.containsDrag
                         onClicked: Niri.focusWorkspace(ws)
                         popup: WorkspacePopup {
                             ws: workspaceModule.ws
                             screenHeight: bar.screen.height
                             maxWidth: popups.maxContentWidth
                             onLaunched: popups.popupOpen = false
+                        }
+
+                        // A window dragged from a workspace's popup moves here.
+                        DropArea {
+                            id: drop
+                            anchors.fill: parent
+                            keys: ["niri-window"]
+                            onDropped: event => {
+                                const id = event.source.windowId;
+                                if (id >= 0 && workspaceModule.ws && Niri.windows[id]?.workspace_id !== workspaceModule.ws.id)
+                                    Niri.moveWindowToWorkspace(id, workspaceModule.ws);
+                            }
                         }
                     }
                 }
