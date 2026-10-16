@@ -162,6 +162,16 @@ Singleton {
         Niri.send({Action: {Spawn: {command: entry.runInTerminal ? inTerminal(command) : command}}});
     }
 
+    // The icon of a window's application, by its app id: its desktop
+    // entry's; failing that the fallback, an icon name, or "" with none.
+    function icon(appId, fallback = "") {
+        // Desktop entries load asynchronously; the length makes a binding re-evaluate once they do.
+        const entry = appId && DesktopEntries.applications.values.length >= 0 ? DesktopEntries.heuristicLookup(appId) : null;
+        if (entry)
+            return Quickshell.iconPath(entry.icon, fallback || true);
+        return fallback ? Quickshell.iconPath(appId || "", fallback) : "";
+    }
+
     // A command line as typed.
     function run(line) {
         Niri.send({Action: {SpawnSh: {command: line}}});

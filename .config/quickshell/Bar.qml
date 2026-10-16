@@ -135,11 +135,9 @@ PanelWindow {
                 id: windowModule
                 property bool alt: false
                 readonly property var win: Niri.focusedWindow
-                // Desktop entries load asynchronously; the length makes this re-evaluate once they do.
-                readonly property var entry: win && DesktopEntries.applications.values.length >= 0 ? DesktopEntries.heuristicLookup(win.app_id) : null
                 host: popups
                 text: !win ? "" : alt ? (win.app_id || "") : (win.title || "")
-                iconSource: entry ? Quickshell.iconPath(entry.icon, true) : ""
+                iconSource: Apps.icon(win?.app_id)
                 maxTextWidth: Math.max(0, weatherModule.x - leftRow.x - windowModule.x - 80)
                 popup: WindowPopup {}
                 onClicked: alt = !alt
