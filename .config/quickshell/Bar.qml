@@ -116,6 +116,7 @@ PanelWindow {
                     model: workspaceRow.workspaces.length
 
                     Module {
+                        id: workspaceModule
                         required property int index
                         readonly property var ws: workspaceRow.workspaces[index]
                         host: popups
@@ -126,6 +127,12 @@ PanelWindow {
                         minWidth: 46
                         underline: false
                         onClicked: Niri.focusWorkspace(ws)
+                        popup: WorkspacePopup {
+                            ws: workspaceModule.ws
+                            screenHeight: bar.screen.height
+                            maxWidth: popups.maxContentWidth
+                            onLaunched: popups.popupOpen = false
+                        }
                     }
                 }
             }

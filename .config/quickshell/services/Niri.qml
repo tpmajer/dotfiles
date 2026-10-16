@@ -38,6 +38,11 @@ Singleton {
         send({Action: {FocusWorkspace: {reference: {Id: ws.id}}}});
     }
 
+    // Focuses a window, on whatever workspace it is.
+    function focusWindow(id) {
+        send({Action: {FocusWindow: {id: id}}});
+    }
+
     // Focuses the window of an application, on whatever workspace it is.
     // If it has several, the one that asks for attention, or else the one
     // focused last. False if it has none.
