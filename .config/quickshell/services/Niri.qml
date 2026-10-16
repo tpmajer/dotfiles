@@ -137,6 +137,17 @@ Singleton {
             if (w.is_focused)
                 for (const id in map)
                     map[id] = Object.assign({}, map[id], {is_focused: false});
+            // A new window comes in a column of its own before niri moves
+            // the others aside, which it tells of only next: they are moved
+            // here already, to the places it will give them.
+            const pos = w.layout?.pos_in_scrolling_layout;
+            if (!(w.id in windows) && pos && Object.values(map).some(o => o.workspace_id === w.workspace_id && o.layout?.pos_in_scrolling_layout && String(o.layout.pos_in_scrolling_layout) === String(pos)))
+                for (const id in map) {
+                    const o = map[id];
+                    const at = o.layout?.pos_in_scrolling_layout;
+                    if (o.workspace_id === w.workspace_id && at && at[0] >= pos[0])
+                        map[id] = Object.assign({}, o, {layout: Object.assign({}, o.layout, {pos_in_scrolling_layout: [at[0] + 1, at[1]]})});
+                }
             map[w.id] = w;
             windows = map;
         } else if (ev.WindowClosed) {
@@ -171,6 +182,25 @@ Singleton {
                 return;
             const map = Object.assign({}, windows);
             map[id] = Object.assign({}, map[id], {is_urgent: urgent});
+            windows = map;
+        } else if (ev.WindowLayoutsChanged) {
+            // A column or window resized or moved: [[id, layout], ...]. Only
+            // what is known and has changed, or every binding on the windows
+            // would be evaluated again for nothing.
+            const known = ev.WindowLayoutsChanged.changes.filter(([id, layout]) => id in windows && JSON.stringify(windows[id].layout) !== JSON.stringify(layout));
+            if (known.length === 0)
+                return;
+            const map = Object.assign({}, windows);
+            for (const [id, layout] of known)
+                map[id] = Object.assign({}, map[id], {layout: layout, stale: false});
+            // A window closing has the others moved up first, and only then
+            // is closed: one moved to its place leaves its layout stale.
+            const at = w => w.layout?.pos_in_scrolling_layout ? w.workspace_id + ":" + w.layout.pos_in_scrolling_layout : null;
+            const taken = new Set(known.map(([id]) => at(map[id])).filter(p => p));
+            const moved = new Set(known.map(([id]) => id));
+            for (const id in map)
+                if (!moved.has(map[id].id) && taken.has(at(map[id])))
+                    map[id] = Object.assign({}, map[id], {stale: true});
             windows = map;
         } else if (ev.WindowFocusChanged) {
             const focusedId = ev.WindowFocusChanged.id;
