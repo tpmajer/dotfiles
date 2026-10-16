@@ -276,7 +276,11 @@ Scope {
             return;
         status = "";
         checking = true;
-        pam.start();
+        // No such PAM service or user: no answer would come.
+        if (!pam.start()) {
+            checking = false;
+            status = "authentication could not start";
+        }
     }
 
     // Survives a reload of the configuration: a reload must not unlock.

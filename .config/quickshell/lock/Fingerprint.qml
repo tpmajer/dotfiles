@@ -34,7 +34,8 @@ Scope {
         if (on) {
             if (!pam.active) {
                 prompted = false;
-                pam.start();
+                if (!pam.start())
+                    again(false);
             }
         } else if (pam.active) {
             pam.abort();
