@@ -74,6 +74,11 @@ Item {
     property Item popupOwner: null
     property Item pendingOwner: null
     property bool popupOpen: false
+    // The popup goes with its module, not left open and empty under the
+    // pointer: a module hidden, or a workspace's gone.
+    readonly property bool ownerGone: popupOpen && (!popupOwner || !popupOwner.visible)
+    onOwnerGoneChanged: if (ownerGone)
+        popupOpen = false
     readonly property real openness: pop.openness
     // What the open popup shows, for the keys the bar passes on to it.
     readonly property Item popupItem: popupLoader.item
