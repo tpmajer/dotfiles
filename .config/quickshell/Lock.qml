@@ -359,6 +359,9 @@ Scope {
                 root.unlock(true);
                 return;
             }
+            // onError, just before, has said what it was.
+            if (result === PamResult.Error)
+                return;
             root.checking = false;
             root.frozenMarks = root.buffer.length;
             root.rejected = true;
