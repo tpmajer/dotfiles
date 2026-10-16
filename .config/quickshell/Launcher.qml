@@ -111,14 +111,15 @@ Overlay {
     }
 
     // The answer goes to the FIFO by this one's input: a password is not
-    // for a command line, which any process can read.
+    // for a command line, which any process can read. Opened for reading
+    // too, so that it does not wait forever for a script that was killed.
     Component {
         id: writer
 
         Process {
             required property string fifo
             required property string line
-            command: ["sh", "-c", '[ -p "$1" ] && cat > "$1"', "sh", fifo]
+            command: ["sh", "-c", '[ -p "$1" ] && cat 1<> "$1"', "sh", fifo]
             stdinEnabled: true
             running: true
             onStarted: {
