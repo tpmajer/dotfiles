@@ -129,7 +129,8 @@ PanelWindow {
                         minWidth: 46
                         underline: false
                         highlighted: drop.containsDrag
-                        onClicked: Niri.focusWorkspace(ws)
+                        onClicked: if (ws)
+                            Niri.focusWorkspace(ws)
                         popup: WorkspacePopup {
                             ws: workspaceModule.ws
                             screenHeight: bar.screen.height
