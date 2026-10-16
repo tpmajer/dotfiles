@@ -93,6 +93,10 @@ Item {
     readonly property real popupPadH: Theme.popupPadding + (popupHasRows ? 0 : Theme.popupTextInset)
     readonly property real popupPadV: Theme.popupPaddingV + (popupHasRows ? 0 : Theme.popupTextInsetV)
     readonly property real popupWidth: popupContentWidth + 2 * popupPadH
+    // The popup's least distance from the bar's ends.
+    readonly property real popupEdgeGap: Theme.popupRadius + 4
+    // The widest content that fits, for a popup that can grow as wide.
+    readonly property real maxContentWidth: barRect.width - 2 * popupEdgeGap - 2 * popupPadH
     property real popupHeight: popupContentHeight + 2 * popupPadV
     Behavior on popupHeight {
         enabled: root.openness > 0.01
@@ -207,8 +211,8 @@ Item {
             id: popupBody
 
             readonly property real targetX: {
-                const minX = Theme.popupRadius + 4;
-                const maxX = barRect.width - root.popupWidth - Theme.popupRadius - 4;
+                const minX = root.popupEdgeGap;
+                const maxX = barRect.width - root.popupWidth - root.popupEdgeGap;
                 // Centered under its module, but on a whole device pixel: off
                 // one, everything in the popup is drawn slightly soft.
                 return Theme.snap(barRect.x + Math.max(minX, Math.min(maxX, root.ownerCenter - root.popupWidth / 2)), root.devicePixelRatio);
