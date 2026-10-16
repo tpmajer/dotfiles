@@ -61,10 +61,11 @@ trap 'exit 143' TERM
 case $1 in
     dim)
         from=$(brightnessctl get 2> /dev/null)
+        # Saved for the `brightnessctl -r` of hypridle's other listeners too,
+        # even with no fade: a value saved by an older dim would come back.
+        brightnessctl -sq set "$from" 2> /dev/null
         if ((from > target)); then
             echo "$from" > "$keep"
-            # Saved for the `brightnessctl -r` of hypridle's other listeners too.
-            brightnessctl -sq set "$from" 2> /dev/null
             fade "$from" "$target" 80 0.01
         fi
         ;;
