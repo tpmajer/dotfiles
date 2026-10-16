@@ -22,23 +22,37 @@ Row {
         cursorShape: Qt.PointingHandCursor
     }
 
-    Column {
-        spacing: Theme.popupRowGap
-        PopupText { text: Weather.place + " " + Weather.temperatureText }
+    // The place at the top, the rest down at the bottom, level with the
+    // week's last row.
+    Item {
+        width: Math.max(place.width, now.width)
+        height: Math.max(place.height + Theme.popupRowGap + now.height, week.visible ? week.height : 0)
+
         PopupText {
-            text: Weather.description
-            color: Theme.subtext0
+            id: place
+            text: Weather.place + " " + Weather.temperatureText
         }
-        // When it is to rain, how it feels, the wind and the sun.
-        PopupDetails {
-            visible: Weather.details.length > 0
-            rows: Weather.details
+
+        Column {
+            id: now
+            anchors.bottom: parent.bottom
+            spacing: Theme.popupRowGap
+            PopupText {
+                text: Weather.description
+                color: Theme.subtext0
+            }
+            // When it is to rain, how it feels, the wind and the sun.
+            PopupDetails {
+                visible: Weather.details.length > 0
+                rows: Weather.details
+            }
         }
     }
 
     // A day to a row, today first and in bold: its name, its weather, in
     // the rain's color on a day more likely wet than not, and its range.
     GridLayout {
+        id: week
         visible: Weather.days.length > 0
         columns: 3
         columnSpacing: Theme.popupGridGap
