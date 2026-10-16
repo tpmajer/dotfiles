@@ -146,8 +146,10 @@ Singleton {
             glyph = 0xe313;                             // fog
         else if (c === 65 || c === 82)
             glyph = 0xe318;                             // heavy rain
-        else if ((c >= 51 && c <= 67) || (c >= 80 && c <= 82))
-            glyph = 0xe31b;                             // drizzle, rain
+        else if (c >= 51 && c <= 57)
+            glyph = 0xe31b;                             // drizzle
+        else if ((c >= 61 && c <= 67) || (c >= 80 && c <= 82))
+            glyph = 0xe319;                             // rain
         else if ((c >= 71 && c <= 77) || c === 85 || c === 86)
             glyph = 0xe31a;                             // snow
         else if (c >= 95)
