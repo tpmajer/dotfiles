@@ -74,6 +74,19 @@ Scope {
     }
 
     function lock() {
+        // Asked while the accepted password waits for the curtain, as a lid
+        // closed right after Enter: it stays locked.
+        if (unlocking) {
+            unlocking = false;
+            unlockDeadline.stop();
+            curtainSettle.stop();
+            frozenMarks = -1;
+            accepted = false;
+            finger.mark = "";
+            finger.watch(true);
+            curtainDrop.restart();
+            return;
+        }
         if (state.locked || locking)
             return;
         buffer = "";
