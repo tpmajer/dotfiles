@@ -40,7 +40,7 @@ Singleton {
                 btop: "tokyo-night",
                 helix: "tokyonight",
                 cursor: "Simp1e-Tokyo-Night",
-                folder: "blue",
+                folder: "sky",
                 base: "#1a1b26",
                 crust: "#0c0e14",
                 surface0: "#292e42",
