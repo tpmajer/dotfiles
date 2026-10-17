@@ -53,10 +53,11 @@ Singleton {
         Niri.send({Action: {Spawn: {command: ["sh", "-c", 'cliphist decode "$1" | wl-copy', "sh", entry.id]}}});
     }
 
-    // Gone from the list at once; the history read after it agrees.
+    // Gone from the list at once; the history read after it agrees. If the
+    // clipboard holds the same, it is cleared too, as wipe() does.
     function remove(entry) {
         entries = entries.filter(e => e.id !== entry.id);
-        run(["sh", "-c", 'printf "%s\\n" "$1" | cliphist delete', "sh", entry.line]);
+        run(["sh", "-c", 'a=$(cliphist decode "$2" | md5sum); b=$(wl-paste --no-newline --type "$3" 2>/dev/null | md5sum); printf "%s\\n" "$1" | cliphist delete; [ "$a" != "$b" ] || wl-copy --clear', "sh", entry.line, entry.id, entry.image ? "image/png" : "text"]);
     }
 
     // The clipboard too: nothing of it is left to paste.
