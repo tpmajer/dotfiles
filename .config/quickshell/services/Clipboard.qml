@@ -59,10 +59,12 @@ Singleton {
         run(["sh", "-c", 'printf "%s\\n" "$1" | cliphist delete', "sh", entry.line]);
     }
 
+    // The clipboard too: nothing of it is left to paste.
     function wipe() {
         entries = [];
         thumbs = {};
-        run(["sh", "-c", 'cliphist wipe; rm -rf -- "$1"', "sh", thumbDir]);
+        current = "";
+        run(["sh", "-c", 'cliphist wipe; wl-copy --clear; rm -rf -- "$1"', "sh", thumbDir]);
     }
 
     // A command that changes the history, which is read again after it.
