@@ -33,7 +33,8 @@ Column {
             required property int index
             width: popup.rowWidth
             entry: modelData
-            bright: index === 0
+            // The newest is what the clipboard holds, unless it was cleared.
+            bright: index === 0 && Clipboard.current !== ""
             onTriggered: {
                 Clipboard.copy(modelData);
                 popup.host.dismiss();
