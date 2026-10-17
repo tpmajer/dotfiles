@@ -111,55 +111,63 @@ Column {
     }
 
     // At the bottom the switches: the WireGuard tunnel by hand and wg-auto,
-    // the Wi-Fi scan and airplane mode. Their labels sit under the names
-    // above, their values end where the values do.
+    // then the radio, the Wi-Fi scan and airplane mode. Their labels sit
+    // under the names above, their values end where the values do.
     Column {
         id: switches
         readonly property real valueWidth: Math.max(tunnelAction.valueImplicitWidth, wgAutoAction.valueImplicitWidth, scanAction.valueImplicitWidth, airplaneAction.valueImplicitWidth)
         readonly property real labelWidth: info.wide - tunnelAction.chromeWidth - valueWidth
         // What the widest of them needs for its text.
         readonly property real textWidth: tunnelAction.chromeWidth + Math.max(tunnelAction.labelImplicitWidth, wgAutoAction.labelImplicitWidth, scanAction.labelImplicitWidth, airplaneAction.labelImplicitWidth) + valueWidth
-        spacing: 2
+        spacing: Theme.popupSectionGap
 
-        PopupAction {
-            id: tunnelAction
-            labelWidth: switches.labelWidth
-            valueWidth: switches.valueWidth
-            bright: Network.vpn
-            onColor: Theme.teal
-            text: "WireGuard"
-            value: Network.vpn ? "on" : "off"
-            onTriggered: Network.toggleTunnel()
+        Column {
+            spacing: 2
+
+            PopupAction {
+                id: tunnelAction
+                labelWidth: switches.labelWidth
+                valueWidth: switches.valueWidth
+                bright: Network.vpn
+                onColor: Theme.teal
+                text: "WireGuard"
+                value: Network.vpn ? "on" : "off"
+                onTriggered: Network.toggleTunnel()
+            }
+            PopupAction {
+                id: wgAutoAction
+                labelWidth: switches.labelWidth
+                valueWidth: switches.valueWidth
+                bright: Network.wgAuto
+                onColor: Theme.teal
+                text: "WireGuard auto"
+                value: Network.wgAuto ? "on" : "off"
+                onTriggered: Network.toggleWgAuto()
+            }
         }
-        PopupAction {
-            id: wgAutoAction
-            labelWidth: switches.labelWidth
-            valueWidth: switches.valueWidth
-            bright: Network.wgAuto
-            onColor: Theme.teal
-            text: "WireGuard auto"
-            value: Network.wgAuto ? "on" : "off"
-            onTriggered: Network.toggleWgAuto()
-        }
-        PopupAction {
-            id: scanAction
-            labelWidth: switches.labelWidth
-            valueWidth: switches.valueWidth
-            bright: Network.scanning
-            text: "Scan Wi-Fi"
-            value: Network.scanning ? "scanning" : Network.scanFailed ? "refused" : ""
-            widestValue: "scanning"
-            onTriggered: Network.rescan()
-        }
-        PopupAction {
-            id: airplaneAction
-            labelWidth: switches.labelWidth
-            valueWidth: switches.valueWidth
-            bright: Rfkill.airplane
-            onColor: Theme.sky
-            text: "Airplane mode"
-            value: Rfkill.airplane ? "on" : "off"
-            onTriggered: Rfkill.toggle()
+        Column {
+            spacing: 2
+
+            PopupAction {
+                id: scanAction
+                labelWidth: switches.labelWidth
+                valueWidth: switches.valueWidth
+                bright: Network.scanning
+                text: "Scan Wi-Fi"
+                value: Network.scanning ? "scanning" : Network.scanFailed ? "refused" : ""
+                widestValue: "scanning"
+                onTriggered: Network.rescan()
+            }
+            PopupAction {
+                id: airplaneAction
+                labelWidth: switches.labelWidth
+                valueWidth: switches.valueWidth
+                bright: Rfkill.airplane
+                onColor: Theme.sky
+                text: "Airplane mode"
+                value: Rfkill.airplane ? "on" : "off"
+                onTriggered: Rfkill.toggle()
+            }
         }
     }
 }
