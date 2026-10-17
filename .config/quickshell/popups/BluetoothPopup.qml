@@ -30,6 +30,12 @@ PopupList {
         value: on ? "on" : "off"
         onTriggered: btList.adapter.enabled = !on
     }
+    // The devices apart from the switch, as the popups' parts are.
+    Item {
+        visible: power.on && btList.devices.length > 0
+        width: 1
+        height: Theme.popupSectionGap - 2 * btList.spacing
+    }
 
     // Icon by the BlueZ device type.
     function deviceIcon(type) {

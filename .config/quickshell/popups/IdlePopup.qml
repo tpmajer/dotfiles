@@ -13,7 +13,7 @@ Column {
     readonly property bool inhibited: Idle.inhibited
     // The switch's text and the rows below are as wide as the wider of the two.
     readonly property real wide: Math.max(details.implicitWidth, inhibitor.chromeWidth + inhibitor.labelImplicitWidth + inhibitor.valueImplicitWidth)
-    spacing: Theme.popupRowGap
+    spacing: Theme.popupSectionGap
     // What is below the switch is inset like the switch's text, on the sides
     // and at the bottom.
     bottomPadding: Theme.popupTextInsetV
