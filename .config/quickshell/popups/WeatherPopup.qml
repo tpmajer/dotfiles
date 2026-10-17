@@ -50,12 +50,13 @@ Row {
     }
 
     // A day to a row, today first and in bold: its name, its weather, in
-    // the rain's color on a day more likely wet than not, and its range.
+    // the rain's color on a day more likely wet than not, and its range, in
+    // columns of its own so that the slashes line up.
     GridLayout {
         id: week
         visible: Weather.days.length > 0
-        columns: 3
-        columnSpacing: Theme.popupGridGap
+        columns: 5
+        columnSpacing: 0
         rowSpacing: Theme.popupRowGap
 
         Repeater {
@@ -66,15 +67,17 @@ Row {
                 required property var modelData
                 required property int index
                 readonly property bool today: index === 0
-                model: 3
+                model: 5
 
                 PopupText {
                     required property int index
-                    text: index === 0 ? Qt.formatDate(new Date(day.modelData.time), "ddd") : index === 1 ? Weather.glyphFor(day.modelData.code, true) : Math.round(day.modelData.low) + "° / " + Math.round(day.modelData.high) + "°"
+                    text: [Qt.formatDate(new Date(day.modelData.time), "ddd"), Weather.glyphFor(day.modelData.code, true), Math.round(day.modelData.low) + "°", " / ", Math.round(day.modelData.high) + "°"][index]
                     color: index === 1 && day.modelData.chance >= 50 ? Theme.sky : index === 0 && !day.today ? Theme.subtext0 : Theme.text
                     font.bold: day.today
                     font.pixelSize: index === 1 ? Theme.fontSize + 2 : Theme.fontSize
-                    Layout.alignment: index === 2 ? Qt.AlignRight : index === 1 ? Qt.AlignHCenter : Qt.AlignLeft
+                    Layout.alignment: index === 2 || index === 4 ? Qt.AlignRight : index === 1 ? Qt.AlignHCenter : Qt.AlignLeft
+                    // The grid's gap before the icon and the range only.
+                    Layout.leftMargin: index === 1 || index === 2 ? Theme.popupGridGap : 0
                     // Today apart from the rest, as the place is on the left.
                     Layout.topMargin: day.index === 1 ? Theme.popupSectionGap - Theme.popupRowGap : 0
                 }
