@@ -161,7 +161,12 @@ Overlay {
             Clipboard.copy(item);
         } else if (dmenu)
             answer(item ?? input.text);
-        else if (item)
+        else if (item && item.history) {
+            // Not closed: the launcher goes on to the clipboard's history.
+            input.text = "";
+            clipboard = true;
+            return;
+        } else if (item)
             Apps.launch(item);
         else if (input.text.trim())
             Apps.run(input.text);

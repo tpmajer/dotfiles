@@ -120,9 +120,12 @@ Singleton {
         return Math.max(score(query, entry.name), 0.7 * score(query, entry.genericName, false), 0.7 * score(query, entry.id, false), 0.5 * score(query, other, false));
     }
 
-    // The power menu's actions and the palettes, to be listed like entries.
+    // The power menu's actions, the clipboard's history and the palettes,
+    // to be listed like entries.
     // `below` is taken off the score: how far under an application.
     readonly property var actions: Power.actions.map(a => ({name: a.text, genericName: "Power", glyph: a.icon, color: a.color, action: a, loose: true, below: 15}))
+    // As an action is; the launcher shows the history in place of the list.
+    readonly property var history: [{name: "Clipboard history", genericName: "Clipboard", glyph: 0xf0ea, color: Theme.green, history: true, loose: true, below: 15}]
     readonly property var palettes: Object.keys(Theme.palettes).map(p => ({name: Theme.palettes[p].label + " palette", genericName: "Theme", glyph: 0xefcc, color: Theme.palettes[p].mauve, palette: p, loose: false, below: 25}))
 
     // The entries that answer a query, best first; all of them for none.
@@ -137,7 +140,7 @@ Singleton {
         if (!query.trim())
             return entries.slice().sort((a, b) => started(b) - started(a) || byName(a, b));
         const found = entries.map(e => ({entry: e, score: scoreEntry(query, e) + started(e)})).filter(r => r.score > started(r.entry));
-        const asked = actions.concat(palettes).map(a => ({entry: a, score: score(query, a.name, a.loose)})).filter(r => r.score > 0).map(r => ({entry: r.entry, score: r.score - r.entry.below}));
+        const asked = actions.concat(history, palettes).map(a => ({entry: a, score: score(query, a.name, a.loose)})).filter(r => r.score > 0).map(r => ({entry: r.entry, score: r.score - r.entry.below}));
         return found.concat(asked).sort((a, b) => b.score - a.score || byName(a.entry, b.entry)).map(r => r.entry);
     }
 
