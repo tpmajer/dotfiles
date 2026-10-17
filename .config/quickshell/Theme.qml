@@ -264,7 +264,7 @@ Singleton {
     // also what lines of text are apart. Between the parts of a popup.
     readonly property int popupGridGap: 16
     readonly property int popupRowGap: 4
-    readonly property int popupSectionGap: 8
+    readonly property int popupSectionGap: 12
     readonly property int popupRadius: barRadius
     // Popups float below the bar, with this gap.
     readonly property int popupGap: 8
