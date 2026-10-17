@@ -12,7 +12,7 @@ Column {
     spacing: Theme.popupSectionGap
     // The text above the switches is inset like the switches' text, on the
     // sides and at the top.
-    topPadding: info.visible ? Theme.popupTextInsetV : 0
+    topPadding: alarm.visible || info.visible ? Theme.popupTextInsetV : 0
 
     Component.onCompleted: Network.refreshWgAuto()
     Connections {
@@ -29,6 +29,14 @@ Column {
         repeat: true
         triggeredOnStart: true
         onTriggered: Network.refreshRoute()
+    }
+
+    PopupText {
+        id: alarm
+        visible: text !== ""
+        x: Theme.popupTextInset
+        text: Network.offline
+        color: Theme.red
     }
 
     // A section to a connection: its name and traffic in two columns of a
@@ -102,12 +110,6 @@ Column {
         }
     }
 
-    PopupText {
-        visible: text !== ""
-        x: Theme.popupTextInset
-        text: Network.offline
-        color: Theme.red
-    }
     // At the bottom the switches: the WireGuard tunnel by hand and wg-auto,
     // the Wi-Fi scan and airplane mode. Their labels sit under the names
     // above, their values end where the values do.
