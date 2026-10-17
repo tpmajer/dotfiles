@@ -153,13 +153,6 @@ Item {
     Column {
         spacing: popup.spacing
 
-        PopupText {
-            id: empty
-            visible: popup.own.length === 0 && columnSlots.count === 0
-            text: "Empty"
-            color: Theme.subtext0
-        }
-
         Row {
             visible: columnSlots.count > 0
 
@@ -300,6 +293,20 @@ Item {
                     onGone: floatingSlots.remove(index)
                 }
             }
+        }
+    }
+
+    // Over the last column, as it pops out.
+    PopupText {
+        id: empty
+        text: "Empty"
+        color: Theme.subtext0
+        opacity: emptyPop.openness
+        scale: emptyPop.scale
+
+        Pop {
+            id: emptyPop
+            shown: popup.own.length === 0
         }
     }
 
