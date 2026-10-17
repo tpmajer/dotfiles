@@ -49,6 +49,13 @@ Row {
         }
     }
 
+    // Not shown, only measured: a line of text's height.
+    PopupText {
+        id: line
+        visible: false
+        text: "M"
+    }
+
     // A day to a row, today first and in bold: its name, its weather, in
     // the rain's color on a day more likely wet than not, and its range, in
     // columns of its own so that the slashes line up.
@@ -74,7 +81,11 @@ Row {
                     text: [Qt.formatDate(new Date(day.modelData.time), "ddd"), Weather.glyphFor(day.modelData.code, true), Math.round(day.modelData.low) + "°", " / ", Math.round(day.modelData.high) + "°"][index]
                     color: index === 1 && day.modelData.chance >= 50 ? Theme.sky : index === 0 && !day.today ? Theme.subtext0 : Theme.text
                     font.bold: day.today
-                    font.pixelSize: index === 1 ? Theme.fontSize + 2 : Theme.fontSize
+                    font.pixelSize: index === 1 ? Theme.fontSize + 6 : Theme.fontSize
+                    // The larger icon in a line's height: it overflows it
+                    // instead of spacing the rows out.
+                    Layout.preferredHeight: index === 1 ? line.implicitHeight : -1
+                    verticalAlignment: Text.AlignVCenter
                     Layout.alignment: index === 2 || index === 4 ? Qt.AlignRight : index === 1 ? Qt.AlignHCenter : Qt.AlignLeft
                     // The grid's gap before the icon and the range only.
                     Layout.leftMargin: index === 1 || index === 2 ? Theme.popupGridGap : 0

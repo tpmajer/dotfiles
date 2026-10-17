@@ -190,7 +190,7 @@ PanelWindow {
             anchors.right: clock.left
             host: popups
             prefix: Weather.known ? Weather.icon : ""
-            prefixSize: Theme.fontSize + 2
+            prefixSize: Theme.fontSize + 6
             text: Weather.known ? Weather.temperatureText : ""
             color: Theme.sky
             popup: WeatherPopup {
