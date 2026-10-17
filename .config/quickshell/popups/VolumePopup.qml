@@ -12,6 +12,11 @@ import qs.widgets
 PopupList {
     id: sinkList
 
+    // The programs playing. Spotify has its row of its own.
+    readonly property var streams: Audio.streams.filter(n => !(Spotify.ready && /^spotify$/i.test(Audio.appName(n))))
+    readonly property bool playing: Spotify.ready || streams.length > 0
+    readonly property bool hasMic: !!Audio.defaultSource && !!Audio.defaultSource.audio
+
     function level(node) {
         return node.audio.muted ? "muted" : Audio.volume(node) + "%";
     }
@@ -36,6 +41,14 @@ PopupList {
         }
     }
 
+    // The outputs, the programs and the microphone apart, as the popups'
+    // parts are.
+    Item {
+        visible: Audio.sinks.length > 0 && sinkList.playing
+        width: 1
+        height: Theme.popupSectionGap - 2 * sinkList.spacing
+    }
+
     // Spotify's own volume, while it runs: the speaker's when it plays on a
     // Connect device.
     Repeater {
@@ -53,9 +66,8 @@ PopupList {
         }
     }
 
-    // The programs playing. Spotify has its row above.
     Repeater {
-        model: Audio.streams.filter(n => !(Spotify.ready && /^spotify$/i.test(Audio.appName(n))))
+        model: sinkList.streams
 
         PopupAction {
             required property var modelData
@@ -70,9 +82,15 @@ PopupList {
         }
     }
 
+    Item {
+        visible: (Audio.sinks.length > 0 || sinkList.playing) && sinkList.hasMic
+        width: 1
+        height: Theme.popupSectionGap - 2 * sinkList.spacing
+    }
+
     // The microphone, red while something records from it.
     Repeater {
-        model: Audio.defaultSource && Audio.defaultSource.audio ? [Audio.defaultSource] : []
+        model: sinkList.hasMic ? [Audio.defaultSource] : []
 
         PopupAction {
             required property var modelData
