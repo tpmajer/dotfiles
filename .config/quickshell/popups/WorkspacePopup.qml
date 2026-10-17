@@ -418,6 +418,7 @@ Item {
         }
 
         Rectangle {
+            id: card
             y: tile.going ? tile.topAt - tile.y : tile.entering ? tile.finalTop - tile.y : tile.shownGap
             width: tile.going ? tile.targetWidth : tile.width
             height: tile.entering || tile.going ? tile.targetHeight : tile.height - tile.shownGap
@@ -431,13 +432,33 @@ Item {
             border.width: tile.shownWin && (tile.shownWin.is_urgent || tile.shownWin.id === popup.ws?.active_window_id) ? 2 : 0
             border.color: tile.shownWin?.is_urgent ? Theme.red : Theme.blue
 
-            IconImage {
+            // The icon, and under it the title's start, where there is room.
+            Column {
                 anchors.centerIn: parent
-                implicitSize: Math.max(0, Math.min(32, parent.width - 8, parent.height - 8))
-                source: tile.shownWin ? Apps.icon(tile.shownWin.app_id, "application-x-executable") : ""
+                spacing: 2
+
+                IconImage {
+                    id: icon
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    implicitSize: Math.max(0, Math.min(32, card.width - 8, card.height - 8))
+                    source: tile.shownWin ? Apps.icon(tile.shownWin.app_id, "application-x-executable") : ""
+                }
+
+                PopupText {
+                    id: title
+                    readonly property real room: card.width - 8 - 2 * (tabCount.visible ? tabCount.width + 4 : 0)
+                    visible: text !== "" && room >= 24 && card.height - 8 >= icon.height + parent.spacing + implicitHeight
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: Math.min(implicitWidth, room)
+                    text: tile.shownWin?.title ?? ""
+                    elide: Text.ElideRight
+                    color: Theme.subtext0
+                    font.pixelSize: Theme.fontSize - 4
+                }
             }
 
             PopupText {
+                id: tabCount
                 visible: tile.tabs > 0
                 anchors.right: parent.right
                 anchors.bottom: parent.bottom
