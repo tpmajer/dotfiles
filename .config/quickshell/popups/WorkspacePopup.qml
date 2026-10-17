@@ -446,8 +446,8 @@ Item {
 
                 PopupText {
                     id: title
-                    readonly property real room: card.width - 8 - 2 * (tabCount.visible ? tabCount.width + 4 : 0)
-                    visible: text !== "" && room >= 24 && card.height - 8 >= icon.height + parent.spacing + implicitHeight
+                    readonly property real room: card.width - 16 - 2 * (tabCount.visible ? tabCount.width + 4 : 0)
+                    visible: text !== "" && room >= 24 && card.height - 16 >= icon.height + parent.spacing + implicitHeight
                     anchors.horizontalCenter: parent.horizontalCenter
                     width: Math.min(implicitWidth, room)
                     text: tile.shownWin?.title ?? ""
