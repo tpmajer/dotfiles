@@ -177,9 +177,10 @@ Singleton {
     }
 
     function handle(ev) {
-        // A window that comes or goes meanwhile, after it; not what else
-        // comes, as screenshots or a focus.
-        if (ev.WindowsChanged || ev.WindowClosed || ev.WindowOpenedOrChanged && !(ev.WindowOpenedOrChanged.window.id in windows))
+        // A window that comes, goes or moves to another workspace meanwhile,
+        // after it; not what else comes, as screenshots or a focus.
+        const changed = ev.WindowOpenedOrChanged?.window;
+        if (ev.WindowsChanged || ev.WindowClosed || changed && windows[changed.id]?.workspace_id !== changed.workspace_id)
             flushLayouts();
         if (ev.WorkspacesChanged) {
             workspaces = ev.WorkspacesChanged.workspaces;
@@ -213,9 +214,14 @@ Singleton {
             windows = map;
         } else if (ev.WindowOpenedOrChanged) {
             const w = ev.WindowOpenedOrChanged.window;
-            // One that changes keeps its layout held.
-            if (pendingLayouts?.some(([id]) => id === w.id))
+            // One that changes keeps its layout held, though the newer one.
+            const held = pendingLayouts ? pendingLayouts.findIndex(([id]) => id === w.id) : -1;
+            if (held >= 0) {
+                pendingLayouts[held] = [w.id, w.layout];
+                if (w.id in resizing && w.layout.tile_size[1] !== resizing[w.id])
+                    delete resizing[w.id];
                 w.layout = windows[w.id].layout;
+            }
             const map = Object.assign({}, windows);
             if (w.is_focused)
                 for (const id in map)
@@ -233,6 +239,8 @@ Singleton {
                 }
             map[w.id] = w;
             windows = map;
+            if (held >= 0 && Object.keys(resizing).length === 0)
+                flushLayouts();
         } else if (ev.WindowClosed) {
             const map = Object.assign({}, windows);
             delete map[ev.WindowClosed.id];
