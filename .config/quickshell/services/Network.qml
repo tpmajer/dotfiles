@@ -173,8 +173,8 @@ Singleton {
     }
     // The widest a rate gets, for the popup's columns.
     readonly property string widestRate: downIcon + " 1023 KiB/s"
-    readonly property string downIcon: Theme.glyph(0xf019)
-    readonly property string upIcon: Theme.glyph(0xf093)
+    readonly property string downIcon: "↓"
+    readonly property string upIcon: "↑"
 
     property var previous: ({})   // interface -> {rx, tx, time}
 
