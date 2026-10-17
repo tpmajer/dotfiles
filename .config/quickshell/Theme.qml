@@ -146,6 +146,7 @@ Singleton {
                 btop: "gruvbox_material_dark",
                 helix: "gruvbox-material",
                 cursor: "Simp1e-Gruvbox-Dark",
+                folder: "blue",
                 base: "#282828",
                 crust: "#1b1b1b",
                 surface0: "#3c3836",

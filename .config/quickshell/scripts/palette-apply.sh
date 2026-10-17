@@ -271,7 +271,9 @@ folders() {
     done
     [ -n "$papirus" ] && [ -n "$c_base" ] || { dconf reset "$key"; return; }
 
-    local front=$c_teal paper=$c_text glyph=$c_surface0 color
+    # `folder` in a palette names its folders' color, teal if none.
+    local front=c_${c_folder:-teal} paper=$c_text glyph=$c_surface0 color
+    front=${!front}
     for color in "$front" "$paper" "$glyph"; do
         [[ $color =~ ^#[0-9a-fA-F]{6}$ ]] || { dconf reset "$key"; return; }
     done
