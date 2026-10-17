@@ -268,7 +268,8 @@ PanelWindow {
 
             // clipboard: in the color of what it holds or else of the
             // newest entry, gray with both empty. The popup has the newest
-            // of its history, a click opens all of it in the launcher.
+            // of its history, a click opens it at once, a right click all of
+            // the history in the launcher.
             Module {
                 host: popups
                 text: Theme.glyph(0xf0ea)
@@ -276,8 +277,11 @@ PanelWindow {
                 popup: ClipboardPopup {
                     host: popups
                 }
-                clickDismissesPopup: true
-                onClicked: bar.clipboardRequested()
+                clickOpensPopup: true
+                onRightClicked: {
+                    popups.dismiss();
+                    bar.clipboardRequested();
+                }
             }
 
             // idle inhibitor
