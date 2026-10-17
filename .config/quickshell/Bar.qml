@@ -39,6 +39,7 @@ PanelWindow {
     // The power module was clicked: the menu itself lives in the shell.
     signal powerMenuRequested
     signal launcherRequested
+    signal clipboardRequested
 
     // ---- a popup driven from the keyboard (qs ipc call notifications toggle) ----
 
@@ -264,6 +265,20 @@ PanelWindow {
         Row {
             anchors.right: parent.right
             height: parent.height
+
+            // clipboard: in the color of what it holds, gray while it is
+            // empty. The popup has the newest of its history, a click
+            // opens all of it in the launcher.
+            Module {
+                host: popups
+                text: Theme.glyph(0xf0ea)
+                color: Clipboard.current === "image" ? Theme.pink : Clipboard.current === "text" ? Theme.green : Theme.subtext0
+                popup: ClipboardPopup {
+                    host: popups
+                }
+                clickDismissesPopup: true
+                onClicked: bar.clipboardRequested()
+            }
 
             // idle inhibitor
             Module {

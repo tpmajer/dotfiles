@@ -14,6 +14,7 @@ ShellRoot {
         Bar {
             onPowerMenuRequested: powerMenu.toggle()
             onLauncherRequested: launcher.toggle()
+            onClipboardRequested: launcher.toggleClipboard()
         }
     }
 
