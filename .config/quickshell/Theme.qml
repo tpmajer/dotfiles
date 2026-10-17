@@ -68,7 +68,7 @@ Singleton {
                 btop: "tokyo-storm",
                 helix: "tokyonight_storm",
                 cursor: "Simp1e-Tokyo-Night-Storm",
-                folder: "blue",
+                folder: "sapphire",
                 base: "#24283b",
                 crust: "#171a27",
                 surface0: "#3b4261",
