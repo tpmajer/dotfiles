@@ -177,8 +177,9 @@ Singleton {
     }
 
     function handle(ev) {
-        // Whatever else comes meanwhile, after it.
-        if (pendingLayouts && !ev.WindowLayoutsChanged)
+        // A window that comes or goes meanwhile, after it; not what else
+        // comes, as screenshots or a focus.
+        if (ev.WindowsChanged || ev.WindowClosed || ev.WindowOpenedOrChanged && !(ev.WindowOpenedOrChanged.window.id in windows))
             flushLayouts();
         if (ev.WorkspacesChanged) {
             workspaces = ev.WorkspacesChanged.workspaces;
@@ -212,6 +213,9 @@ Singleton {
             windows = map;
         } else if (ev.WindowOpenedOrChanged) {
             const w = ev.WindowOpenedOrChanged.window;
+            // One that changes keeps its layout held.
+            if (pendingLayouts?.some(([id]) => id === w.id))
+                w.layout = windows[w.id].layout;
             const map = Object.assign({}, windows);
             if (w.is_focused)
                 for (const id in map)
