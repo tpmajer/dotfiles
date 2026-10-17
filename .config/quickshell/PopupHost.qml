@@ -120,14 +120,19 @@ Item {
     // Where the popup starts: below a gap under the bar.
     readonly property real popupTop: barRect.y + barRect.height + Theme.popupGap
 
-    readonly property real ownerCenter: {
+    // Where the module is; a module on its way out (no parent, then no
+    // owner) leaves the last place, so a closing popup stays put.
+    property real ownerCenter: 0
+    readonly property real ownerCenterNow: {
         const o = popupOwner;
-        if (!o)
-            return 0;
+        if (!o || !o.parent)
+            return NaN;
         // Referenced so the binding re-evaluates when the module or its row moves.
         void (o.x + o.width + o.parent.x + o.parent.width);
         return o.mapToItem(barRect, o.centerX, 0).x;
     }
+    onOwnerCenterNowChanged: if (!isNaN(ownerCenterNow))
+        ownerCenter = ownerCenterNow
 
     // The popup stays open while the pointer is over its module, over the popup,
     // or over the strip of bar right above the popup (the way between the two).
