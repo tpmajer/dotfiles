@@ -402,6 +402,7 @@ binds {
 
     Mod+T hotkey-overlay-title="Open terminal" { spawn-sh "ghostty +new-window || ghostty"; }
     Mod+Space hotkey-overlay-title="Open launcher" { spawn "qs" "ipc" "call" "launcher" "toggle"; }
+    Mod+Ctrl+V hotkey-overlay-title="Clipboard history" { spawn "qs" "ipc" "call" "launcher" "clipboard"; }
     // For when quickshell is down.
     Mod+Shift+Space hotkey-overlay-title="Open fuzzel" { spawn "fuzzel"; }
     Mod+B hotkey-overlay-title="Open Firefox" { spawn "firefox"; }
