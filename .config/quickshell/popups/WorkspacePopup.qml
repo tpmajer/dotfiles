@@ -279,9 +279,10 @@ Item {
             }
         }
 
+        // Wide enough for those that go too, which would wrap otherwise.
         Flow {
-            visible: popup.floating.length > 0
-            width: popup.floatingWidth
+            visible: floatingSlots.count > 0
+            width: Math.min(floatingSlots.count, popup.floatingPerRow) * (popup.floatingSize + popup.floatingSpacing) - popup.floatingSpacing
             spacing: popup.floatingSpacing
 
             Repeater {
@@ -377,7 +378,8 @@ Item {
         onHeightChanged: if (entering && height >= gapBefore + targetHeight)
             entering = false
 
-        width: targetWidth
+        // In a row, it closes up too.
+        width: going ? 0 : targetWidth
         height: (appeared || !stacked) && !going ? gapBefore + targetHeight : 0
         z: going ? -1 : entering ? 1 : 0
         Behavior on height {
@@ -419,7 +421,7 @@ Item {
 
         Rectangle {
             y: tile.going ? tile.topAt - tile.y : tile.entering ? tile.finalTop - tile.y : tile.shownGap
-            width: tile.width
+            width: tile.going ? tile.targetWidth : tile.width
             height: tile.entering || tile.going ? tile.targetHeight : tile.height - tile.shownGap
             radius: Theme.moduleRadius
             opacity: pop.openness * (popup.draggedId >= 0 && popup.draggedId === tile.shownWin?.id ? 0.4 : 1)
