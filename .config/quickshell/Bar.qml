@@ -266,13 +266,13 @@ PanelWindow {
             anchors.right: parent.right
             height: parent.height
 
-            // clipboard: in the color of what it holds, gray while it is
-            // empty. The popup has the newest of its history, a click
-            // opens all of it in the launcher.
+            // clipboard: in the color of what it holds or else of the
+            // newest entry, gray with both empty. The popup has the newest
+            // of its history, a click opens all of it in the launcher.
             Module {
                 host: popups
                 text: Theme.glyph(0xf0ea)
-                color: Clipboard.current === "image" ? Theme.pink : Clipboard.current === "text" ? Theme.green : Theme.subtext0
+                color: Clipboard.kind === "image" ? Theme.pink : Clipboard.kind === "text" ? Theme.green : Theme.subtext0
                 popup: ClipboardPopup {
                     host: popups
                 }

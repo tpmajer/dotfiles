@@ -13,6 +13,9 @@ Singleton {
     property var entries: []
     // "text" or "image", or "" with the clipboard cleared.
     property string current: ""
+    // For the module's color: what the clipboard holds, or else the newest
+    // entry; "" only with both empty.
+    readonly property string kind: current || (entries.length ? (entries[0].image ? "image" : "text") : "")
     // The thumbnails decoded so far, by file name.
     property var thumbs: ({})
     property bool decodeQueued: false
