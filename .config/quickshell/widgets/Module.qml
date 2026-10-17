@@ -28,7 +28,7 @@ Item {
     // Geometry: margins around the hover rectangle, padding inside it.
     property int leftMargin: 3
     property int rightMargin: 3
-    property int hPadding: 12
+    property int hPadding: 10
     property int minWidth: 0
     property bool underline: true      // colored underline on hover
 
