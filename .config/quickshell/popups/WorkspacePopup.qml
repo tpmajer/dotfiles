@@ -22,7 +22,7 @@ Item {
     readonly property bool dragging: draggedId >= 0
     property int draggedId: -1
 
-    // Its first tiles are there whole; those that come later grow in.
+    // Its first tiles are there whole; those that come later pop in.
     property bool ready: false
     Component.onCompleted: Qt.callLater(() => ready = true)
 
@@ -145,13 +145,10 @@ Item {
     implicitWidth: Math.max(0, ...parts.map(part => part[0]))
     implicitHeight: parts.reduce((sum, part) => sum + part[1], 0) + spacing * Math.max(0, parts.length - 1)
 
-    // How what comes and goes moves: as the popup itself resizes; what goes
-    // pops out where it was as the popup's own (Pop), under the rest as they
-    // close up over its place.
+    // How what comes and goes moves: its place opens or closes as the popup
+    // itself resizes, and it pops in or out (Pop) where it is to be or was,
+    // under the rest as they close up over it.
     readonly property int moveDuration: Theme.popupDuration
-    // A new one fades in evenly, and longer than it moves: in the move's
-    // own curve it would be all but there at once.
-    readonly property int fadeDuration: 260
 
     Column {
         spacing: popup.spacing
@@ -176,10 +173,7 @@ Item {
                 }
 
                 // A column's place, the gap before it included, so that the
-                // gap opens and closes with it. A new one grows from nothing
-                // with the column sliding in from the left as it fades in; one
-                // that goes pops out where it was, under the columns that
-                // close up over its place.
+                // gap opens and closes with it.
                 Item {
                     id: slot
                     required property int key
@@ -204,7 +198,11 @@ Item {
                     readonly property real columnWidth: shown ? popup.tileWidth(shown) : 0
                     readonly property real targetWidth: columnWidth + gapBefore
 
-                    property bool appeared: false
+                    // The first ones are there whole; those that come later
+                    // pop in.
+                    property bool appeared: !popup.ready
+                    // Over the others while its place opens, under them as
+                    // they close up over it.
                     property bool entering: false
                     Component.onCompleted: {
                         entering = popup.ready;
@@ -215,8 +213,7 @@ Item {
 
                     width: appeared && !leaving ? targetWidth : 0
                     height: stack.height
-                    clip: entering
-                    z: leaving ? -1 : 0
+                    z: leaving ? -1 : entering ? 1 : 0
                     Behavior on width {
                         enabled: popup.ready
                         NumberAnimation {
@@ -239,16 +236,15 @@ Item {
 
                     Pop {
                         id: pop
-                        shown: !slot.leaving
+                        shown: slot.appeared && !slot.leaving
                     }
 
                     Column {
                         id: stack
-                        x: slot.leaving ? slot.leftAt - slot.x : slot.entering ? slot.width - slot.columnWidth : slot.shownGap
+                        x: slot.leaving ? slot.leftAt - slot.x : slot.shownGap
                         width: slot.columnWidth
-                        // Fades in as it slides; pops out as it goes.
-                        opacity: slot.leaving ? pop.openness : slot.fade
-                        scale: slot.leaving ? pop.scale : 1
+                        opacity: pop.openness
+                        scale: pop.scale
 
                         Repeater {
                             model: Keyed {
@@ -264,20 +260,19 @@ Item {
                                 targetHeight: shownWin ? popup.tileHeight(shownWin) : 0
                                 // Not after one that goes, which has no place.
                                 gapBefore: (slot.shown?.keys.indexOf(key) ?? 0) > 0 ? popup.scaledGap : 0
+                                finalTop: {
+                                    const c = slot.col;
+                                    const k = c ? c.keys.indexOf(key) : -1;
+                                    let top = 0;
+                                    for (let i = 0; i < k; i++)
+                                        top += popup.tileHeight(c.windows[i]) + popup.scaledGap;
+                                    return top;
+                                }
                                 // Comes and goes with its column, or else in it, by its
                                 // height.
                                 stacked: (slot.shown?.windows.length ?? 1) > 1 || leaving
                                 onGone: windowSlots.remove(index)
                             }
-                        }
-                    }
-
-                    property real fade: appeared ? 1 : 0
-                    Behavior on fade {
-                        enabled: popup.ready
-                        NumberAnimation {
-                            duration: popup.fadeDuration
-                            easing.type: Easing.InOutQuad
                         }
                     }
                 }
@@ -341,9 +336,8 @@ Item {
     }
 
     // A window's tile, with the gap before it. In a column of one, it comes
-    // and goes with the column; stacked, it does by its own height: fading
-    // in as it grows, or popping out where it was, under the tiles that
-    // close up over its place.
+    // and goes with the column; stacked, it does by its own height, as the
+    // column does by its width.
     component Tile: Item {
         id: tile
         required property int key
@@ -371,8 +365,11 @@ Item {
 
         signal gone
 
-        property bool appeared: false
+        property bool appeared: !popup.ready
+        // Whole as its place opens, and where it ends up, not where its
+        // place is while the others move.
         property bool entering: false
+        property real finalTop: y + gapBefore
         Component.onCompleted: {
             entering = popup.ready && stacked;
             appeared = true;
@@ -382,8 +379,7 @@ Item {
 
         width: targetWidth
         height: (appeared || !stacked) && !going ? gapBefore + targetHeight : 0
-        clip: entering
-        z: going ? -1 : 0
+        z: going ? -1 : entering ? 1 : 0
         Behavior on height {
             enabled: popup.ready
             NumberAnimation {
@@ -418,25 +414,16 @@ Item {
 
         Pop {
             id: pop
-            shown: !tile.going
-        }
-        property real fade: appeared || !stacked ? 1 : 0
-        Behavior on fade {
-            enabled: popup.ready
-            NumberAnimation {
-                duration: popup.fadeDuration
-                easing.type: Easing.InOutQuad
-            }
+            shown: (tile.appeared || !tile.stacked) && !tile.going
         }
 
-        // Whole as it grows, its bottom edge on its place's.
         Rectangle {
-            y: tile.going ? tile.topAt - tile.y : tile.entering ? tile.height - height : tile.shownGap
+            y: tile.going ? tile.topAt - tile.y : tile.entering ? tile.finalTop - tile.y : tile.shownGap
             width: tile.width
             height: tile.entering || tile.going ? tile.targetHeight : tile.height - tile.shownGap
             radius: Theme.moduleRadius
-            opacity: (tile.going ? pop.openness : tile.fade) * (popup.draggedId >= 0 && popup.draggedId === tile.shownWin?.id ? 0.4 : 1)
-            scale: tile.going ? pop.scale : 1
+            opacity: pop.openness * (popup.draggedId >= 0 && popup.draggedId === tile.shownWin?.id ? 0.4 : 1)
+            scale: pop.scale
             color: mouse.containsMouse ? Theme.surface1 : Theme.surface0
             Behavior on color {
                 ColorAnimation { duration: Theme.hoverDuration }
