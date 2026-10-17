@@ -430,7 +430,7 @@ Item {
                 ColorAnimation { duration: Theme.hoverDuration }
             }
             border.width: tile.shownWin && (tile.shownWin.is_urgent || tile.shownWin.id === popup.ws?.active_window_id) ? 2 : 0
-            border.color: tile.shownWin?.is_urgent ? Theme.red : Theme.blue
+            border.color: tile.shownWin?.is_urgent ? Theme.red : Theme.teal
 
             // The icon, and under it the title's start, where there is room.
             Column {
