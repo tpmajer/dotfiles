@@ -173,7 +173,7 @@ Rectangle {
                     PopupText {
                         text: Weather.icon
                         color: Theme.subtext0
-                        font.pixelSize: Theme.fontSize + 2
+                        font.pixelSize: Theme.fontSize + 6
                         anchors.verticalCenter: parent.verticalCenter
                     }
 
