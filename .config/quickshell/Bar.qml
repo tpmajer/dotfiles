@@ -264,6 +264,17 @@ PanelWindow {
             anchors.right: parent.right
             height: parent.height
 
+            // idle inhibitor
+            Module {
+                host: popups
+                // Idle: the time left until the lock, if there is one, in a
+                // color that tells.
+                text: Theme.glyph(0xf0f4) + (Idle.systemIdle && Idle.locks ? " " + Idle.lockCountdown(systemClock.date) : "")
+                color: Idle.inhibited ? Theme.sky : Idle.systemIdle ? Theme.peach : Theme.subtext0
+                popup: IdlePopup {}
+                onClicked: Idle.toggle()
+            }
+
             // clipboard: in the color of what it holds or else of the
             // newest entry, gray with both empty. The popup has the newest
             // of its history, a click opens it at once, a right click all of
@@ -280,17 +291,6 @@ PanelWindow {
                     popups.dismiss();
                     bar.clipboardRequested();
                 }
-            }
-
-            // idle inhibitor
-            Module {
-                host: popups
-                // Idle: the time left until the lock, if there is one, in a
-                // color that tells.
-                text: Theme.glyph(0xf0f4) + (Idle.systemIdle && Idle.locks ? " " + Idle.lockCountdown(systemClock.date) : "")
-                color: Idle.inhibited ? Theme.sky : Idle.systemIdle ? Theme.peach : Theme.subtext0
-                popup: IdlePopup {}
-                onClicked: Idle.toggle()
             }
 
             // cpu
