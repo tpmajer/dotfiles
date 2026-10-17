@@ -183,10 +183,7 @@ Item {
                     property real shownGap: gapBefore
                     Behavior on shownGap {
                         enabled: popup.ready
-                        NumberAnimation {
-                            duration: popup.moveDuration
-                            easing.type: Easing.OutCubic
-                        }
+                        Move {}
                     }
                     readonly property real columnWidth: shown ? popup.tileWidth(shown) : 0
                     readonly property real targetWidth: columnWidth + gapBefore
@@ -209,10 +206,7 @@ Item {
                     z: leaving ? -1 : entering ? 1 : 0
                     Behavior on width {
                         enabled: popup.ready
-                        NumberAnimation {
-                            duration: popup.moveDuration
-                            easing.type: Easing.OutCubic
-                        }
+                        Move {}
                     }
 
                     // Where it was, in the row, for while it goes.
@@ -310,6 +304,12 @@ Item {
         }
     }
 
+    // How a place opens, closes or resizes.
+    component Move: NumberAnimation {
+        duration: popup.moveDuration
+        easing.type: Easing.OutCubic
+    }
+
     // An element for each key, in their order: those whose keys go are
     // marked leaving, for their delegates to remove when they have gone;
     // new ones are inserted where they are and the rest moved, so that the
@@ -363,10 +363,7 @@ Item {
         property real shownGap: gapBefore
         Behavior on shownGap {
             enabled: popup.ready
-            NumberAnimation {
-                duration: popup.moveDuration
-                easing.type: Easing.OutCubic
-            }
+            Move {}
         }
         property bool stacked: false
         readonly property bool going: leaving && stacked
@@ -391,17 +388,11 @@ Item {
         z: going ? -1 : entering ? 1 : 0
         Behavior on height {
             enabled: popup.ready
-            NumberAnimation {
-                duration: popup.moveDuration
-                easing.type: Easing.OutCubic
-            }
+            Move {}
         }
         Behavior on width {
             enabled: popup.ready
-            NumberAnimation {
-                duration: popup.moveDuration
-                easing.type: Easing.OutCubic
-            }
+            Move {}
         }
 
         // Where it was, in the column, for while it goes.
