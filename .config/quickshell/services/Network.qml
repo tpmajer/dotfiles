@@ -25,6 +25,15 @@ Singleton {
     readonly property bool wired: wiredDevice !== null
 
     readonly property string ssid: wifiNetwork ? wifiNetwork.name : ""
+    // A Wi-Fi wg-auto trusts (~/.nixos, wireguard.nix): the bar leaves its
+    // name out. Without the list every name shows. Read again at each
+    // network: a rebuild swaps the link in /etc, which no watch sees.
+    readonly property bool trusted: ssid !== "" && trustedList.text().split("\n").includes(ssid)
+    FileView {
+        id: trustedList
+        path: "/etc/wg-auto/trusted-ssids"
+        printErrors: false
+    }
     readonly property int signal: wifiNetwork ? Math.round(wifiNetwork.signalStrength * 100) : 0
     // 0 a signal that will do, 1 weak (under 40%), 2 nearly none (under 20%).
     // A level is left 5 points above where it is entered: the signal wavers.
@@ -108,7 +117,7 @@ Singleton {
         const parts = [];
         if (wifiNetwork) {
             const icon = [0x100000, 0x100001, 0xf1eb][signalArcs];
-            parts.push(Theme.glyph(icon) + " " + ssid);
+            parts.push(Theme.glyph(icon) + (trusted ? "" : " " + ssid));
         } else if (Rfkill.airplane) {
             parts.push(Theme.glyph(0xf072));
         }
@@ -141,6 +150,9 @@ Singleton {
         const list = [];
         if (wired && wiredDevice.linkSpeed > 0)
             list.push({label: "Link", value: wiredDevice.linkSpeed + " Mb/s" + (slowUsb ? "  " + usbName : ""), color: slowWired ? Theme.maroon : Theme.subtext0});
+        // The name the bar leaves out on a trusted network.
+        if (wifiNetwork)
+            list.push({label: "Network", value: ssid, color: Theme.subtext0});
         if (wifiNetwork)
             list.push({label: "Signal", value: (frequency !== "" ? frequency + "  " : "") + signal + "%", color: signalLevel === 2 ? Theme.red : signalLevel === 1 ? Theme.peach : Theme.subtext0});
         if (address !== "")
@@ -330,7 +342,10 @@ Singleton {
         onExited: root.refreshWgAuto()
     }
 
-    onSsidChanged: frequencyQuery.running = true
+    onSsidChanged: {
+        frequencyQuery.running = true;
+        trustedList.reload();
+    }
 
     Process {
         id: frequencyQuery
