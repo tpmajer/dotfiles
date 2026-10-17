@@ -40,10 +40,10 @@ Item {
     // With no place in the columns, a window goes with the floating ones.
     readonly property var floating: own.filter(w => w.is_floating || !w.layout?.pos_in_scrolling_layout)
 
-    // [{ key: its first window's id; width, height, windows: as drawn, top
-    // to bottom; keys: theirs, the window's id, or the column's in tabs;
-    // tabs: how many there are, 0 for a column not in tabs }], left to
-    // right.
+    // [{ key: the column's, see below; all: its windows, top to bottom;
+    // width, height, windows: as drawn; keys: theirs, the window's id, or
+    // the column's in tabs; tabs: how many there are, 0 for a column not in
+    // tabs }], left to right.
     readonly property var columns: {
         const byIndex = {};
         for (const w of own) {
@@ -53,7 +53,7 @@ Item {
             (byIndex[col] = byIndex[col] || []).push(w);
         }
         const stamp = w => w.focus_timestamp ? w.focus_timestamp.secs + w.focus_timestamp.nanos / 1e9 : 0;
-        return Object.keys(byIndex).map(Number).sort((a, b) => a - b).map(col => {
+        const built = Object.keys(byIndex).map(Number).sort((a, b) => a - b).map(col => {
             const windows = byIndex[col].sort((a, b) => a.layout.pos_in_scrolling_layout[1] - b.layout.pos_in_scrolling_layout[1]);
             const stacked = windows.reduce((sum, w) => sum + w.layout.tile_size[1], 0) + gap * (windows.length - 1);
             // In tabs each window has the column's whole height, so together
@@ -62,15 +62,53 @@ Item {
             const tabbed = windows.length > 1 && stacked > screenHeight;
             const shown = !tabbed ? windows : [windows.find(w => w.id === ws.active_window_id) ?? windows.slice().sort((a, b) => stamp(b) - stamp(a))[0]];
             return {
-                key: windows[0].id,
+                all: windows,
                 width: Math.max(...windows.map(w => w.layout.tile_size[0])),
                 height: tabbed ? shown[0].layout.tile_size[1] : stacked,
                 windows: shown,
-                keys: tabbed ? [windows[0].id] : shown.map(w => w.id),
                 tabs: tabbed ? windows.length : 0
             };
         });
+        // A column keeps its key while windows of it are in it, so that it
+        // stays when its top one goes: it takes the key most of its windows
+        // had, those still in their rows first, and one with none a new key.
+        const before = keyState.of;
+        const claims = [];
+        built.forEach((c, i) => {
+            const weight = {};
+            for (const w of c.all) {
+                const was = before[w.id];
+                if (was)
+                    weight[was.key] = (weight[was.key] ?? 0) + (was.row === w.layout.pos_in_scrolling_layout[1] ? 1.5 : 1);
+            }
+            for (const key in weight)
+                claims.push({column: i, key: Number(key), weight: weight[key]});
+        });
+        claims.sort((a, b) => b.weight - a.weight || a.column - b.column);
+        const keys = [];
+        const taken = new Set();
+        for (const claim of claims)
+            if (keys[claim.column] === undefined && !taken.has(claim.key)) {
+                keys[claim.column] = claim.key;
+                taken.add(claim.key);
+            }
+        const of = {};
+        built.forEach((c, i) => {
+            c.key = keys[i] ?? keyState.next--;
+            c.keys = c.tabs > 0 ? [c.key] : c.windows.map(w => w.id);
+            for (const w of c.all)
+                of[w.id] = {key: c.key, row: w.layout.pos_in_scrolling_layout[1]};
+        });
+        keyState.of = of;
+        return built;
     }
+    // The keys the columns last had, by window, and the next new one; kept
+    // out of the bindings.
+    readonly property var keyState: ({
+            of: {},
+            next: -1
+        })
+
 
     readonly property real stripWidth: columns.reduce((sum, c) => sum + c.width, 0)
     readonly property real stripHeight: Math.max(screenHeight, ...columns.map(c => c.height))
