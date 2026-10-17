@@ -110,7 +110,76 @@ Singleton {
         });
     }
 
+    // A column or window resized or moved: [[id, layout], ...]. Only what
+    // is known and has changed, or every binding on the windows would be
+    // evaluated again for nothing.
+    function applyLayouts(changes) {
+        const known = changes.filter(([id, layout]) => id in windows && JSON.stringify(windows[id].layout) !== JSON.stringify(layout));
+        if (known.length === 0)
+            return;
+        const map = Object.assign({}, windows);
+        for (const [id, layout] of known)
+            map[id] = Object.assign({}, map[id], {layout: layout, stale: false});
+        // A window closing has the others moved up first, and only then is
+        // closed: one moved to its place leaves its layout stale.
+        const at = w => w.layout?.pos_in_scrolling_layout ? w.workspace_id + ":" + w.layout.pos_in_scrolling_layout : null;
+        const taken = new Set(known.map(([id]) => at(map[id])).filter(p => p));
+        const moved = new Set(known.map(([id]) => id));
+        for (const id in map)
+            if (!moved.has(map[id].id) && taken.has(at(map[id])))
+                map[id] = Object.assign({}, map[id], {stale: true});
+        windows = map;
+    }
+
+    // Windows that were in other columns now in one, rather than a column
+    // moved whole; not one taking the place of a window that closes. The
+    // heights of that column's windows, by id, or null.
+    function joining(changes) {
+        const next = {};
+        for (const [id, layout] of changes)
+            if (id in windows)
+                next[id] = layout;
+        const column = (w, layout) => layout?.pos_in_scrolling_layout ? w.workspace_id + ":" + layout.pos_in_scrolling_layout[0] : null;
+        const places = new Set(Object.keys(next).map(id => windows[id].workspace_id + ":" + next[id].pos_in_scrolling_layout));
+        const groups = {};
+        for (const w of Object.values(windows)) {
+            const layout = next[w.id] ?? w.layout;
+            const to = column(w, layout);
+            if (!to || w.stale || !(w.id in next) && places.has(w.workspace_id + ":" + layout.pos_in_scrolling_layout))
+                continue;
+            (groups[to] = groups[to] || []).push({id: w.id, from: column(w, w.layout), height: layout.tile_size[1]});
+        }
+        let join = null;
+        for (const members of Object.values(groups))
+            if (new Set(members.map(m => m.from)).size > 1)
+                for (const m of members)
+                    (join = join ?? {})[m.id] = m.height;
+        return join;
+    }
+
+    // A join held for the resizes that come after it, but not for longer:
+    // a column of tabs, or of fixed heights, is not resized.
+    property var pendingLayouts: null
+    // The windows not resized yet, with their heights at the join.
+    property var resizing: ({})
+    Timer {
+        id: layoutsSettle
+        interval: 300
+        onTriggered: root.flushLayouts()
+    }
+    function flushLayouts() {
+        if (!pendingLayouts)
+            return;
+        const changes = pendingLayouts;
+        pendingLayouts = null;
+        layoutsSettle.stop();
+        applyLayouts(changes);
+    }
+
     function handle(ev) {
+        // Whatever else comes meanwhile, after it.
+        if (pendingLayouts && !ev.WindowLayoutsChanged)
+            flushLayouts();
         if (ev.WorkspacesChanged) {
             workspaces = ev.WorkspacesChanged.workspaces;
         } else if (ev.WorkspaceActivated) {
@@ -194,24 +263,29 @@ Singleton {
             map[id] = Object.assign({}, map[id], {is_urgent: urgent});
             windows = map;
         } else if (ev.WindowLayoutsChanged) {
-            // A column or window resized or moved: [[id, layout], ...]. Only
-            // what is known and has changed, or every binding on the windows
-            // would be evaluated again for nothing.
-            const known = ev.WindowLayoutsChanged.changes.filter(([id, layout]) => id in windows && JSON.stringify(windows[id].layout) !== JSON.stringify(layout));
-            if (known.length === 0)
-                return;
-            const map = Object.assign({}, windows);
-            for (const [id, layout] of known)
-                map[id] = Object.assign({}, map[id], {layout: layout, stale: false});
-            // A window closing has the others moved up first, and only then
-            // is closed: one moved to its place leaves its layout stale.
-            const at = w => w.layout?.pos_in_scrolling_layout ? w.workspace_id + ":" + w.layout.pos_in_scrolling_layout : null;
-            const taken = new Set(known.map(([id]) => at(map[id])).filter(p => p));
-            const moved = new Set(known.map(([id]) => id));
-            for (const id in map)
-                if (!moved.has(map[id].id) && taken.has(at(map[id])))
-                    map[id] = Object.assign({}, map[id], {stale: true});
-            windows = map;
+            // A window joining a column comes there at its old size, and the
+            // column's windows are resized only in the next changes, each as
+            // its client gets to it: held until then, or the column would
+            // look like one in tabs for a moment.
+            const changes = ev.WindowLayoutsChanged.changes;
+            if (pendingLayouts) {
+                const ids = new Set(changes.map(([id]) => id));
+                pendingLayouts = pendingLayouts.filter(([id]) => !ids.has(id)).concat(changes);
+                for (const [id, layout] of changes)
+                    if (id in resizing && layout.tile_size[1] !== resizing[id])
+                        delete resizing[id];
+                if (Object.keys(resizing).length === 0)
+                    flushLayouts();
+            } else {
+                const join = joining(changes);
+                if (join) {
+                    pendingLayouts = changes;
+                    resizing = join;
+                    layoutsSettle.restart();
+                } else {
+                    applyLayouts(changes);
+                }
+            }
         } else if (ev.WindowFocusChanged) {
             const focusedId = ev.WindowFocusChanged.id;
             const map = {};
