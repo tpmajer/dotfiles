@@ -95,6 +95,7 @@ Singleton {
                 ghostty: "Kanagawa Wave",
                 btop: "kanagawa-wave",
                 helix: "kanagawa",
+                folder: "sapphire",
                 base: "#1f1f28",
                 crust: "#16161d",
                 surface0: "#2a2a37",
