@@ -41,7 +41,7 @@ Column {
 
     // A section to a connection: its name and traffic in two columns of a
     // set width, so that the popup keeps its width as the rates change, and
-    // below them its details, indented; last the route, the same way. All
+    // below them its details; last the route, the same way. All
     // are as wide as the widest of them and the switches below, so the
     // values end where the rates do.
     TextMetrics {
@@ -69,7 +69,7 @@ Column {
             delegate: Column {
                 id: section
                 required property var modelData
-                readonly property real needed: Math.max(header.implicitWidth, Theme.popupColumnGap + details.implicitWidth)
+                readonly property real needed: Math.max(header.implicitWidth, details.implicitWidth)
                 spacing: Theme.popupRowGap
 
                 RowLayout {
@@ -102,8 +102,7 @@ Column {
                 PopupDetails {
                     id: details
                     visible: section.modelData.details.length > 0
-                    x: Theme.popupColumnGap
-                    width: info.wide - x
+                    width: info.wide
                     rows: section.modelData.details
                 }
             }
