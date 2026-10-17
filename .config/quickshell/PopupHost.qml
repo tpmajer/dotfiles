@@ -75,8 +75,9 @@ Item {
     property Item pendingOwner: null
     property bool popupOpen: false
     // The popup goes with its module, not left open and empty under the
-    // pointer: a module hidden, or a workspace's gone.
-    readonly property bool ownerGone: popupOpen && (!popupOwner || !popupOwner.visible)
+    // pointer: a module hidden, or a workspace's gone. Not bound to
+    // popupOpen, which closing it would change in the middle of the binding.
+    readonly property bool ownerGone: !popupOwner || !popupOwner.visible
     onOwnerGoneChanged: if (ownerGone)
         popupOpen = false
     readonly property real openness: pop.openness
