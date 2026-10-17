@@ -128,39 +128,39 @@ Singleton {
         return parts.join(" ");
     }
 
-    // Popup rows, one per connection: its name and the traffic, which the
-    // popup right-aligns in columns of a set width.
-    function row(label, device) {
-        const r = device ? rates[device.name] : null;
-        return {label, down: downIcon + " " + (r ? r.down : "?"), up: upIcon + " " + (r ? r.up : "?")};
+    // Popup sections, one per connection: its name and the traffic, which
+    // the popup right-aligns in columns of a set width, and below them what
+    // does not change every other second (a label, a value and its color).
+    // Last the default route: the connection it takes, the address on it and
+    // the gateway.
+    function section(label, device, details) {
+        const r = rates[device.name];
+        return {label, details, down: downIcon + " " + (r ? r.down : "?"), up: upIcon + " " + (r ? r.up : "?")};
     }
 
-    readonly property var rows: {
+    readonly property var sections: {
         const list = [];
-        if (wired)
-            list.push(row("Ethernet", wiredDevice));
-        if (wifiNetwork)
-            list.push(row("Wi-Fi", wifiDevice));
-        return list;
-    }
-
-    // Below them, what does not change every other second: a label, a value
-    // and the value's color.
-    readonly property var details: {
-        const list = [];
-        if (wired && wiredDevice.linkSpeed > 0)
-            list.push({label: "Link", value: wiredDevice.linkSpeed + " Mb/s" + (slowUsb ? "  " + usbName : ""), color: slowWired ? Theme.maroon : Theme.subtext0});
+        if (wired) {
+            const details = [];
+            if (wiredDevice.linkSpeed > 0)
+                details.push({label: "Link", value: wiredDevice.linkSpeed + " Mb/s" + (slowUsb ? "  " + usbName : ""), color: slowWired ? Theme.maroon : Theme.subtext0});
+            list.push(section("Ethernet", wiredDevice, details));
+        }
         // The name the bar leaves out on a trusted network.
         if (wifiNetwork)
-            list.push({label: "Network", value: ssid, color: Theme.subtext0});
-        if (wifiNetwork)
-            list.push({label: "Signal", value: (frequency !== "" ? frequency + "  " : "") + signal + "%", color: signalLevel === 2 ? Theme.red : signalLevel === 1 ? Theme.peach : Theme.subtext0});
-        if (address !== "")
-            list.push({label: "Address", value: address, color: Theme.subtext0});
-        if (gateway !== "")
-            list.push({label: "Gateway", value: gateway + (latency !== "" ? "  " + latency : ""), color: Theme.subtext0});
-        else if (routeDevice !== "")
-            list.push({label: "Through", value: routeDevice, color: Theme.subtext0});
+            list.push(section("Wi-Fi", wifiDevice, [
+                {label: "Network", value: ssid, color: Theme.subtext0},
+                {label: "Signal", value: (frequency !== "" ? frequency + "  " : "") + signal + "%", color: signalLevel === 2 ? Theme.red : signalLevel === 1 ? Theme.peach : Theme.subtext0}
+            ]));
+        if (routeDevice !== "") {
+            const details = [];
+            if (address !== "")
+                details.push({label: "Address", value: address, color: Theme.subtext0});
+            if (gateway !== "")
+                details.push({label: "Gateway", value: gateway + (latency !== "" ? "  " + latency : ""), color: Theme.subtext0});
+            const through = wired && routeDevice === wiredDevice.name ? "Ethernet" : wifiNetwork && routeDevice === wifiDevice.name ? "Wi-Fi" : routeDevice === "wg0" ? "WireGuard" : routeDevice;
+            list.push({label: "Route", value: through, details});
+        }
         return list;
     }
 
