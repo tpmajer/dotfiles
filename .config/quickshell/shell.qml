@@ -69,13 +69,18 @@ ShellRoot {
     }
 
     // `qs ipc call launcher toggle` (Super+Space in niri): the launcher in
-    // the middle of the focused output. `dmenu` and `waiting` are for
+    // the middle of the focused output. `clipboard`: the clipboard's
+    // history in it (Super+Ctrl+V). `dmenu` and `waiting` are for
     // scripts/dmenu/fuzzel.
     IpcHandler {
         target: "launcher"
 
         function toggle(): void {
             launcher.toggle();
+        }
+
+        function clipboard(): void {
+            launcher.toggleClipboard();
         }
 
         function dmenu(input: string, reply: string, placeholder: string, password: bool): void {

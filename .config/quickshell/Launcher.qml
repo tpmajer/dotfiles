@@ -9,6 +9,7 @@ import qs.widgets
 // Launcher in the middle of the focused output (Super+Space in niri): a line
 // to type in above the applications that answer it. It also stands in for
 // `fuzzel --dmenu` (scripts/dmenu/fuzzel): lines to choose from, or a password.
+// It also lists the clipboard's history (services/Clipboard.qml).
 Overlay {
     id: menu
 
@@ -25,8 +26,10 @@ Overlay {
     property bool password: false
     // The FIFO the question's answer goes to; "" once it is answered.
     property string reply: ""
+    // Choosing from the clipboard's history.
+    property bool clipboard: false
 
-    readonly property var results: !dmenu ? Apps.search(input.text) : input.text.trim() ? lines.filter(l => Apps.score(input.text, l) > 0) : lines
+    readonly property var results: clipboard ? Clipboard.search(input.text) : !dmenu ? Apps.search(input.text) : input.text.trim() ? lines.filter(l => Apps.score(input.text, l) > 0) : lines
     onResultsChanged: {
         index = 0;
         list.positionViewAtBeginning();
@@ -82,7 +85,25 @@ Overlay {
             return;
         }
         dmenu = false;
+        clipboard = false;
         open();
+    }
+
+    // The clipboard's history (Super+Ctrl+V in niri, the bar's module), in
+    // place of the applications; open on it, it closes. A question is kept.
+    function toggleClipboard() {
+        if (shown && dmenu)
+            return;
+        if (shown && clipboard) {
+            close();
+            return;
+        }
+        dmenu = false;
+        clipboard = true;
+        if (shown)
+            input.text = "";
+        else
+            open();
     }
 
     // A question from scripts/dmenu/fuzzel: the lines of a file to choose
@@ -98,6 +119,7 @@ Overlay {
         placeholder = prompt;
         password = hidden;
         dmenu = true;
+        clipboard = false;
         reply = fifo;
         open();
     }
@@ -132,7 +154,12 @@ Overlay {
 
     function accept() {
         const item = results[index];
-        if (dmenu)
+        if (clipboard) {
+            // Nothing typed is copied in place of an entry.
+            if (!item)
+                return;
+            Clipboard.copy(item);
+        } else if (dmenu)
             answer(item ?? input.text);
         else if (item)
             Apps.launch(item);
@@ -192,7 +219,7 @@ Overlay {
             font.pixelSize: menu.fontSize
             anchors.verticalCenter: parent.verticalCenter
             visible: input.text === ""
-            text: menu.dmenu ? menu.placeholder : ""
+            text: menu.clipboard ? "Search the clipboard" : menu.dmenu ? menu.placeholder : ""
             color: Theme.surface1
         }
 
@@ -222,6 +249,13 @@ Overlay {
             case Qt.Key_Return:
             case Qt.Key_Enter:
                 menu.accept();
+                break;
+            // An entry of the clipboard's history goes, as in a browser's
+            // address bar.
+            case Qt.Key_Delete:
+                if (!menu.clipboard || !(event.modifiers & Qt.ShiftModifier) || !menu.results.length)
+                    return;
+                Clipboard.remove(menu.results[menu.index]);
                 break;
             case Qt.Key_Escape:
                 menu.close();
@@ -264,6 +298,8 @@ Overlay {
             readonly property bool selected: index === menu.index
             // Not menu.dmenu: it changes before the old rows are gone.
             readonly property bool line: typeof modelData === "string"
+            // An entry of the clipboard's history.
+            readonly property bool clip: !line && !!modelData.clipboard
 
             width: list.width
             height: menu.rowHeight
@@ -275,20 +311,34 @@ Overlay {
 
             IconImage {
                 id: icon
-                visible: !row.line && !row.modelData.glyph
+                visible: !row.line && !row.clip && !row.modelData.glyph
                 x: Theme.popupTextInset
                 anchors.verticalCenter: parent.verticalCenter
                 implicitSize: 22
                 source: visible ? Quickshell.iconPath(row.modelData.icon, "application-x-executable") : ""
             }
 
-            // An action has its glyph for an icon.
+            // An action has its glyph for an icon, as a text in the
+            // clipboard's history has.
             PopupText {
-                visible: !row.line && !!row.modelData.glyph
+                visible: !row.line && (row.clip ? !row.modelData.image : !!row.modelData.glyph)
                 anchors.centerIn: icon
                 font.pixelSize: 22
-                text: visible ? Theme.glyph(row.modelData.glyph) : ""
+                text: visible ? Theme.glyph(row.clip ? 0xf15c : row.modelData.glyph) : ""
                 color: visible && row.modelData.color || Theme.text
+            }
+
+            // An image in the clipboard's history, in the icon's place.
+            Image {
+                visible: row.clip && row.modelData.image
+                anchors.centerIn: icon
+                width: icon.width
+                height: icon.height
+                fillMode: Image.PreserveAspectFit
+                asynchronous: true
+                sourceSize.width: 2 * width
+                sourceSize.height: 2 * height
+                source: visible ? Clipboard.thumbnail(row.modelData) : ""
             }
 
             PopupText {
@@ -301,7 +351,7 @@ Overlay {
                 // The letters that answer what is typed stand out, as
                 // in fuzzel.
                 textFormat: Text.StyledText
-                text: Apps.styled(input.text, row.line ? row.modelData : row.modelData.name, row.selected ? Theme.teal : Theme.red)
+                text: Apps.styled(input.text, row.line ? row.modelData : row.clip ? row.modelData.text : row.modelData.name, row.selected ? Theme.teal : Theme.red)
                 // Lines from outside are laid out in columns.
                 font.family: row.line ? Theme.monoFont : Theme.font
                 color: row.selected ? Theme.text : Theme.subtext0
@@ -312,7 +362,7 @@ Overlay {
 
             PopupText {
                 font.pixelSize: menu.fontSize
-                visible: !row.line
+                visible: !row.line && !row.clip
                 anchors {
                     verticalCenter: parent.verticalCenter
                     left: name.right
@@ -322,7 +372,7 @@ Overlay {
                 }
                 horizontalAlignment: Text.AlignRight
                 elide: Text.ElideRight
-                text: row.line ? "" : row.modelData.genericName
+                text: row.line || row.clip ? "" : row.modelData.genericName
                 color: Theme.surface1
             }
 
