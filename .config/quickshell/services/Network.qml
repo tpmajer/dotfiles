@@ -143,21 +143,21 @@ Singleton {
         if (wired) {
             const details = [];
             if (wiredDevice.linkSpeed > 0)
-                details.push({label: "Link", value: wiredDevice.linkSpeed + " Mb/s" + (slowUsb ? "  " + usbName : ""), color: slowWired ? Theme.maroon : Theme.subtext0});
+                details.push({label: "Link", value: wiredDevice.linkSpeed + " Mb/s" + (slowUsb ? "  " + usbName : ""), color: slowWired ? Theme.maroon : undefined});
             list.push(section("Ethernet", wiredDevice, details));
         }
         // The name the bar leaves out on a trusted network.
         if (wifiNetwork)
             list.push(section("Wi-Fi", wifiDevice, [
-                {label: "Network", value: ssid, color: Theme.subtext0},
-                {label: "Signal", value: (frequency !== "" ? frequency + "  " : "") + signal + "%", color: signalLevel === 2 ? Theme.red : signalLevel === 1 ? Theme.peach : Theme.subtext0}
+                {label: "Network", value: ssid},
+                {label: "Signal", value: (frequency !== "" ? frequency + "  " : "") + signal + "%", color: signalLevel === 2 ? Theme.red : signalLevel === 1 ? Theme.peach : undefined}
             ]));
         if (routeDevice !== "") {
             const details = [];
             if (address !== "")
-                details.push({label: "Address", value: address, color: Theme.subtext0});
+                details.push({label: "Address", value: address});
             if (gateway !== "")
-                details.push({label: "Gateway", value: gateway + (latency !== "" ? "  " + latency : ""), color: Theme.subtext0});
+                details.push({label: "Gateway", value: gateway + (latency !== "" ? "  " + latency : "")});
             const through = wired && routeDevice === wiredDevice.name ? "Ethernet" : wifiNetwork && routeDevice === wifiDevice.name ? "Wi-Fi" : routeDevice === "wg0" ? "WireGuard" : routeDevice;
             list.push({label: "Route", value: through, details});
         }

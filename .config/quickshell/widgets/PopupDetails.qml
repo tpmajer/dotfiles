@@ -11,6 +11,7 @@ GridLayout {
     property var rows: []       // [{label, value, color}]
     // A value's color in a row without one of its own.
     property color valueColor: Theme.subtext0
+    property color labelColor: Theme.subtext0
 
     columns: 2
     columnSpacing: Theme.popupGridGap
@@ -27,7 +28,7 @@ GridLayout {
             PopupText {
                 required property int index
                 text: index === 0 ? row.modelData.label : row.modelData.value
-                color: index === 0 ? Theme.subtext0 : row.modelData.color ?? root.valueColor
+                color: index === 0 ? root.labelColor : row.modelData.color ?? root.valueColor
                 elide: Text.ElideRight
                 Layout.fillWidth: index === 0
                 Layout.alignment: index === 0 ? Qt.AlignLeft : Qt.AlignRight

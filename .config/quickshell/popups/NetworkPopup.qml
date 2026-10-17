@@ -103,6 +103,9 @@ Column {
                     id: details
                     visible: section.modelData.details.length > 0
                     width: info.wide
+                    // Dimmer than elsewhere; alarms keep their own color.
+                    labelColor: Qt.tint(Theme.subtext0, Qt.alpha(Theme.base, 0.2))
+                    valueColor: labelColor
                     rows: section.modelData.details
                 }
             }
