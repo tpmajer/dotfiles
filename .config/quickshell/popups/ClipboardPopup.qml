@@ -4,8 +4,9 @@ import qs.services
 import qs.widgets
 
 // The newest entries of the clipboard's history: a click copies one back
-// and closes the popup, a right click deletes it. Clearing the history
-// takes a second click, so that a stray one does not.
+// and closes the popup, a right click deletes it. By the title, as in the
+// notification center, the button that clears the history: it takes a
+// second click, so that a stray one does not.
 Column {
     id: popup
 
@@ -22,6 +23,38 @@ Column {
         target: popup.host
         function onPopupOpenChanged() {
             popup.armed = false;
+        }
+    }
+
+    Item {
+        width: popup.rowWidth
+        height: title.implicitHeight + 8
+
+        PopupText {
+            id: title
+            x: Theme.popupTextInset
+            anchors.verticalCenter: parent.verticalCenter
+            text: "Clipboard"
+        }
+
+        PopupButton {
+            visible: Clipboard.entries.length > 0
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            text: popup.armed ? "Clear all?" : "Clear"
+            bright: popup.armed
+            font.pixelSize: Theme.fontSize - 2
+            onClicked: {
+                if (!popup.armed) {
+                    popup.armed = true;
+                    popup.armedAt = Date.now();
+                    disarm.restart();
+                } else if (Date.now() - popup.armedAt > Qt.styleHints.mouseDoubleClickInterval) {
+                    disarm.stop();
+                    popup.armed = false;
+                    Clipboard.wipe();
+                }
+            }
         }
     }
 
@@ -43,34 +76,12 @@ Column {
         }
     }
 
-    // Inset as a row's text is: the popup has none of its own around rows.
     PopupText {
         visible: Clipboard.entries.length === 0
-        leftPadding: Theme.popupTextInset
-        rightPadding: Theme.popupTextInset
-        topPadding: Theme.popupTextInsetV
-        bottomPadding: Theme.popupTextInsetV
+        x: Theme.popupTextInset
         text: "Clipboard is empty"
         color: Theme.subtext0
-    }
-
-    PopupButton {
-        visible: Clipboard.entries.length > 0
-        x: popup.rowWidth - width
-        text: popup.armed ? "Clear all?" : "Clear history"
-        bright: popup.armed
         font.pixelSize: Theme.fontSize - 2
-        onClicked: {
-            if (!popup.armed) {
-                popup.armed = true;
-                popup.armedAt = Date.now();
-                disarm.restart();
-            } else if (Date.now() - popup.armedAt > Qt.styleHints.mouseDoubleClickInterval) {
-                disarm.stop();
-                popup.armed = false;
-                Clipboard.wipe();
-            }
-        }
     }
 
     // Not armed for long: a click much later is not the second one.
