@@ -102,7 +102,6 @@ PanelWindow {
                 color: Theme.blue
                 fontSize: 22
                 leftMargin: 5
-                hPadding: 9
                 popup: SystemPopup {}
                 clickDismissesPopup: true
                 onClicked: bar.launcherRequested()
@@ -238,7 +237,6 @@ PanelWindow {
             id: mediaModule
             anchors.left: bellModule.right
             host: popups
-            hPadding: 8
             color: Media.color
             content: Media.active ? mediaWave : null
             popup: MediaPopup {}
