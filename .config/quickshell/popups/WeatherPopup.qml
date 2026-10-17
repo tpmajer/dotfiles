@@ -5,7 +5,7 @@ import qs.services
 import qs.widgets
 
 // The weather now on the left, the week on the right, row by row: both have
-// the same spacing, and seven rows each.
+// the same spacing, and seven rows each, the first apart from the rest.
 Row {
     id: weather
     spacing: 32
@@ -22,11 +22,11 @@ Row {
         cursorShape: Qt.PointingHandCursor
     }
 
-    // The place at the top, the rest down at the bottom, level with the
-    // week's last row.
+    // The place at the top, level with today, and the rest below it, level
+    // with the days after.
     Item {
         width: Math.max(place.width, now.width)
-        height: Math.max(place.height + Theme.popupRowGap + now.height, week.visible ? week.height : 0)
+        height: Math.max(place.height + Theme.popupSectionGap + now.height, week.visible ? week.height : 0)
 
         PopupText {
             id: place
@@ -35,7 +35,7 @@ Row {
 
         Column {
             id: now
-            anchors.bottom: parent.bottom
+            y: place.height + Theme.popupSectionGap
             spacing: Theme.popupRowGap
             PopupText {
                 text: Weather.description
@@ -75,6 +75,8 @@ Row {
                     font.bold: day.today
                     font.pixelSize: index === 1 ? Theme.fontSize + 2 : Theme.fontSize
                     Layout.alignment: index === 2 ? Qt.AlignRight : index === 1 ? Qt.AlignHCenter : Qt.AlignLeft
+                    // Today apart from the rest, as the place is on the left.
+                    Layout.topMargin: day.index === 1 ? Theme.popupSectionGap - Theme.popupRowGap : 0
                 }
             }
         }
