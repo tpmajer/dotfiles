@@ -220,6 +220,7 @@ window-rule {
     match app-id="^electron$"
     match app-id="art.graphite.Graphite"
     match app-id=r"^ai\.storyteller\."
+    match app-id="^GeForceNOW$"
     open-maximized true
 }
 // Width 0.8
