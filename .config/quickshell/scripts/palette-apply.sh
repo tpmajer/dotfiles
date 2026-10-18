@@ -2,9 +2,9 @@
 
 # The palette for what else takes one, each from a file its configuration
 # names, kept out of git: ghostty, niri, fuzzel, btop, helix, bat, micro, fzf,
-# mpv and GTK, with its folders and the cursor. The login screen's too, where
-# there is one to take it.
-#   palette-apply.sh [init|sync] [name=color ...] [ghostty=theme btop=theme helix=theme cursor=theme]
+# mpv and GTK, with its folders and the cursor; Herdr in its own. The login
+# screen's too, where there is one to take it.
+#   palette-apply.sh [init|sync] [name=color ...] [ghostty=theme btop=theme helix=theme herdr=theme herdrbase=true cursor=theme]
 # The colors are Theme's, as #rrggbb. With none it is Catppuccin Mocha, which
 # the configurations and their themes have.
 # `init` does nothing unless a file is missing: niri at its start, as fuzzel
@@ -221,6 +221,19 @@ done
 # So has helix.
 printf 'inherits = "%s"\n' "${c_helix:-catppuccin_mocha}" > "$helix"
 
+# And Herdr, whose configuration names no other file: its theme sections
+# rewritten in it. Where it has none for the palette, the palette's background
+# over the nearest.
+herdr=$config/herdr/config.toml
+mkdir -p "${herdr%/*}"
+{
+    [ -r "$herdr" ] && awk '/^\[/ { skip = /^\[theme[].]/ }
+        !skip { print; last = $0 } END { if (NR && last != "") print "" }' "$herdr"
+    printf '[theme]\nname = "%s"\n' "${c_herdr:-catppuccin}"
+    [ -z "$c_herdrbase" ] || printf '\n[theme.custom]\npanel_bg = "%s"\nsurface_dim = "%s"\nsurface0 = "%s"\nsurface1 = "%s"\n' \
+        "$c_base" "$c_crust" "$c_surface0" "$c_surface1"
+} > "$herdr.new" && mv "$herdr.new" "$herdr"
+
 # bat and micro have Catppuccin's alone: theirs for it, in the palette's colors.
 recolor "$config/bat/themes/Catppuccin Mocha.tmTheme" > "$bat"
 recolor "$config/micro/colorschemes/catppuccin-mocha-transparent.micro" > "$micro"
@@ -343,12 +356,13 @@ fi
 
 printf '%s\n' "$applied" > "$state"
 
-# Open terminals, btop and helix take it at once; fuzzel, bat, micro, fzf and
+# Open terminals, btop, helix and Herdr take it at once; fuzzel, bat, micro, fzf and
 # mpv when started. Not one just started: before it handles the signal, it ends it.
 pkill -USR2 --older 2 -x '\.?ghostty(-wrappe)?'
 pkill -USR2 --older 2 -x btop
 pkill -USR1 --older 2 -x '\.?hx(-wrapped)?'
 niri msg action load-config-file > /dev/null 2>&1
+herdr server reload-config > /dev/null 2>&1
 
 # Last, as it takes a moment: bat reads its themes from a cache.
 command -v bat > /dev/null && bat cache --build > /dev/null 2>&1

@@ -7,8 +7,9 @@ import Quickshell.Io
 // The colors, under Catppuccin's names, and the bar geometry.
 Singleton {
     // The palettes to choose from. Past Catppuccin Mocha, a palette's
-    // nearest colors stand in for Catppuccin's. `ghostty`, `btop` and `helix`
-    // are its theme in each, and `cursor` Simp1e's, where it has one.
+    // nearest colors stand in for Catppuccin's. `ghostty`, `btop`, `helix` and
+    // `herdr` are its theme in each, and `cursor` Simp1e's, where it has one.
+    // `herdrbase` lays its background over a Herdr theme not its own.
     // `crust` is the overview's backdrop, darker than the base.
     readonly property var palettes: ({
             "catppuccin": {
@@ -39,6 +40,7 @@ Singleton {
                 ghostty: "TokyoNight Night",
                 btop: "tokyo-night",
                 helix: "tokyonight",
+                herdr: "tokyo-night",
                 cursor: "Simp1e-Tokyo-Night",
                 folder: "sky",
                 base: "#1a1b26",
@@ -67,6 +69,8 @@ Singleton {
                 ghostty: "TokyoNight Storm",
                 btop: "tokyo-storm",
                 helix: "tokyonight_storm",
+                herdr: "tokyo-night",
+                herdrbase: true,
                 cursor: "Simp1e-Tokyo-Night-Storm",
                 folder: "sapphire",
                 base: "#24283b",
@@ -95,6 +99,7 @@ Singleton {
                 ghostty: "Kanagawa Wave",
                 btop: "kanagawa-wave",
                 helix: "kanagawa",
+                herdr: "kanagawa",
                 folder: "sapphire",
                 base: "#1f1f28",
                 crust: "#16161d",
@@ -122,6 +127,7 @@ Singleton {
                 ghostty: "Dracula",
                 btop: "dracula",
                 helix: "dracula",
+                herdr: "dracula",
                 base: "#282a36",
                 crust: "#191a21",
                 surface0: "#343746",
@@ -148,6 +154,8 @@ Singleton {
                 ghostty: "Gruvbox Material Dark",
                 btop: "gruvbox_material_dark",
                 helix: "gruvbox-material",
+                herdr: "gruvbox",
+                herdrbase: true,
                 cursor: "Simp1e-Gruvbox-Dark",
                 folder: "blue",
                 base: "#282828",
