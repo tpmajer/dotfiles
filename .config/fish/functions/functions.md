@@ -63,5 +63,4 @@
 | Function | Usage | Description |
 |----------|-------|-------------|
 | `cc` | `cc [args]` | Alias for `claude` (Claude Code CLI) |
-| `t` | `t [args]` | Alias for `tmux` |
 | `p` | `p` | Start fish in private mode (`fish -P`) |
