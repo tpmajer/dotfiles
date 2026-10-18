@@ -62,5 +62,5 @@
 
 | Function | Usage | Description |
 |----------|-------|-------------|
-| `cc` | `cc [args]` | Alias for `claude` (Claude Code CLI) |
+| `cc` | `cc [args]` | `claude`; outside herdr, in its `~/Claude` workspace (made and running `claude` if none) |
 | `p` | `p` | Start fish in private mode (`fish -P`) |
