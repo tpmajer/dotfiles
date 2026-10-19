@@ -125,7 +125,9 @@ vec2 normalize(vec2 value, float isPosition) {
 }
 
 float antialising(float distance, float blurAmount) {
-  return 1. - smoothstep(0., normalize(vec2(blurAmount, blurAmount), 0.).x, distance);
+  // smoothstep with equal edges is undefined, so no blur means a hard edge
+  float edge = normalize(vec2(blurAmount, blurAmount), 0.).x;
+  return edge > 0. ? 1. - smoothstep(0., edge, distance) : 1. - step(0., distance);
 }
 
 // Determines animation duration based on a corner's alignment with the move direction(dot product)
@@ -276,7 +278,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord){
         if (BLUR < 2.5) {
           // no antialising on horizontal/vertical movement, fixes 'pulse' like thing on end cursor
           float isDiagonal = abs(s.x) * abs(s.y); // 1.0 if diagonal, 0.0 if H/V
-          float effectiveBlur = mix(0.0, BLUR, isDiagonal);
+          effectiveBlur = mix(0.0, BLUR, isDiagonal);
         }
         float shapeAlpha = antialising(sdfTrail, effectiveBlur); // shape mask
 
