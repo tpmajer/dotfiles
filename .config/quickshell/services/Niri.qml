@@ -49,9 +49,10 @@ Singleton {
     }
 
     // Focuses the window of an application, on whatever workspace it is.
-    // If it has several, the one that asks for attention, or else the one
-    // focused last. False if it has none.
-    function focusApp(appId) {
+    // If it has several, one whose title ends with titleSuffix if given,
+    // the one that asks for attention, or else the one focused last.
+    // False if it has none.
+    function focusApp(appId, titleSuffix) {
         // No id is no application, not the windows that have none.
         if (!appId)
             return false;
@@ -61,10 +62,12 @@ Singleton {
         const id = String(appId).toLowerCase();
         const all = Object.values(windows);
         const exact = all.filter(w => w.app_id === appId);
-        const own = (exact.length > 0 ? exact : all.filter(w => {
+        const own = exact.length > 0 ? exact : all.filter(w => {
             const other = String(w.app_id ?? "").toLowerCase();
             return id !== "" && (other === id || other.endsWith("." + id));
-        })).sort((a, b) => (b.is_urgent ? 1 : 0) - (a.is_urgent ? 1 : 0) || stamp(b) - stamp(a));
+        });
+        const titled = w => titleSuffix && String(w.title ?? "").endsWith(titleSuffix) ? 1 : 0;
+        own.sort((a, b) => titled(b) - titled(a) || (b.is_urgent ? 1 : 0) - (a.is_urgent ? 1 : 0) || stamp(b) - stamp(a));
         if (own.length === 0)
             return false;
         send({Action: {FocusWindow: {id: own[0].id}}});

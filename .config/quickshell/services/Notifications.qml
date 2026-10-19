@@ -229,9 +229,13 @@ Singleton {
     }
 
     // Senders with no desktop entry, by name: the application whose window
-    // a click focuses. Herdr runs in Ghostty.
+    // a click focuses, and the end of that window's title. Herdr runs in
+    // Ghostty; its window_title in ~/.config/herdr/config.toml ends so.
     readonly property var senderApps: ({
-            "Herdr": "com.mitchellh.ghostty"
+            "Herdr": {
+                appId: "com.mitchellh.ghostty",
+                title: " · herdr"
+            }
         })
 
     // The default action, if there is one, and the notification is closed.
@@ -239,7 +243,9 @@ Singleton {
     // A moment after the action, for the window it is about to ask
     // attention for, which niri then marks urgent.
     function activateDefault(notification) {
-        const appId = notification.desktopEntry || senderApps[notification.appName] || "";
+        const sender = senderApps[notification.appName];
+        const appId = notification.desktopEntry || sender?.appId || "";
+        const title = notification.desktopEntry ? "" : sender?.title ?? "";
         const action = notification.actions.find(a => a.identifier === "default");
         // Invoking an action closes a notification that is not resident.
         const closed = action && !notification.resident;
@@ -248,18 +254,20 @@ Singleton {
         if (!closed)
             notification.dismiss();
         if (!action) {
-            Niri.focusApp(appId);
+            Niri.focusApp(appId, title);
             return;
         }
         focusLater.appId = appId;
+        focusLater.title = title;
         focusLater.restart();
     }
 
     Timer {
         id: focusLater
         property string appId: ""
+        property string title: ""
         interval: 150
-        onTriggered: Niri.focusApp(appId)
+        onTriggered: Niri.focusApp(appId, title)
     }
 
     // Closes what waits in the center; the toasts stay.
