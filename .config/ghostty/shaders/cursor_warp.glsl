@@ -161,8 +161,6 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord){
     vec2 centerCP = previousCursor.xy - (previousCursor.zw * offsetFactor);
     vec2 halfSizeCP = previousCursor.zw * 0.5;
 
-    float sdfCurrentCursor = getSdfRectangle(vu, centerCC, halfSizeCC);
-    
     float lineLength = distance(centerCC, centerCP);
     float minDist = currentCursor.w * THRESHOLD_MIN_DISTANCE;
     
@@ -171,6 +169,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord){
     float baseProgress = iTime - iTimeCursorChange;
     
     if (lineLength > minDist && baseProgress < DURATION - 0.001) {
+        float sdfCurrentCursor = getSdfRectangle(vu, centerCC, halfSizeCC);
+
         // defining corners of cursors
 
         // Y (Height) with TRAIL_THICKNESS
