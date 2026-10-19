@@ -228,12 +228,18 @@ Singleton {
         }
     }
 
+    // Senders with no desktop entry, by name: the application whose window
+    // a click focuses. Herdr runs in Ghostty.
+    readonly property var senderApps: ({
+            "Herdr": "com.mitchellh.ghostty"
+        })
+
     // The default action, if there is one, and the notification is closed.
     // The sender's window is focused: it cannot take the focus by itself.
     // A moment after the action, for the window it is about to ask
     // attention for, which niri then marks urgent.
     function activateDefault(notification) {
-        const appId = notification.desktopEntry;
+        const appId = notification.desktopEntry || senderApps[notification.appName] || "";
         const action = notification.actions.find(a => a.identifier === "default");
         // Invoking an action closes a notification that is not resident.
         const closed = action && !notification.resident;
