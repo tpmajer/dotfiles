@@ -58,6 +58,8 @@ if [ -n "$mode" ]; then
     icons=${icons//\'/}
     [[ $icons != Papirus-palette-* ]] ||
         [ -e "${XDG_DATA_HOME:-$HOME/.local/share}/icons/$icons/index.theme" ] || stale=1
+    # Nor is Herdr's theme, gone with a configuration it wrote anew.
+    grep -qs '^\[theme\]' "$config/herdr/config.toml" || stale=1
     [ -n "$stale" ] || exit 0
 fi
 
