@@ -30,10 +30,14 @@ Overlay {
     property bool clipboard: false
 
     readonly property var results: clipboard ? Clipboard.search(input.text) : !dmenu ? Apps.search(input.text) : input.text.trim() ? lines.filter(l => Apps.score(input.text, l) > 0) : lines
+    // A new query, or the clipboard's history in place of the applications,
+    // starts at the top. A list read again, as the history is after each
+    // change, keeps the row chosen, which the view forgets with its model.
     onResultsChanged: {
-        index = 0;
-        list.positionViewAtBeginning();
+        index = Math.min(index, Math.max(0, results.length - 1));
+        Qt.callLater(() => list.currentIndex = Qt.binding(() => menu.index));
     }
+    onClipboardChanged: index = 0
 
     // A little larger than the bar's.
     readonly property int fontSize: Theme.fontSize + 2
@@ -219,6 +223,7 @@ Overlay {
         font.family: Theme.font
         font.pixelSize: menu.fontSize
         echoMode: menu.dmenu && menu.password ? TextInput.Password : TextInput.Normal
+        onTextChanged: menu.index = 0
 
         PopupText {
             font.pixelSize: menu.fontSize
