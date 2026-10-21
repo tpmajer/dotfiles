@@ -3,7 +3,8 @@
 # Builds fonts/bar-icons.ttf: the glyphs Font Awesome Free has none for in
 # the Nerd Font, cut from the ones it has. The Wi-Fi levels come from the
 # full icon, which is two arcs and a dot apart, the filled moon from the
-# outlined one without its inner contour. They sit above U+100000, where
+# outlined one without its inner contour, the battery's tenths from the
+# full one with its charge cut short. They sit above U+100000, where
 # the Nerd Font has nothing, with its metrics, so the shell falls back to
 # them in the same line of text.
 #
@@ -23,14 +24,20 @@ from fontTools.ttLib import TTFont
 
 WIFI = 0xF1EB
 MOON = 0xF186
+BATTERY = 0xF240
 # A glyph's name, the one it is cut from, how many contours that one has
 # and which of them stay, counted from the top: the outer arc, the inner
-# arc and the dot of the Wi-Fi icon, the moon's edge and the hole in it.
+# arc and the dot of the Wi-Fi icon, the moon's edge and the hole in it,
+# the battery's edge, the hole and the charge. Then how much of the last
+# one's width stays, from its left.
 GLYPHS = {
-    0x100000: ("wifi-weak", WIFI, 3, (2,)),
-    0x100001: ("wifi-fair", WIFI, 3, (1, 2)),
-    0x100002: ("moon-filled", MOON, 2, (0,)),
+    0x100000: ("wifi-weak", WIFI, 3, (2,), 1),
+    0x100001: ("wifi-fair", WIFI, 3, (1, 2), 1),
+    0x100002: ("moon-filled", MOON, 2, (0,), 1),
 }
+# 10% to 90% at U+100003 to U+10000B.
+for tenth in range(1, 10):
+    GLYPHS[0x100002 + tenth] = (f"battery-{tenth}0", BATTERY, 3, (0, 1, 2), tenth / 10)
 
 source = TTFont(sys.argv[1])
 glyphs = source.getGlyphSet()
@@ -41,7 +48,7 @@ def top(contour):
     return max(point[1] for _, points in contour for point in points)
 
 
-def cut(code, count, kept):
+def cut(code, count, kept, fill):
     pen = DecomposingRecordingPen(glyphs)
     glyphs[codes[code]].draw(pen)
     contours, contour = [], []
@@ -53,6 +60,11 @@ def cut(code, count, kept):
     if len(contours) != count:
         sys.exit(f"U+{code:X} has {len(contours)} contours, not {count}")
     contours.sort(key=top, reverse=True)
+    last = contours[kept[-1]]
+    xs = [x for _, points in last for x, _ in points]
+    left, right = min(xs), max(xs)
+    edge = round(left + (right - left) * fill)
+    contours[kept[-1]] = [(operator, [(edge if x == right else x, y) for x, y in points]) for operator, points in last]
     pen = TTGlyphPen(None)
     for index in kept:
         for operator, points in contours[index]:
@@ -62,8 +74,8 @@ def cut(code, count, kept):
 
 outlines = {".notdef": TTGlyphPen(None).glyph()}
 advances = {".notdef": 0}
-for glyph, code, count, kept in GLYPHS.values():
-    outlines[glyph] = cut(code, count, kept)
+for glyph, code, count, kept, fill in GLYPHS.values():
+    outlines[glyph] = cut(code, count, kept, fill)
     advances[glyph] = glyphs[codes[code]].width
 
 font = FontBuilder(source["head"].unitsPerEm, isTTF=True)

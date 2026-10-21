@@ -38,9 +38,10 @@ Singleton {
     // the CPU, the memory and the Wi-Fi signal warn in.
     readonly property color color: !discharging ? Theme.green : state === "critical" ? Theme.red : state === "warning" ? Theme.peach : Theme.green
 
-    readonly property var chargingIcons: [0xf0e7, 0xf0e7, 0xf0e7, 0xf0e7, 0xf0e7, 0xf0e7, 0xf0e7, 0xf0e7, 0xf0e7, 0xf0e7]
-    readonly property var defaultIcons: [0xf244, 0xf243, 0xf243, 0xf243, 0xf242, 0xf242, 0xf241, 0xf241, 0xf240, 0xf240]
-    readonly property string icon: Theme.glyph((charging ? chargingIcons : defaultIcons)[Math.min(9, Math.floor(capacity / 10))])
+    // The charge to the nearest tenth: Font Awesome's empty and full icons,
+    // the tenths between from scripts/bar-icons.py, at U+100003 on.
+    readonly property int tenths: Math.round(capacity / 10)
+    readonly property string icon: Theme.glyph(charging ? 0xf0e7 : tenths <= 0 ? 0xf244 : tenths >= 10 ? 0xf240 : 0x100002 + tenths)
 
     readonly property string timeText: {
         if (hoursLeft < 0)
