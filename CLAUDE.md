@@ -35,3 +35,9 @@ go into separate commits even when they touch the same file — split by
 hunk. Do not rewrite pushed history for style alone.
 
 Commit and push only when asked.
+
+# Quickshell
+
+Before changing QML in `.config/quickshell`: load the `quickshell-dev`
+skill, look up Quickshell APIs in context7, and review QML diffs with
+`qt-development-skills:qt-qml-review`.
