@@ -12,7 +12,8 @@
 #     python3.withPackages (p: [p.fonttools])' -c \
 #     scripts/bar-icons.py <JetBrainsMonoNerdFontPropo-Regular.ttf>
 #
-# Font Awesome Free's font is under the SIL OFL 1.1, as is this one.
+# Font Awesome Free's font is under the SIL OFL 1.1, as is this one: its
+# text and Font Awesome's notice are in fonts/OFL.txt.
 
 import sys
 from pathlib import Path
@@ -87,7 +88,7 @@ font.setupHorizontalHeader(ascent=source["hhea"].ascent, descent=source["hhea"].
 font.setupNameTable({
     "familyName": "Bar Icons",
     "styleName": "Regular",
-    "copyright": "Glyphs derived from Font Awesome Free, (c) Fonticons, Inc.",
+    "copyright": 'Copyright (c) 2022 Fonticons, Inc. (https://fontawesome.com) with Reserved Font Name: "Font Awesome". Modified for the bar.',
     "licenseDescription": "SIL Open Font License 1.1",
     "licenseInfoURL": "https://openfontlicense.org",
 })
