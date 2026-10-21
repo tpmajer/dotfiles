@@ -12,7 +12,9 @@ Search for packages with `nix search nixpkgs <term>`.
 
 Conventional Commits, title in the imperative ("add…", "remove…",
 "stop…"), not a description of the result. Title including
-`type(scope): ` at most 72 characters; body wrapped at 72 columns.
+`type(scope): ` at most 80 characters; body wrapped at 72 columns.
+Plain words over a compressed title; if the title still leaves the
+change unclear, add a body saying what and why.
 
 The title says what changes — no "tweaks", "review fixes", "cleanups".
 
