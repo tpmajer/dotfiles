@@ -34,7 +34,13 @@ Overlay {
     // What is typed to find by, without that prefix.
     readonly property string query: commands ? input.text.slice(Commands.prefix.length) : input.text
 
-    readonly property var results: clipboard ? Clipboard.search(query) : commands ? Commands.search(query) : !dmenu ? Apps.search(query) : query.trim() ? lines.filter(l => Apps.score(query, l) > 0) : lines
+    readonly property var results: clipboard ? Clipboard.search(query) : commands ? Commands.search(query) : !dmenu ? applications(query) : query.trim() ? lines.filter(l => Apps.score(query, l) > 0) : lines
+    // Answered by no application, a text is offered as a command line,
+    // so that Enter shows what it does.
+    function applications(text) {
+        const found = Apps.search(text);
+        return found.length || !text.trim() ? found : [Commands.row(text.trim(), true)];
+    }
     // A new query, or the clipboard's history in place of the applications,
     // starts at the top. A list read again, as the history is after each
     // change, keeps the entry chosen wherever it moved, or with that one
@@ -186,8 +192,6 @@ Overlay {
             Commands.run(item.shell);
         else if (item)
             Apps.launch(item);
-        else if (input.text.trim())
-            Apps.run(input.text);
         forget();
         shown = false;
     }
