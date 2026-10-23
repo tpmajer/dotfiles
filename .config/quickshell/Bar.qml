@@ -114,13 +114,18 @@ PanelWindow {
                 leftPadding: 3
                 height: parent.height
 
+                // By id: a workspace come or gone leaves the other modules,
+                // and an open popup, as they are.
                 Repeater {
-                    model: workspaceRow.workspaces.length
+                    model: ScriptModel {
+                        values: workspaceRow.workspaces
+                        objectProp: "id"
+                    }
 
                     Module {
                         id: workspaceModule
-                        required property int index
-                        readonly property var ws: workspaceRow.workspaces[index]
+                        required property var modelData
+                        readonly property var ws: modelData
                         host: popups
                         text: !ws ? "" : ws.is_active ? Theme.glyph(0xf0c8) : String(ws.name || ws.idx)
                         bold: !!ws && ws.is_active
