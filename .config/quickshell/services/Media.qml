@@ -67,6 +67,37 @@ Singleton {
             active.togglePlaying();
     }
 
+    // The player's own volume, a percent a step. A player without one, as a
+    // browser, has its program's streams in PipeWire set instead.
+    function changeVolume(steps) {
+        if (!active)
+            return;
+        if (active.canControl && active.volumeSupported)
+            active.volume = Math.max(0, Math.min(1, (Math.round(active.volume * 100) + steps) / 100));
+        else
+            streamsOf(active).forEach(s => Audio.changeVolume(s, steps));
+    }
+
+    // The names a player's program goes by: its desktop entry and the
+    // first part of its bus name; Chrome takes Chromium's bus name.
+    function appIds(player) {
+        const name = player.dbusName.replace("org.mpris.MediaPlayer2.", "").split(".")[0];
+        const ids = [player.desktopEntry, name];
+        if (/^(chromium|chrome)/.test(name))
+            ids.push("google-chrome", "chromium-browser", "chromium", "chrome");
+        return ids.filter(id => id).map(id => id.toLowerCase());
+    }
+
+    // The program's streams, by its binary or the name it gives PipeWire;
+    // NixOS runs a program as .<name>-wrapped.
+    function streamsOf(player) {
+        const ids = appIds(player);
+        return Audio.streams.filter(s => {
+            const props = s.properties ?? {};
+            return [props["application.process.binary"], props["application.name"]].some(n => ids.includes(String(n ?? "").toLowerCase().replace(/^\.(.*)-wrapped$/, "$1")));
+        });
+    }
+
     // mpv plays a file of the disk with no playlist: the next one and the
     // previous one are then the files beside it, as with uosc's keys in
     // mpv itself.
@@ -93,16 +124,6 @@ Singleton {
             active.next();
         else
             active.previous();
-    }
-
-    // The same by the wheel, one track a swipe however fast it turns: a
-    // touchpad sends a run of steps for one. Not for a button, which may
-    // well be clicked twice in that time.
-    function scroll(steps) {
-        if (steps === 0 || skipGuard.running)
-            return;
-        skip(steps);
-        skipGuard.restart();
     }
 
     // scripts/media-sibling.py: the address of the file to go to, if any.
@@ -185,11 +206,7 @@ Singleton {
     function focusWindow() {
         if (!active)
             return;
-        const name = active.dbusName.replace("org.mpris.MediaPlayer2.", "").split(".")[0];
-        const ids = [active.desktopEntry, name];
-        if (/^(chromium|chrome)/.test(name))
-            ids.push("google-chrome", "chromium-browser", "chromium");
-        ids.filter(id => id).some(id => Niri.focusApp(id));
+        appIds(active).some(id => Niri.focusApp(id));
     }
 
     // A player started or stopped playing, or came or went.
@@ -245,11 +262,6 @@ Singleton {
             root.active = root.players.find(p => p.isPlaying) ?? null
     }
 
-    Timer {
-        id: skipGuard
-        interval: 400
-    }
-
     IpcHandler {
         target: "media"
 
@@ -262,6 +274,7 @@ Singleton {
                 playing: root.playing,
                 remote: root.remote,
                 position: root.active ? root.active.position : 0,
+                volume: root.active ? root.active.volume : 0,
                 title: root.title,
                 artist: root.artist
             });

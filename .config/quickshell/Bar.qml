@@ -230,8 +230,8 @@ PanelWindow {
         // what plays, right of the bell: a wave in the player's color,
         // gone a while after the last one was paused. Its popup tells
         // what it is and has the buttons. A middle click pauses, a
-        // right one goes to the player's window, the wheel skips a
-        // track.
+        // right one goes to the player's window, the wheel sets the
+        // player's volume.
         Module {
             id: mediaModule
             anchors.left: bellModule.right
@@ -242,8 +242,7 @@ PanelWindow {
             clickOpensPopup: true
             onMiddleClicked: Media.playPause()
             onRightClicked: Media.focusWindow()
-            // Down for the next one, as down a list.
-            onScrolled: steps => Media.scroll(-steps)
+            onScrolled: steps => Media.changeVolume(steps)
 
             Component {
                 id: mediaWave
