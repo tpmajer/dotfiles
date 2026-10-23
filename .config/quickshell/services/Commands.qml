@@ -31,24 +31,32 @@ Singleton {
         store.setText(JSON.stringify(lines));
     }
 
-    // A command line as a row of the launcher's list.
-    function row(line, typed) {
+    // A command line as a row of the launcher's list: "run" as typed,
+    // "terminal" as typed but in Ghostty, or "history".
+    function row(line, kind) {
         return {
+            id: kind + ":" + line,
             name: line,
-            genericName: typed ? "Run" : "History",
-            glyph: typed ? 0x276f : 0xf1da,
-            color: typed ? Theme.green : Theme.subtext0,
+            genericName: ({run: "Run", terminal: "Ghostty", history: "History"})[kind],
+            glyph: ({run: 0x276f, terminal: 0xf489, history: 0xf1da})[kind],
+            color: kind === "history" ? Theme.subtext0 : Theme.green,
             shell: line,
-            typed
+            typed: kind !== "history",
+            terminal: kind === "terminal"
         };
+    }
+
+    // The line typed, to run, then to run in a terminal.
+    function typed(line) {
+        return [row(line, "run"), row(line, "terminal")];
     }
 
     // The line typed, then the history's lines that answer it, the better
     // first, among equals the last run.
     function search(query) {
         const line = query.trim();
-        const found = history.map((l, i) => ({line: l, i, score: line ? Apps.score(line, l, false) : 1})).filter(r => r.score > 0 && r.line !== line).sort((a, b) => b.score - a.score || a.i - b.i).map(r => row(r.line, false));
-        return line ? [row(line, true)].concat(found) : found;
+        const found = history.map((l, i) => ({line: l, i, score: line ? Apps.score(line, l, false) : 1})).filter(r => r.score > 0 && r.line !== line).sort((a, b) => b.score - a.score || a.i - b.i).map(r => row(r.line, "history"));
+        return line ? typed(line).concat(found) : found;
     }
 
     // Started by niri; in a terminal the shell stays for what it printed.

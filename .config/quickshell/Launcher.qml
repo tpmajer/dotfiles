@@ -39,7 +39,7 @@ Overlay {
     // so that Enter shows what it does.
     function applications(text) {
         const found = Apps.search(text);
-        return found.length || !text.trim() ? found : [Commands.row(text.trim(), true)];
+        return found.length || !text.trim() ? found : Commands.typed(text.trim());
     }
     // A new query, or the clipboard's history in place of the applications,
     // starts at the top. A list read again, as the history is after each
@@ -49,7 +49,7 @@ Overlay {
     onResultsChanged: {
         const query = (clipboard ? "clipboard:" : "") + input.text;
         const was = listed.query === query ? listed.results[index] : undefined;
-        const key = r => r?.id ?? r?.shell ?? r;
+        const key = r => r?.id ?? r;
         const kept = was === undefined ? -1 : results.findIndex(r => key(r) === key(was));
         index = kept >= 0 ? kept : Math.min(index, Math.max(0, results.length - 1));
         listed = {results, query};
@@ -174,7 +174,7 @@ Overlay {
         }
     }
 
-    // In a terminal: a command line only.
+    // In a terminal: a command line only, as its own row is.
     function accept(terminal) {
         const item = results[index];
         if (clipboard) {
@@ -190,7 +190,7 @@ Overlay {
             clipboard = true;
             return;
         } else if (item?.shell)
-            Commands.run(item.shell, terminal);
+            Commands.run(item.shell, terminal || item.terminal);
         else if (item)
             Apps.launch(item);
         forget();
