@@ -96,7 +96,7 @@ Singleton {
             },
             "kanagawa": {
                 label: "Kanagawa",
-                ghostty: "Kanagawa Wave",
+                ghostty: "Kanagawabones",
                 btop: "kanagawa-wave",
                 helix: "kanagawa",
                 herdr: "kanagawa",
