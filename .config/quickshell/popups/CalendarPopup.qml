@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import qs
 import qs.services
 import qs.widgets
@@ -12,6 +13,9 @@ import qs.widgets
 Column {
     id: cal
     readonly property var locale: Qt.locale("en_US")
+    // The header and the grid are centered on whole device pixels: the
+    // narrower one would sit half a pixel off.
+    readonly property real dpr: QsWindow.window?.devicePixelRatio ?? 1
     // The bar's clock, so the calendar and the clock module agree.
     required property date now
     // How many months from the current one the grid shows.
@@ -66,13 +70,13 @@ Column {
     }
 
     PopupText {
-        anchors.horizontalCenter: parent.horizontalCenter
+        x: Theme.snap((cal.width - width) / 2, cal.dpr)
         text: cal.offset === 0 ? cal.locale.toString(cal.now, "dddd, d MMMM yyyy") : cal.locale.standaloneMonthName(cal.month) + " " + cal.year
         font.bold: true
     }
 
     Grid {
-        anchors.horizontalCenter: parent.horizontalCenter
+        x: Theme.snap((cal.width - width) / 2, cal.dpr)
         columns: 7
         columnSpacing: 2
         rowSpacing: 2
