@@ -50,9 +50,10 @@ Singleton {
     Timer {
         id: restart
         interval: 5000
+        // Not ready first, so that the radios listed anew are no change.
         onTriggered: {
-            root.blocked = ({});
             startup.restart();
+            root.blocked = ({});
             events.running = true;
         }
     }
