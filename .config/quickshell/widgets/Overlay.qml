@@ -140,5 +140,10 @@ PanelWindow {
         height: overlay.boxHeight
         opacity: pop.openness
         scale: pop.scale
+
+        // Under what is in the box: a click between its items does not close.
+        MouseArea {
+            anchors.fill: parent
+        }
     }
 }

@@ -191,11 +191,6 @@ Overlay {
 
     WlrLayershell.namespace: "quickshell-launcher"
 
-    // A click inside does not close.
-    MouseArea {
-        anchors.fill: parent
-    }
-
     PopupText {
         id: prompt
         font.pixelSize: menu.fontSize
