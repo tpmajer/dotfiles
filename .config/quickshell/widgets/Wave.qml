@@ -27,12 +27,21 @@ Item {
         // Referenced so the binding re-evaluates when the wave moves:
         // every item from the wave up to the window, and their scaling,
         // as the bar's as it pops in.
-        for (let item = wave; item; item = item.parent) {
+        for (let item = wave; item; item = item.parent)
             void (item.x + item.y);
-            for (let i = 0; i < item.transform.length; i++)
-                void (item.transform[i].xScale + item.transform[i].yScale);
-        }
+        for (const t of scalings)
+            void (t.xScale + t.yScale);
         return wave.mapToItem(null, 0, 0);
+    }
+    // The items' transforms, found once: a transform list tells of no
+    // change, the scaling in it does.
+    property var scalings: []
+    Component.onCompleted: {
+        const found = [];
+        for (let item = wave; item; item = item.parent)
+            for (let i = 0; i < item.transform.length; i++)
+                found.push(item.transform[i]);
+        scalings = found;
     }
 
     // The simulated pattern: two slow sines a bar, out of step.
