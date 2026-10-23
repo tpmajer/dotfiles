@@ -239,6 +239,51 @@ Overlay {
         echoMode: menu.dmenu && menu.password ? TextInput.Password : TextInput.Normal
         onTextChanged: menu.index = 0
 
+        // Ghostty's cursor: a blinking underline as wide as the letter it
+        // is at, lit again by each move.
+        cursorDelegate: Item {
+            id: cursor
+            readonly property int at: input.cursorPosition
+            property bool lit: true
+
+            width: at < input.displayText.length ? input.positionToRectangle(at + 1).x - input.positionToRectangle(at).x : metrics.advanceWidth("x")
+
+            FontMetrics {
+                id: metrics
+                font: input.font
+            }
+            // At the bottom of the line, under the descenders, and 2 px
+            // lower at scale 1.6.
+            Rectangle {
+                y: metrics.ascent + metrics.descent - height + 1.25
+                width: parent.width
+                height: 2
+                color: Theme.text
+                visible: cursor.lit
+            }
+            Timer {
+                id: blink
+                interval: 600
+                repeat: true
+                running: input.activeFocus
+                onTriggered: cursor.lit = !cursor.lit
+            }
+            function wake() {
+                lit = true;
+                blink.restart();
+            }
+            onAtChanged: wake()
+            Connections {
+                target: input
+                function onDisplayTextChanged() {
+                    cursor.wake();
+                }
+                function onActiveFocusChanged() {
+                    cursor.wake();
+                }
+            }
+        }
+
         PopupText {
             font.pixelSize: menu.fontSize
             anchors.verticalCenter: parent.verticalCenter
