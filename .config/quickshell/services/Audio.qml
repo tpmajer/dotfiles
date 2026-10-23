@@ -12,13 +12,19 @@ import qs
 Singleton {
     id: root
 
-    readonly property var defaultSink: Pipewire.defaultAudioSink
+    // A filter sink (the speakers' DSP) shares its name with its own stream to
+    // the device, and Pipewire.defaultAudioSink can resolve the name to that stream.
+    readonly property var defaultSink: {
+        const sink = Pipewire.defaultAudioSink;
+        return sink && sink.isStream ? Pipewire.nodes.values.find(n => n.isSink && !n.isStream && n.name === sink.name) ?? sink : sink;
+    }
     readonly property var defaultSource: Pipewire.defaultAudioSource   // the microphone
     // The default sink first, the rest in PipeWire's order.
     readonly property var sinks: Pipewire.nodes.values.filter(n => n.isSink && !n.isStream && n.audio).sort((a, b) => (b === defaultSink) - (a === defaultSink))
 
     // Programs playing sound, in PipeWire's order.
-    readonly property var streams: Pipewire.nodes.values.filter(n => n.isStream && n.isSink && n.audio)
+    // Without a filter's stream to the device, named like the filter's sink.
+    readonly property var streams: Pipewire.nodes.values.filter(n => n.isStream && n.isSink && n.audio && !sinks.some(s => s.name === n.name))
     // Programs recording from the microphone: what its links lead to, so that
     // one listening to an output's monitor (a level meter) doesn't count.
     readonly property var recorders: sourceLinks.linkGroups.map(g => g.target).filter(n => n && n.isStream && n.audio)
