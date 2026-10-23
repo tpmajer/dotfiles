@@ -34,14 +34,14 @@ Overlay {
     // starts at the top. A list read again, as the history is after each
     // change, keeps the entry chosen wherever it moved, or with that one
     // gone the row; the view forgets either with its model.
-    property var shown: ({results: [], query: ""})
+    property var listed: ({results: [], query: ""})
     onResultsChanged: {
         const query = (clipboard ? "clipboard:" : "") + input.text;
-        const was = shown.query === query ? shown.results[index] : undefined;
+        const was = listed.query === query ? listed.results[index] : undefined;
         const key = r => r?.id ?? r;
         const kept = was === undefined ? -1 : results.findIndex(r => key(r) === key(was));
         index = kept >= 0 ? kept : Math.min(index, Math.max(0, results.length - 1));
-        shown = {results, query};
+        listed = {results, query};
         Qt.callLater(() => list.currentIndex = Qt.binding(() => menu.index));
     }
     onClipboardChanged: index = 0
