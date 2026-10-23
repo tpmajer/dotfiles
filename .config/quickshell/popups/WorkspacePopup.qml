@@ -478,16 +478,18 @@ Item {
             Drag.keys: ["niri-window"]
         }
 
+        // On the card alone: the gap above it is no part of the window.
         MouseArea {
             id: mouse
-            anchors.fill: parent
+            anchors.fill: card
             enabled: !tile.leaving
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             drag.target: dragged
             onPressed: mouse => {
-                dragged.x = mouse.x;
-                dragged.y = mouse.y;
+                const at = mapToItem(tile, mouse.x, mouse.y);
+                dragged.x = at.x;
+                dragged.y = at.y;
                 dragged.windowId = tile.shownWin?.id ?? -1;
             }
             drag.onActiveChanged: {
