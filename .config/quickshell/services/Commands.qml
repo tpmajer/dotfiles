@@ -51,9 +51,13 @@ Singleton {
         return line ? [row(line, true)].concat(found) : found;
     }
 
-    function run(line) {
+    // Started by niri; in a terminal the shell stays for what it printed.
+    function run(line, terminal) {
         save([line].concat(history.filter(l => l !== line)).slice(0, kept));
-        Apps.run(line);
+        if (terminal)
+            Niri.send({Action: {Spawn: {command: Apps.inTerminal(["fish", "-C", line])}}});
+        else
+            Apps.run(line);
     }
 
     function remove(line) {

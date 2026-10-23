@@ -174,7 +174,8 @@ Overlay {
         }
     }
 
-    function accept() {
+    // In a terminal: a command line only.
+    function accept(terminal) {
         const item = results[index];
         if (clipboard) {
             // Nothing typed is copied in place of an entry.
@@ -189,7 +190,7 @@ Overlay {
             clipboard = true;
             return;
         } else if (item?.shell)
-            Commands.run(item.shell);
+            Commands.run(item.shell, terminal);
         else if (item)
             Apps.launch(item);
         forget();
@@ -271,7 +272,7 @@ Overlay {
                 break;
             case Qt.Key_Return:
             case Qt.Key_Enter:
-                menu.accept();
+                menu.accept(event.modifiers & Qt.ShiftModifier);
                 break;
             // An entry of the clipboard's or the commands' history goes, as
             // in a browser's address bar.
