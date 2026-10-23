@@ -308,6 +308,9 @@ Singleton {
 
     // Level bars (the OSD, CPU cores): 5 px is 8 whole device pixels at 1.6.
     readonly property real levelHeight: 5
+    // The volume popup's bars, and the battery popup's at the least: 75 px
+    // is 120 whole device pixels at 1.6.
+    readonly property real levelWidth: 75
 
     // The nearest position, in a window's coordinates, that falls on a whole
     // device pixel. A line both placed and sized in whole device pixels has

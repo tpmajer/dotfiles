@@ -105,6 +105,7 @@ Rectangle {
             LevelBar {
                 id: levelBar
                 x: parent.width - width
+                width: Theme.levelWidth
                 popupY: root.y + row.y + levelRoom.y
                 level: Math.max(0, root.level)
                 fill: root.levelColor

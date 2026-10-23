@@ -35,6 +35,7 @@ Column {
             }
             LevelBar {
                 Layout.fillWidth: true
+                Layout.minimumWidth: Theme.levelWidth
                 popupY: info.y + level.y + y
                 level: Battery.capacity / 100
                 fill: Battery.color
