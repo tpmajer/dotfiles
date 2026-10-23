@@ -46,11 +46,16 @@ Singleton {
     }
 
     function colorOf(player) {
+        return Theme[colorNameOf(player)];
+    }
+
+    // The color by its name in Theme, for the OSD.
+    function colorNameOf(player) {
         return ({
-                spotify: Theme.green,
-                youtube: Theme.red,
-                mpv: Theme.teal
-            })[sourceOf(player)] ?? Theme.text;
+                spotify: "green",
+                youtube: "red",
+                mpv: "teal"
+            })[sourceOf(player)] ?? "text";
     }
 
     function glyphOf(player) {

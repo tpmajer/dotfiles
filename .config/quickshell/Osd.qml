@@ -6,7 +6,7 @@ import qs.widgets
 
 // On-screen display: a pill at the bottom of the focused output, shown for a
 // moment when the default output's volume or mute, the screen brightness, the
-// microphone's mute, airplane mode or Spotify's own volume changes. It reacts
+// microphone's mute, airplane mode or a player's own volume changes. It reacts
 // to the change itself, so it doesn't matter what made it (the keys, the bar,
 // another program).
 PanelWindow {
@@ -136,6 +136,32 @@ PanelWindow {
                 return;
             const muted = Spotify.muted;
             osd.show(Theme.glyph(0xf1bc), muted ? "subtext0" : "green", Spotify.player.volume, muted ? "muted" : Spotify.volume + "%");
+        }
+    }
+
+    // The playing player's own volume, as a browser's tab has, in its icon
+    // and color; Spotify's is above. A player reports its volume as it
+    // becomes the active one; that is not a change.
+    Connections {
+        target: Media
+        function onActiveChanged() {
+            playerSettle.restart();
+        }
+    }
+
+    Timer {
+        id: playerSettle
+        interval: 1000
+    }
+
+    Connections {
+        target: Media.active && Media.sourceOf(Media.active) !== "spotify" ? Media.active : null
+        function onVolumeChanged() {
+            const player = Media.active;
+            if (playerSettle.running || !player.volumeSupported)
+                return;
+            const percent = Math.round(player.volume * 100);
+            osd.show(Media.glyphOf(player), percent === 0 ? "subtext0" : Media.colorNameOf(player), player.volume, percent === 0 ? "muted" : percent + "%");
         }
     }
 
