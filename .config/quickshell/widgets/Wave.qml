@@ -25,9 +25,13 @@ Item {
     // pixels, and so with hard edges.
     readonly property point origin: {
         // Referenced so the binding re-evaluates when the wave moves:
-        // every item from the wave up to the window.
-        for (let item = wave; item; item = item.parent)
+        // every item from the wave up to the window, and their scaling,
+        // as the bar's as it pops in.
+        for (let item = wave; item; item = item.parent) {
             void (item.x + item.y);
+            for (let i = 0; i < item.transform.length; i++)
+                void (item.transform[i].xScale + item.transform[i].yScale);
+        }
         return wave.mapToItem(null, 0, 0);
     }
 
