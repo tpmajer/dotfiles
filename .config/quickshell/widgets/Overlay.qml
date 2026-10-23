@@ -44,7 +44,11 @@ PanelWindow {
         mapped: overlay.backingWindowVisible
     }
 
-    screen: Quickshell.screens.find(s => s.name === Niri.focusedOutput) ?? Quickshell.screens[0]
+    // On the focused output as it comes up, and there until it goes: not
+    // after the focus to another output in the middle of it.
+    property var shownOn: null
+    onVisibleChanged: shownOn = visible ? screen : null
+    screen: shownOn ?? Quickshell.screens.find(s => s.name === Niri.focusedOutput) ?? Quickshell.screens[0]
     anchors {
         top: true
         bottom: true
