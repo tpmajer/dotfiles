@@ -38,10 +38,15 @@ Singleton {
     // the CPU, the memory and the Wi-Fi signal warn in.
     readonly property color color: !discharging ? Theme.green : state === "critical" ? Theme.red : state === "warning" ? Theme.peach : Theme.green
 
-    // The charge to the nearest tenth: Font Awesome's empty and full icons,
-    // the tenths between from scripts/bar-icons.py, at U+100003 on.
-    readonly property int tenths: Math.round(capacity / 10)
-    readonly property string icon: Theme.glyph(charging ? 0xf0e7 : tenths <= 0 ? 0xf244 : tenths >= 10 ? 0xf240 : 0x100002 + tenths)
+    readonly property string icon: charging ? Theme.glyph(0xf0e7) : glyph(capacity)
+
+    // A battery charged to the nearest tenth of the percent: Font Awesome's
+    // empty and full icons, the tenths between from scripts/bar-icons.py, at
+    // U+100003 on. Also for a bluetooth device's battery and a notification's.
+    function glyph(percent) {
+        const tenths = Math.round(percent / 10);
+        return Theme.glyph(tenths <= 0 ? 0xf244 : tenths >= 10 ? 0xf240 : 0x100002 + tenths);
+    }
 
     readonly property string timeText: {
         if (hoursLeft < 0)

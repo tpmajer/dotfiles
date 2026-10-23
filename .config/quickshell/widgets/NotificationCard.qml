@@ -71,7 +71,7 @@ Item {
             charge = found;
         if (!charge)
             return Theme.iconGlyph(namedIcon) + " " + text;
-        const glyph = Theme.glyph(Battery.defaultIcons[Math.min(9, Math.floor(parseInt(charge[0]) / 10))]);
+        const glyph = Battery.glyph(parseInt(charge[0]));
         return text.slice(0, charge.index) + glyph + " " + text.slice(charge.index);
     }
     // A file here, not an address: nothing is fetched for a notification.

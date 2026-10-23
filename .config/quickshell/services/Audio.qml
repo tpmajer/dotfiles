@@ -80,7 +80,7 @@ Singleton {
         if (!device || !device.batteryAvailable)
             return "";
         const percent = Math.round(device.battery * 100);
-        const text = Theme.glyph(Battery.defaultIcons[Math.min(9, Math.floor(percent / 10))]) + " " + percent + "%";
+        const text = Battery.glyph(percent) + " " + percent + "%";
         const color = percent <= 15 ? Theme.red : percent <= 25 ? Theme.peach : null;
         return color ? "<font color=\"" + color + "\">" + text + "</font>" : text;
     }
