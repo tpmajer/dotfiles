@@ -108,6 +108,8 @@ Rectangle {
                 popupY: root.y + row.y + levelRoom.y
                 level: Math.max(0, root.level)
                 fill: root.levelColor
+                // As quick as the OSD's: it follows the wheel.
+                glide: 80
             }
         }
         PopupText {
