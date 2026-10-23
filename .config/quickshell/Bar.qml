@@ -170,17 +170,16 @@ PanelWindow {
         // clock
         Module {
             id: clock
-            property bool alt: false
             anchors.horizontalCenter: parent.horizontalCenter
             host: popups
-            text: alt ? Qt.formatDate(systemClock.date, "dd.MM.yyyy") : Qt.formatTime(systemClock.date, "HH:mm:ss")
+            text: Qt.formatTime(systemClock.date, "HH:mm:ss")
             color: Theme.mauve
             popup: CalendarPopup {
                 now: systemClock.date
                 onLaunched: popups.popupOpen = false
             }
             rightCommand: ["gnome-calendar"]
-            onClicked: alt = !alt
+            clickOpensPopup: true
         }
 
         // weather, left of the clock; not there until it is known
@@ -360,14 +359,13 @@ PanelWindow {
 
             // battery
             Module {
-                property bool alt: false
                 host: popups
                 prefix: Battery.icon
                 prefixSize: Theme.fontSize + (Battery.charging ? 1 : 2)
-                text: alt && Battery.timeText !== "" ? Battery.timeText : Battery.capacity + "%"
+                text: Battery.capacity + "%"
                 color: Battery.color
                 popup: BatteryPopup {}
-                onClicked: alt = !alt
+                clickOpensPopup: true
             }
 
             // power menu
