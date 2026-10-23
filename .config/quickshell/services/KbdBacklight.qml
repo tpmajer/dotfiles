@@ -30,7 +30,7 @@ Singleton {
 
     SysfsLevel {
         id: level
-        sysfs: "/sys/class/leds/framework_laptop::kbd_backlight/"
+        sysfs: "/sys/class/leds/chromeos::kbd_backlight/"
         printErrors: false
         quiet: quietEnd.running
         onChanged: root.changed()
