@@ -81,6 +81,10 @@ Item {
     onOwnerGoneChanged: if (ownerGone)
         popupOpen = false
     readonly property real openness: pop.openness
+    // A closed popup's content goes once faded: hidden, it would still
+    // follow what it shows.
+    onOpennessChanged: if (openness === 0 && !popupOpen)
+        popupLoader.sourceComponent = null
     // What the open popup shows, for the keys the bar passes on to it.
     readonly property Item popupItem: popupLoader.item
 
