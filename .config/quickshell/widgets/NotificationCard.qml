@@ -102,11 +102,14 @@ Item {
     implicitHeight: Math.max(content.implicitHeight, hasPicture ? picture.height : 0) + 2 * (Theme.popupPaddingV + Theme.popupTextInsetV)
 
     // A left click, or its key in the notification center.
-    function activate() {
-        if (body.truncated && !expanded)
+    // Whether it ran the action, not only unfolded the text.
+    function activate(): bool {
+        if (body.truncated && !expanded) {
             expanded = true;
-        else
-            Notifications.activate(notification);
+            return false;
+        }
+        Notifications.activate(notification);
+        return true;
     }
 
     MouseArea {

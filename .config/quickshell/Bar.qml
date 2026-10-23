@@ -216,6 +216,7 @@ PanelWindow {
             color: Notifications.quiet ? Theme.subtext0 : Notifications.missedUrgency === NotificationUrgency.Low ? Theme.text : Notifications.urgencyColor(Notifications.missedUrgency)
             popup: NotificationsPopup {
                 panel: bar
+                onLaunched: popups.popupOpen = false
             }
             clickOpensPopup: true
             onRightClicked: Notifications.toggleDnd()

@@ -21,6 +21,9 @@ Column {
     onListChanged: selected = Math.max(0, Math.min(selected, list.length - 1))
     spacing: 6
 
+    // A notification run from the keyboard: the keys go back to its window.
+    signal launched
+
     function keyPressed(event) {
         const notification = list[selected];
         switch (event.key) {
@@ -38,8 +41,8 @@ Column {
         case Qt.Key_Return:
         case Qt.Key_Enter:
         case Qt.Key_Space:
-            if (cards.itemAt(selected))
-                cards.itemAt(selected).card.activate();
+            if (cards.itemAt(selected) && cards.itemAt(selected).card.activate())
+                launched();
             break;
         case Qt.Key_D:
             if (event.modifiers & Qt.ShiftModifier)
