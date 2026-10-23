@@ -156,9 +156,10 @@ Singleton {
             return;
         }
         const names = entries.filter(e => e.image).map(e => e.id + "." + e.format);
-        thumbJob.command = ["sh", "-c", 'dir=$1; shift; mkdir -p "$dir" && cd "$dir" || exit
-for f in *; do case " $* " in *" $f "*) ;; *) rm -f -- "$f" ;; esac; done
-for f; do [ -s "$f" ] || { cliphist decode "${f%%.*}" > "$f.tmp" && mv -- "$f.tmp" "$f"; }; [ -s "$f" ] && echo "$f"; done', "sh", thumbDir].concat(names);
+        const script = ['dir=$1; shift; mkdir -p "$dir" && cd "$dir" || exit',
+            'for f in *; do case " $* " in *" $f "*) ;; *) rm -f -- "$f" ;; esac; done',
+            'for f; do [ -s "$f" ] || { cliphist decode "${f%%.*}" > "$f.tmp" && mv -- "$f.tmp" "$f"; }; [ -s "$f" ] && echo "$f"; done'].join("\n");
+        thumbJob.command = ["sh", "-c", script, "sh", thumbDir].concat(names);
         thumbJob.running = true;
     }
     Process {
