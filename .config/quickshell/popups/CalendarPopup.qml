@@ -72,7 +72,6 @@ Column {
     PopupText {
         x: Theme.snap((cal.width - width) / 2, cal.dpr)
         text: cal.offset === 0 ? cal.locale.toString(cal.now, "dddd, d MMMM yyyy") : cal.locale.standaloneMonthName(cal.month) + " " + cal.year
-        font.bold: true
     }
 
     Grid {
