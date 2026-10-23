@@ -4,11 +4,16 @@ import QtQuick
 import Quickshell
 
 // The keyboard's backlight. The laptop's controller steps it by itself
-// (Fn+Space) and no event tells: read from sysfs four times a second.
+// (Fn+Space) and no event tells: read from sysfs four times a second, not
+// behind the lock, where the OSD does not show.
 Singleton {
     id: root
 
     readonly property int percent: level.percent
+    property bool locked: false
+    // A step taken behind the lock is not told of after it.
+    onLockedChanged: if (!locked)
+        quiet()
 
     // The backlight changed after startup.
     signal changed
@@ -33,7 +38,7 @@ Singleton {
 
     Timer {
         interval: 250
-        running: true
+        running: level.present && !root.locked
         repeat: true
         onTriggered: level.reload()
     }

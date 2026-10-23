@@ -34,6 +34,12 @@ ShellRoot {
         value: lock.locked
     }
 
+    Binding {
+        target: KbdBacklight
+        property: "locked"
+        value: lock.locked
+    }
+
     PowerMenu {
         id: powerMenu
         locked: lock.locked

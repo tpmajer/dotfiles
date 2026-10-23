@@ -13,6 +13,8 @@ Scope {
 
     property int percent: 0
     property bool ready: false
+    // Whether the device is there: its driver may not be loaded.
+    readonly property bool present: maxFile.loaded
 
     // A change is not told of while this is set.
     property bool quiet: false
