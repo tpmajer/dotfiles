@@ -16,9 +16,15 @@ Column {
     required property var panel   // the Bar
     readonly property bool hasRows: true
     readonly property var list: Notifications.missed
-    // The card selected from the keyboard.
+    // The card selected from the keyboard. A notification come or gone
+    // keeps the one selected; with that one gone, the place stays.
     property int selected: 0
-    onListChanged: selected = Math.max(0, Math.min(selected, list.length - 1))
+    property var shownList: []
+    onListChanged: {
+        const kept = list.indexOf(shownList[selected]);
+        selected = kept >= 0 ? kept : Math.max(0, Math.min(selected, list.length - 1));
+        shownList = list;
+    }
     spacing: 6
 
     // A notification run from the keyboard: the keys go back to its window.
