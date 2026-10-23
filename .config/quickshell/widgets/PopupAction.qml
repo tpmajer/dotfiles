@@ -6,7 +6,8 @@ import qs
 // dim unless the row is active or bright (what it shows is on). An optional
 // detail follows the label, always dim. The detail and the value are styled
 // text, so that a part of either can be in a color of its own. Without an
-// icon the label starts where the icon would, and takes its room.
+// icon the label starts where the icon would, and takes its room. An
+// optional level, as a volume, is a bar before the value.
 Rectangle {
     id: root
 
@@ -14,6 +15,9 @@ Rectangle {
     property string text
     property string detail: ""
     property string value: ""
+    // From 0 to 1; none below 0.
+    property real level: -1
+    property color levelColor: Theme.text
     property color iconColor: Theme.text
     property bool bright: false
     // The value's color in a bright row: its module's, for a switch.
@@ -88,6 +92,22 @@ Rectangle {
                 textFormat: Text.StyledText
                 text: root.detail
                 color: Theme.subtext0
+            }
+        }
+        // As far from the label and the value as the battery popup's bar.
+        Item {
+            id: levelRoom
+            visible: root.level >= 0
+            width: Theme.popupColumnGap - Theme.popupIconGap + levelBar.width
+            height: levelBar.height
+            anchors.verticalCenter: parent.verticalCenter
+
+            LevelBar {
+                id: levelBar
+                x: parent.width - width
+                popupY: root.y + row.y + levelRoom.y
+                level: Math.max(0, root.level)
+                fill: root.levelColor
             }
         }
         PopupText {

@@ -3,8 +3,8 @@ import qs
 import qs.services
 import qs.widgets
 
-// Every audio output with its volume or mute, the default one (the one the
-// module controls) first, in brighter text with a yellow icon; a bluetooth
+// Every audio output with its volume or mute, as a bar and a percent, the
+// default one (the one the module controls) first, in brighter text with a yellow icon; a bluetooth
 // one with its codec and battery. Clicking a row mutes or unmutes that output,
 // scrolling over it changes its volume, a right click makes it the default.
 // Below them, the same for Spotify while it runs and for every program that
@@ -21,6 +21,11 @@ PopupList {
         return node.audio.muted ? "muted" : Audio.volume(node) + "%";
     }
 
+    // Muted, the level stays, in gray.
+    function levelColor(node, color) {
+        return node.audio.muted ? Theme.subtext0 : color;
+    }
+
     Repeater {
         model: Audio.sinks
 
@@ -35,6 +40,8 @@ PopupList {
             text: Audio.name(modelData)
             detail: Audio.bluetoothDetail(modelData)
             value: sinkList.level(modelData)
+            level: modelData.audio.volume
+            levelColor: sinkList.levelColor(modelData, Theme.yellow)
             onTriggered: Audio.toggleMute(modelData)
             onSecondaryTriggered: Audio.setDefault(modelData)
             onScrolled: steps => Audio.changeVolume(modelData, steps)
@@ -61,6 +68,8 @@ PopupList {
             iconColor: Spotify.muted ? Theme.subtext0 : Theme.green
             text: "Spotify"
             value: Spotify.muted ? "muted" : Spotify.volume + "%"
+            level: Spotify.volume / 100
+            levelColor: Theme.green
             onTriggered: Spotify.toggleMute()
             onScrolled: steps => Spotify.changeVolume(steps)
         }
@@ -77,6 +86,8 @@ PopupList {
             iconColor: Theme.subtext0
             text: Audio.appName(modelData)
             value: sinkList.level(modelData)
+            level: modelData.audio.volume
+            levelColor: sinkList.levelColor(modelData, Theme.yellow)
             onTriggered: Audio.toggleMute(modelData)
             onScrolled: steps => Audio.changeVolume(modelData, steps)
         }
@@ -102,6 +113,8 @@ PopupList {
             bright: recording
             text: Audio.name(modelData)
             value: sinkList.level(modelData)
+            level: modelData.audio.volume
+            levelColor: sinkList.levelColor(modelData, recording ? Theme.red : Theme.yellow)
             onTriggered: Audio.toggleMute(modelData)
             onScrolled: steps => Audio.changeVolume(modelData, steps)
         }
@@ -118,6 +131,8 @@ PopupList {
             iconColor: modelData.audio.muted ? Theme.subtext0 : Theme.red
             text: Audio.appName(modelData)
             value: sinkList.level(modelData)
+            level: modelData.audio.volume
+            levelColor: sinkList.levelColor(modelData, Theme.red)
             onTriggered: Audio.toggleMute(modelData)
             onScrolled: steps => Audio.changeVolume(modelData, steps)
         }
