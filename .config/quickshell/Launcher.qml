@@ -29,7 +29,12 @@ Overlay {
     // Choosing from the clipboard's history.
     property bool clipboard: false
 
-    readonly property var results: clipboard ? Clipboard.search(input.text) : !dmenu ? Apps.search(input.text) : input.text.trim() ? lines.filter(l => Apps.score(input.text, l) > 0) : lines
+    // A command line typed after Commands.prefix, in place of a search.
+    readonly property bool commands: !dmenu && !clipboard && input.text.startsWith(Commands.prefix)
+    // What is typed to find by, without that prefix.
+    readonly property string query: commands ? input.text.slice(Commands.prefix.length) : input.text
+
+    readonly property var results: clipboard ? Clipboard.search(query) : commands ? Commands.search(query) : !dmenu ? Apps.search(query) : query.trim() ? lines.filter(l => Apps.score(query, l) > 0) : lines
     // A new query, or the clipboard's history in place of the applications,
     // starts at the top. A list read again, as the history is after each
     // change, keeps the entry chosen wherever it moved, or with that one
@@ -38,7 +43,7 @@ Overlay {
     onResultsChanged: {
         const query = (clipboard ? "clipboard:" : "") + input.text;
         const was = listed.query === query ? listed.results[index] : undefined;
-        const key = r => r?.id ?? r;
+        const key = r => r?.id ?? r?.shell ?? r;
         const kept = was === undefined ? -1 : results.findIndex(r => key(r) === key(was));
         index = kept >= 0 ? kept : Math.min(index, Math.max(0, results.length - 1));
         listed = {results, query};
@@ -177,7 +182,9 @@ Overlay {
             input.text = "";
             clipboard = true;
             return;
-        } else if (item)
+        } else if (item?.shell)
+            Commands.run(item.shell);
+        else if (item)
             Apps.launch(item);
         else if (input.text.trim())
             Apps.run(input.text);
@@ -262,13 +269,20 @@ Overlay {
             case Qt.Key_Enter:
                 menu.accept();
                 break;
-            // An entry of the clipboard's history goes, as in a browser's
-            // address bar.
-            case Qt.Key_Delete:
-                if (!menu.clipboard || !(event.modifiers & Qt.ShiftModifier) || !menu.results.length)
+            // An entry of the clipboard's or the commands' history goes, as
+            // in a browser's address bar.
+            case Qt.Key_Delete: {
+                const item = menu.results[menu.index];
+                if (!(event.modifiers & Qt.ShiftModifier) || !item)
                     return;
-                Clipboard.remove(menu.results[menu.index]);
+                if (menu.clipboard)
+                    Clipboard.remove(item);
+                else if (item.shell && !item.typed)
+                    Commands.remove(item.shell);
+                else
+                    return;
                 break;
+            }
             case Qt.Key_Escape:
                 menu.close();
                 break;
@@ -363,9 +377,9 @@ Overlay {
                 // The letters that answer what is typed stand out, as
                 // in fuzzel.
                 textFormat: Text.StyledText
-                text: Apps.styled(input.text, row.line ? row.modelData : row.clip ? row.modelData.text : row.modelData.name, row.selected ? Theme.teal : Theme.red)
+                text: Apps.styled(menu.query, row.line ? row.modelData : row.clip ? row.modelData.text : row.modelData.name, row.selected ? Theme.teal : Theme.red)
                 // Lines from outside are laid out in columns.
-                font.family: row.line ? Theme.monoFont : Theme.font
+                font.family: row.line || row.modelData.shell ? Theme.monoFont : Theme.font
                 color: row.selected ? Theme.text : Theme.subtext0
                 Behavior on color {
                     ColorAnimation { duration: Theme.hoverDuration }
