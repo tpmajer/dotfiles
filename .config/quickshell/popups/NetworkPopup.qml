@@ -64,11 +64,14 @@ Column {
 
         Repeater {
             id: sectionRepeater
-            model: Network.sections
+            // By the count, so that a section stays as its rates change.
+            model: Network.sections.length
 
             delegate: Column {
                 id: section
-                required property var modelData
+                required property int index
+                // None for a moment as the sections get fewer.
+                readonly property var entry: Network.sections[index] ?? {details: []}
                 readonly property real needed: Math.max(header.implicitWidth, details.implicitWidth)
                 spacing: Theme.popupRowGap
 
@@ -78,35 +81,35 @@ Column {
                     spacing: Theme.popupGridGap
 
                     PopupText {
-                        text: section.modelData.label
+                        text: section.entry.label ?? ""
                         Layout.fillWidth: true
                     }
                     // The route's connection, in place of traffic.
                     PopupText {
-                        visible: section.modelData.value !== undefined
-                        text: section.modelData.value ?? ""
+                        visible: section.entry.value !== undefined
+                        text: section.entry.value ?? ""
                     }
                     PopupText {
-                        visible: section.modelData.down !== undefined
-                        text: section.modelData.down ?? ""
+                        visible: section.entry.down !== undefined
+                        text: section.entry.down ?? ""
                         horizontalAlignment: Text.AlignRight
                         Layout.preferredWidth: Math.ceil(rate.width)
                     }
                     PopupText {
-                        visible: section.modelData.up !== undefined
-                        text: section.modelData.up ?? ""
+                        visible: section.entry.up !== undefined
+                        text: section.entry.up ?? ""
                         horizontalAlignment: Text.AlignRight
                         Layout.preferredWidth: Math.ceil(rate.width)
                     }
                 }
                 PopupDetails {
                     id: details
-                    visible: section.modelData.details.length > 0
+                    visible: section.entry.details.length > 0
                     width: info.wide
                     // Dimmer than elsewhere; alarms keep their own color.
                     labelColor: Qt.tint(Theme.subtext0, Qt.alpha(Theme.base, 0.2))
                     valueColor: labelColor
-                    rows: section.modelData.details
+                    rows: section.entry.details
                 }
             }
         }

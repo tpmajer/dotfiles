@@ -47,16 +47,16 @@ Column {
         columnSpacing: Theme.popupColumnGap
         rowSpacing: Theme.popupRowGap
 
+        // By the count, so that a row stays and its bar glides as the
+        // amounts change. Swap only when there is any.
         Repeater {
-            model: [
-                {label: "RAM", used: SysStats.memUsedGiB, total: SysStats.memTotalGiB, level: SysStats.memLevel},
-                {label: "Swap", used: SysStats.swapUsedGiB, total: SysStats.swapTotalGiB, level: 0}
-            ].filter(r => r.total > 0)
+            model: SysStats.memTotalGiB > 0 ? (SysStats.swapTotalGiB > 0 ? 2 : 1) : 0
 
             delegate: Repeater {
                 id: row
-                required property var modelData
-                readonly property color accent: modelData.level === 2 ? Theme.red : Theme.peach
+                required property int index
+                readonly property var entry: index === 0 ? {label: "RAM", used: SysStats.memUsedGiB, total: SysStats.memTotalGiB, level: SysStats.memLevel} : {label: "Swap", used: SysStats.swapUsedGiB, total: SysStats.swapTotalGiB, level: 0}
+                readonly property color accent: entry.level === 2 ? Theme.red : Theme.peach
                 model: 4
 
                 Loader {
@@ -69,16 +69,16 @@ Column {
                         id: level
                         LevelBar {
                             popupY: levels.y + cell.y
-                            level: row.modelData.used / row.modelData.total
+                            level: row.entry.used / row.entry.total
                             fill: row.accent
                         }
                     }
                     Component {
                         id: label
                         PopupText {
-                            text: cell.index === 0 ? row.modelData.label : cell.index === 2 ? row.modelData.used.toFixed(1) + " GiB" : "/ " + row.modelData.total.toFixed(1) + " GiB"
+                            text: cell.index === 0 ? row.entry.label : cell.index === 2 ? row.entry.used.toFixed(1) + " GiB" : "/ " + row.entry.total.toFixed(1) + " GiB"
                             // The amount used tells when much of it is.
-                            color: cell.index === 2 && row.modelData.level > 0 ? row.accent : Theme.text
+                            color: cell.index === 2 && row.entry.level > 0 ? row.accent : Theme.text
                         }
                     }
                 }

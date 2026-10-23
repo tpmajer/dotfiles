@@ -17,18 +17,21 @@ GridLayout {
     columnSpacing: Theme.popupGridGap
     rowSpacing: Theme.popupRowGap
 
+    // By the count, so that a row stays as its values change.
     Repeater {
-        model: root.rows
+        model: root.rows.length
 
         delegate: Repeater {
             id: row
-            required property var modelData
+            required property int index
+            // None for a moment as the rows get fewer.
+            readonly property var entry: root.rows[index] ?? {}
             model: 2
 
             PopupText {
                 required property int index
-                text: index === 0 ? row.modelData.label : row.modelData.value
-                color: index === 0 ? root.labelColor : row.modelData.color ?? root.valueColor
+                text: (index === 0 ? row.entry.label : row.entry.value) ?? ""
+                color: index === 0 ? root.labelColor : row.entry.color ?? root.valueColor
                 elide: Text.ElideRight
                 Layout.fillWidth: index === 0
                 Layout.alignment: index === 0 ? Qt.AlignLeft : Qt.AlignRight
