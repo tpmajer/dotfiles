@@ -144,9 +144,10 @@ Singleton {
         return found.concat(asked).sort((a, b) => b.score - a.score || byName(a.entry, b.entry)).map(r => r.entry);
     }
 
-    // A command as run in a terminal.
+    // A command as run in a terminal: a window of the Ghostty service, as
+    // Mod+T opens, or Ghostty's own without it.
     function inTerminal(command) {
-        return ["ghostty", "-e"].concat(command);
+        return ["sh", "-c", 'ghostty +new-window -e "$@" || ghostty -e "$@"', "sh"].concat(command);
     }
 
     // Started by niri, so that nothing started here ends with quickshell.
