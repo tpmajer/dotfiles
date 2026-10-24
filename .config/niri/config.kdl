@@ -223,6 +223,11 @@ window-rule {
     match app-id="^GeForceNOW$"
     open-maximized true
 }
+// They ask to open maximized to edges on first launch
+window-rule {
+    match app-id=r"^ai\.storyteller\."
+    open-maximized-to-edges false
+}
 // Width 0.8
 window-rule {
     match title=r"^Signal( \(\d+\))?$" // with or without the count of unread
