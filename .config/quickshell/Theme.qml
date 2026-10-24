@@ -205,8 +205,9 @@ Singleton {
         Quickshell.execDetached([Quickshell.shellDir + "/scripts/palette-apply.sh"].concat(first, own ? [] : Object.entries(colors).map(([k, v]) => k + "=" + v)));
     }
 
+    // The one applied already is applied again, with another wallpaper.
     function setPalette(name) {
-        if (!Object.keys(palettes).includes(name) || name === palette)
+        if (!Object.keys(palettes).includes(name))
             return;
         palette = name;
         store.setText(name);
