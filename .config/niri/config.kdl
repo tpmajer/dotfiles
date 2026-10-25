@@ -222,11 +222,7 @@ window-rule {
     match app-id=r"^ai\.storyteller\."
     match app-id="^GeForceNOW$"
     open-maximized true
-}
-// They ask to open maximized to edges on first launch
-window-rule {
-    match app-id=r"^ai\.storyteller\."
-    open-maximized-to-edges false
+    open-maximized-to-edges false // some ask for it on first launch
 }
 // Width 0.8
 window-rule {
