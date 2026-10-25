@@ -296,6 +296,35 @@ Singleton {
         runWgAuto(vpn ? "off" : "up");
     }
 
+    // The Wi-Fi band of the connected network's profile: "a" keeps it on
+    // 5 GHz, off a weaker 6 GHz it would roam to; "" lets the card choose.
+    // NetworkManager applies a band only when it connects, so a switch
+    // reconnects. Read when the popup opens, at a new network and after a
+    // switch.
+    property string band: ""
+    readonly property bool bandSwitching: bandSwitch.running
+    readonly property var wifiProfile: wifiNetwork?.nmSettings[0] ?? null
+
+    // From the network itself: called on its change, when wifiProfile may
+    // still be the previous one's.
+    function refreshBand() {
+        const profile = wifiNetwork?.nmSettings[0];
+        band = profile ? (profile.read()["802-11-wireless"]?.band ?? "") : "";
+    }
+
+    function toggleBand() {
+        if (!wifiProfile || bandSwitch.running)
+            return;
+        band = band === "a" ? "" : "a";
+        bandSwitch.command = ["sh", "-c", 'nmcli connection modify uuid "$1" 802-11-wireless.band "$2" && nmcli connection up uuid "$1"', "sh", wifiProfile.uuid, band];
+        bandSwitch.running = true;
+    }
+
+    Process {
+        id: bandSwitch
+        onExited: root.refreshBand()
+    }
+
     // Looks for Wi-Fi networks anew, for the list networkmanager_dmenu shows.
     // The scan takes a moment only: it counts as running for 2 s more, so
     // that the popup's row can be read.
@@ -345,6 +374,7 @@ Singleton {
     onSsidChanged: {
         frequencyQuery.running = true;
         trustedList.reload();
+        refreshBand();
     }
 
     Process {

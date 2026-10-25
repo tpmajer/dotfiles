@@ -14,12 +14,17 @@ Column {
     // sides and at the top.
     topPadding: alarm.visible || info.visible ? Theme.popupTextInsetV : 0
 
-    Component.onCompleted: Network.refreshWgAuto()
+    Component.onCompleted: {
+        Network.refreshWgAuto();
+        Network.refreshBand();
+    }
     Connections {
         target: root.host
         function onPopupOpenChanged() {
-            if (root.host.popupOpen)
+            if (root.host.popupOpen) {
                 Network.refreshWgAuto();
+                Network.refreshBand();
+            }
         }
     }
     // The route and the ping to the gateway, while the popup is open.
@@ -116,14 +121,14 @@ Column {
     }
 
     // At the bottom the switches: the WireGuard tunnel by hand and wg-auto,
-    // then the radio, the Wi-Fi scan and airplane mode. Their labels sit
-    // under the names above, their values end where the values do.
+    // then the radio: the Wi-Fi scan, its band and airplane mode. Their
+    // labels sit under the names above, their values end where the values do.
     Column {
         id: switches
-        readonly property real valueWidth: Math.max(tunnelAction.valueImplicitWidth, wgAutoAction.valueImplicitWidth, scanAction.valueImplicitWidth, airplaneAction.valueImplicitWidth)
+        readonly property real valueWidth: Math.max(tunnelAction.valueImplicitWidth, wgAutoAction.valueImplicitWidth, scanAction.valueImplicitWidth, bandAction.valueImplicitWidth, airplaneAction.valueImplicitWidth)
         readonly property real labelWidth: info.wide - tunnelAction.chromeWidth - valueWidth
         // What the widest of them needs for its text.
-        readonly property real textWidth: tunnelAction.chromeWidth + Math.max(tunnelAction.labelImplicitWidth, wgAutoAction.labelImplicitWidth, scanAction.labelImplicitWidth, airplaneAction.labelImplicitWidth) + valueWidth
+        readonly property real textWidth: tunnelAction.chromeWidth + Math.max(tunnelAction.labelImplicitWidth, wgAutoAction.labelImplicitWidth, scanAction.labelImplicitWidth, bandAction.labelImplicitWidth, airplaneAction.labelImplicitWidth) + valueWidth
         spacing: Theme.popupSectionGap
 
         Column {
@@ -162,6 +167,19 @@ Column {
                 value: Network.scanning ? "scanning" : Network.scanFailed ? "refused" : ""
                 widestValue: "scanning"
                 onTriggered: Network.rescan()
+            }
+            // While it reconnects there is no network: the row stays.
+            PopupAction {
+                id: bandAction
+                visible: Network.wifiProfile !== null || Network.bandSwitching
+                labelWidth: switches.labelWidth
+                valueWidth: switches.valueWidth
+                bright: Network.band === "a"
+                onColor: Theme.teal
+                text: "Wi-Fi band"
+                value: Network.band === "a" ? "5 GHz" : "auto"
+                widestValue: "5 GHz"
+                onTriggered: Network.toggleBand()
             }
             PopupAction {
                 id: airplaneAction
