@@ -36,6 +36,12 @@ Column {
         onTriggered: Network.refreshRoute()
     }
 
+    // The rates show only with the pointer on the popup, as they change too
+    // often to read at a glance.
+    HoverHandler {
+        id: hover
+    }
+
     PopupText {
         id: alarm
         visible: text !== ""
@@ -98,13 +104,23 @@ Column {
                         visible: section.entry.down !== undefined
                         text: section.entry.down ?? ""
                         horizontalAlignment: Text.AlignRight
+                        opacity: hover.hovered ? 1 : 0
                         Layout.preferredWidth: Math.ceil(rate.width)
+
+                        Behavior on opacity {
+                            NumberAnimation { duration: Theme.popupDuration }
+                        }
                     }
                     PopupText {
                         visible: section.entry.up !== undefined
                         text: section.entry.up ?? ""
                         horizontalAlignment: Text.AlignRight
+                        opacity: hover.hovered ? 1 : 0
                         Layout.preferredWidth: Math.ceil(rate.width)
+
+                        Behavior on opacity {
+                            NumberAnimation { duration: Theme.popupDuration }
+                        }
                     }
                 }
                 PopupDetails {
