@@ -62,9 +62,15 @@ Overlay {
         agent.flow.submit(field.buffer);
     }
 
+    // Typed ahead, it goes out only as the password: another question gets
+    // an empty field.
     function sendEntered() {
-        if (entered && agent.flow?.isResponseRequired)
+        if (!entered || !agent.flow?.isResponseRequired)
+            return;
+        if (prompt === "" && !plain)
             send();
+        else
+            forget();
     }
 
     function enter() {
