@@ -279,11 +279,9 @@ done
 
 # Firefox takes GTK's accent from its theme alone, not from the colors above;
 # its about: pages, which have no Firefox theme's colors, take this one when
-# started.
+# started. Catppuccin Mocha's teal with none, as GTK's colors.css has.
 for file in "${firefox[@]}"; do
-    if [ -n "$c_teal" ]; then
-        printf ':root {\n  --shell-accent: %s;\n}\n' "$c_teal"
-    fi > "$file"
+    printf ':root {\n  --shell-accent: %s;\n}\n' "${c_teal:-#94e2d5}" > "$file"
 done
 
 # Papirus has its folders in Catppuccin Mocha's blue (~/.nixos,
