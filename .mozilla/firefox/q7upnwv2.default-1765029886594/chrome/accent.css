@@ -2,7 +2,7 @@
    keeps Nova's lightness and at most its chroma, with the accent's hue. The
    accent is the theme's icons_attention, else its tab_line; pages like
    about:preferences do not get the theme's colors and take the shell's
-   (palette.css, from quickshell's palette-apply.sh; Catppuccin's teal without
+   (palette.css, from quickshell's palette-apply.sh; a neutral gray without
    it). */
 @import url("palette.css");
 
@@ -14,7 +14,7 @@
   }
 
   :root:not([lwt-icon-fill-attention]) {
-    --theme-accent: var(--lwt-tab-line-color, var(--shell-accent, #94e2d5));
+    --theme-accent: var(--lwt-tab-line-color, var(--shell-accent, gray));
   }
 
   :root {
