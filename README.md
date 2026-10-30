@@ -80,12 +80,17 @@ equal to the target, stow skips it and plans no operations at all.
 
 ## Firefox
 
-`userChrome.css` lives under the profile's own directory name
-(`q7upnwv2.default-1765029886594`, the one marked `Default=1` in
-`profiles.ini`); on a new profile, rename that directory in the
-repo before stowing. Firefox reads the file only with
+`userChrome.css` and `userContent.css` live under the profile's own
+directory name (`q7upnwv2.default-1765029886594`, the one marked
+`Default=1` in `profiles.ini`); on a new profile, rename that directory
+in the repo before stowing. Firefox reads them only with
 `toolkit.legacyUserProfileCustomizations.stylesheets` on, which `~/.nixos`
 sets, and only at its start.
+
+Nova's violet takes the Firefox theme's accent. The about: pages have no
+theme colors and take the shell palette's instead, from `palette.css`
+beside them, which `palette-apply.sh` writes; restart Firefox after a
+palette change.
 
 ## Private files
 

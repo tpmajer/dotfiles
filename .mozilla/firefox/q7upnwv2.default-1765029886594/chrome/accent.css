@@ -1,0 +1,45 @@
+/* Nova's violet in the Firefox theme's accent: each step of its two scales
+   keeps Nova's lightness and at most its chroma, with the accent's hue. The
+   accent is the theme's icons_attention, else its tab_line; pages like
+   about:preferences do not get the theme's colors and take the shell's
+   (palette.css, from quickshell's palette-apply.sh; Catppuccin's teal without
+   it). */
+@import url("palette.css");
+
+@-moz-document url-prefix("chrome:"), url-prefix("about:") {
+  /* Only when the theme sets it: by default the variable is Nova's accent,
+     which would make the scales depend on themselves. */
+  :root[lwt-icon-fill-attention] {
+    --theme-accent: var(--toolbarbutton-icon-fill-attention);
+  }
+
+  :root:not([lwt-icon-fill-attention]) {
+    --theme-accent: var(--lwt-tab-line-color, var(--shell-accent, #94e2d5));
+  }
+
+  :root {
+    --color-violet-0: oklch(from var(--theme-accent) 96% min(c, 0.027) h) !important;
+    --color-violet-10: oklch(from var(--theme-accent) 92% min(c, 0.048) h) !important;
+    --color-violet-20: oklch(from var(--theme-accent) 85% min(c, 0.087) h) !important;
+    --color-violet-30: oklch(from var(--theme-accent) 76% min(c, 0.141) h) !important;
+    --color-violet-40: oklch(from var(--theme-accent) 66% min(c, 0.202) h) !important;
+    --color-violet-50: oklch(from var(--theme-accent) 55% min(c, 0.207) h) !important;
+    --color-violet-60: oklch(from var(--theme-accent) 45% min(c, 0.169) h) !important;
+    --color-violet-70: oklch(from var(--theme-accent) 35% min(c, 0.126) h) !important;
+    --color-violet-80: oklch(from var(--theme-accent) 27% min(c, 0.079) h) !important;
+    --color-violet-90: oklch(from var(--theme-accent) 20% min(c, 0.030) h) !important;
+    --color-violet-100: oklch(from var(--theme-accent) 27% min(c, 0.1) h) !important;
+    --color-violet-110: oklch(from var(--theme-accent) 20% min(c, 0.05) h) !important;
+
+    --color-violet-desaturated-0: oklch(from var(--theme-accent) 96% min(c, 0.011) h) !important;
+    --color-violet-desaturated-10: oklch(from var(--theme-accent) 92% min(c, 0.032) h) !important;
+    --color-violet-desaturated-20: oklch(from var(--theme-accent) 85% min(c, 0.051) h) !important;
+    --color-violet-desaturated-30: oklch(from var(--theme-accent) 76% min(c, 0.068) h) !important;
+    --color-violet-desaturated-40: oklch(from var(--theme-accent) 66% min(c, 0.085) h) !important;
+    --color-violet-desaturated-50: oklch(from var(--theme-accent) 55% min(c, 0.088) h) !important;
+    --color-violet-desaturated-60: oklch(from var(--theme-accent) 45% min(c, 0.083) h) !important;
+    --color-violet-desaturated-70: oklch(from var(--theme-accent) 35% min(c, 0.079) h) !important;
+    --color-violet-desaturated-80: oklch(from var(--theme-accent) 27% min(c, 0.071) h) !important;
+    --color-violet-desaturated-90: oklch(from var(--theme-accent) 20% min(c, 0.065) h) !important;
+  }
+}

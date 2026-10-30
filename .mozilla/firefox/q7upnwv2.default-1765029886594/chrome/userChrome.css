@@ -1,3 +1,5 @@
+@import url("accent.css");
+
 /* Nova's pill-shaped controls with the shell's radii (quickshell Theme.qml:
    moduleRadius 4, barRadius 6). A user sheet loses to the browser's own
    rules unless !important. */
