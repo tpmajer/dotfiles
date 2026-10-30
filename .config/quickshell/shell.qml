@@ -27,6 +27,8 @@ ShellRoot {
         id: lock
     }
 
+    LogoutFade {}
+
     // No spectrum behind the lock, where no bar shows.
     Binding {
         target: Spectrum

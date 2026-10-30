@@ -22,6 +22,7 @@ qs ipc call lock lock        # lock, with the fade (hypridle's lock_cmd)
 qs ipc call lock doze        # fade to the lock and to black, before a suspend
 qs ipc call lock woke        # after a suspend: the fingerprint reader anew
 qs ipc call lock wallpaper   # the wallpaper has changed
+qs ipc call logout start     # fade the screens out, then quit niri
 qs ipc call lock unlock      # a way out from a TTY
 qs ipc call power toggle     # the power menu
 ```
