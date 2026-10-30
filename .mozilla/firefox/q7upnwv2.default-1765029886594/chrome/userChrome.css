@@ -76,3 +76,24 @@
 .tab-context-line {
   display: none !important;
 }
+
+/* Page actions (translate, bookmark, reader view…) as tall as the container
+   pill beside them, and 4px more. */
+.urlbar-page-action {
+  width: calc(20px + 2 * var(--space-xxsmall)) !important;
+  height: calc(20px + 2 * var(--space-xxsmall)) !important;
+}
+
+/* The buttons before the address (site info, tracking protection) the same
+   size; a labeled one ("Firefox", "Not secure") keeps its inline padding. */
+.identity-box-button,
+#trust-icon-container,
+#tracking-protection-icon-container {
+  height: calc(20px + 2 * var(--space-xxsmall)) !important;
+  align-self: center !important;
+  padding-inline: calc(var(--space-xxsmall) + 2px) !important;
+}
+
+#identity-box[pageproxystate="valid"]:is(.notSecureText, .chromeUI, .extensionPage) > .identity-box-button {
+  padding-inline: 8px !important;
+}
