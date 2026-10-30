@@ -78,6 +78,15 @@ find ~/.config -maxdepth 4 -xtype l  # dangling links
 Note that `stow -d ~ -t ~ .dotfiles` does **not** work: with the stow directory
 equal to the target, stow skips it and plans no operations at all.
 
+## Firefox
+
+`userChrome.css` lives under the profile's own directory name
+(`q7upnwv2.default-1765029886594`, the one marked `Default=1` in
+`profiles.ini`); on a new profile, rename that directory in the
+repo before stowing. Firefox reads the file only with
+`toolkit.legacyUserProfileCustomizations.stylesheets` on, which `~/.nixos`
+sets, and only at its start.
+
 ## Private files
 
 `niri/config.kdl` includes `block-screen-capture.kdl`, window rules that are

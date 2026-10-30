@@ -1,0 +1,32 @@
+/* Nova's pill-shaped controls with the shell's radii (quickshell Theme.qml:
+   moduleRadius 4, barRadius 6). A user sheet loses to the browser's own
+   rules unless !important. */
+:root {
+  --button-border-radius: 4px !important;
+  --popup-border-radius: 6px !important;
+  --input-search-border-radius: 4px !important;
+  --panel-menuitem-border-radius: 4px !important;
+  /* Nova takes the view's padding off the urlbar radius, below 0 at 6px. */
+  --urlbar-inner-border-radius: 4px !important;
+}
+
+/* Tab previews set their own radii. */
+#tab-preview-panel,
+#tab-note-preview-panel {
+  --panel-border-radius: 6px !important;
+}
+
+.tab-preview-thumbnail-container > canvas,
+.tab-note-preview-container {
+  border-radius: 4px !important;
+}
+
+/* Container indicators: the urlbar's and the tab preview's pills, the tinted
+   icons in panels, menus and the list of all tabs. */
+#userContext-icons,
+.all-tabs-item > .all-tabs-container-indicator::before,
+.tab-preview-container-indicator,
+.subviewbutton[usercontextid] > .toolbarbutton-icon,
+.menuitem-iconic[data-usercontextid] > .menu-icon {
+  border-radius: 4px !important;
+}
