@@ -63,6 +63,8 @@ Scope {
     property bool bare: false
     // How far the lock has gone dark, 0 to 1.
     property real dark: 0
+    // The session is being logged out of, the screen faded already.
+    property bool leavingSession: false
 
     function conceal() {
         if (state.locked)
@@ -74,6 +76,10 @@ Scope {
         concealed = false;
         dozing = false;
         bare = false;
+        if (leavingSession) {
+            leavingSession = false;
+            finger.watch(state.locked && !unlocking);
+        }
         dozeFallback.stop();
         dozeHold.stop();
         darken.stop();
@@ -94,6 +100,39 @@ Scope {
             dark = 1;
         else if (sessionLock.secure)
             darken.start();
+    }
+
+    // Locks unseen, in the colour the screen has faded to, for the login
+    // screen to take over: its VT switch must not lead back to a desktop.
+    // The next session must not find the marker, nor the login screen the
+    // reader taken.
+    function leaveSession() {
+        leavingSession = true;
+        dozing = true;
+        dozeFallback.restart();
+        revealFallback.stop();
+        brighten.stop();
+        dozeHold.stop();
+        darken.stop();
+        bare = false;
+        dark = 1;
+        Quickshell.execDetached(["rm", "-f", marker]);
+        finger.watch(false);
+        if (state.locked && !unlocking) {
+            concealed = true;
+            return;
+        }
+        fadeOut.stop();
+        fadeDelay.stop();
+        curtain = false;
+        leave = 0;
+        buffer = "";
+        status = "";
+        unlocking = false;
+        unlockDeadline.stop();
+        curtainSettle.stop();
+        locking = true;
+        engage(false);
     }
 
     // A key or the pointer: the screen is surely on, even if hypridle
@@ -375,6 +414,8 @@ Scope {
             finger.watch(state.locked && !root.unlocking);
         }
         onLockedChanged: {
+            if (root.leavingSession)
+                return;
             Quickshell.execDetached(locked ? ["touch", root.marker] : ["rm", "-f", root.marker]);
             finger.watch(state.locked && !root.unlocking);
         }
@@ -586,7 +627,7 @@ Scope {
 
             Rectangle {
                 anchors.fill: parent
-                color: "black"
+                color: root.leavingSession ? Theme.colors.crust : "black"
                 opacity: root.dark
                 visible: opacity > 0
             }
@@ -666,6 +707,11 @@ Scope {
         // goes dark.
         function doze(): void {
             root.doze();
+        }
+
+        // session-logout, ahead of the login screen.
+        function leaveSession(): void {
+            root.leaveSession();
         }
 
         // doze() is done: the suspend can go ahead.
