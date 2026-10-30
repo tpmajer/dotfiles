@@ -14,7 +14,8 @@ import Quickshell.Networking
 // Wi-Fi scanner is never enabled: this reads what NetworkManager already knows,
 // without triggering rescans. What the popup shows of the default route (the
 // address, the gateway and how long it takes to answer) is read only when
-// the popup asks for it.
+// the popup asks for it; whether it leads to an iPhone's hotspot is read at
+// each change `ip monitor` reports.
 Singleton {
     id: root
 
@@ -62,7 +63,7 @@ Singleton {
     // Connected to a network that does not lead to the internet, by
     // NetworkManager's own check: "" while it does, or while that is not known.
     readonly property string offline: {
-        if (!wired && !wifiNetwork)
+        if (!wired && !wifiNetwork && !hotspot)
             return "";
         switch (Networking.connectivity) {
         case NetworkConnectivity.None:
@@ -88,9 +89,9 @@ Singleton {
     // it is not on USB. The RTL8156 sometimes comes up on USB 2.0 and then tops
     // out around 350 Mb/s although the link still reads 2500 Mb/s.
     property int usbSpeed: 0
-    readonly property bool slowUsb: usbSpeed > 0 && usbSpeed < 5000
+    readonly property bool slowUsb: !wiredHotspot && usbSpeed > 0 && usbSpeed < 5000
     // The cable's link under 1 Gb/s, whatever the USB: a bad cable or socket.
-    readonly property bool slowLink: wired && wiredDevice.linkSpeed > 0 && wiredDevice.linkSpeed < 1000
+    readonly property bool slowLink: wired && !wiredHotspot && wiredDevice.linkSpeed > 0 && wiredDevice.linkSpeed < 1000
     // Either way the cable is slow: its icon and the popup's row tell.
     readonly property bool slowWired: slowUsb || slowLink
     readonly property string usbName: usbSpeed >= 5000 ? "USB 3" : usbSpeed >= 480 ? "USB 2.0" : usbSpeed >= 12 ? "USB 1.1" : "USB 1.0"
@@ -110,20 +111,86 @@ Singleton {
         }
     }
 
+    // The internet comes through an iPhone's hotspot, whichever way it is
+    // joined (Wi-Fi, Bluetooth, USB): iOS always hands out this gateway, and
+    // NetworkManager's Bluetooth device is not in Quickshell.Networking. Read
+    // apart from the popup's route, which is wg0 under the tunnel.
+    property string hotspotDevice: ""
+    readonly property bool hotspot: hotspotDevice !== ""
+    readonly property bool wiredHotspot: wired && wiredDevice.name === hotspotDevice
+    readonly property bool wifiHotspot: wifiDevice !== null && wifiDevice.name === hotspotDevice
+    property bool routeStale: false
+
+    function readHotspot() {
+        if (defaultRoute.running)
+            routeStale = true;
+        else
+            defaultRoute.running = true;
+    }
+
+    Process {
+        id: defaultRoute
+        command: ["ip", "-j", "route", "show", "default"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                let routes = [];
+                try {
+                    routes = JSON.parse(text);
+                } catch (e) {}
+                routes.sort((a, b) => (a.metric ?? 0) - (b.metric ?? 0));
+                root.hotspotDevice = routes[0]?.gateway === "172.20.10.1" ? routes[0].dev : "";
+            }
+        }
+        onRunningChanged: {
+            if (!running && root.routeStale) {
+                root.routeStale = false;
+                running = true;
+            }
+        }
+    }
+
+    // A link going down takes its routes with no word of them: links and
+    // addresses too.
+    Process {
+        id: routeMonitor
+        running: true
+        command: ["ip", "monitor", "link", "address", "route"]
+        stdout: SplitParser {
+            onRead: routeChanged.restart()
+        }
+        onStarted: root.readHotspot()
+        onExited: monitorRestart.start()
+    }
+
+    Timer {
+        id: monitorRestart
+        interval: 2000
+        onTriggered: routeMonitor.running = true
+    }
+
+    // Routes change in bursts.
+    Timer {
+        id: routeChanged
+        interval: 200
+        onTriggered: root.readHotspot()
+    }
+
     // The bar shows the cable icon (red on a slow cable) apart from the rest:
     // cable first, then Wi-Fi if it is connected too (it usually stays up).
-    readonly property string wiredText: wired ? Theme.glyph(0xef44) : ""
+    readonly property string wiredText: wired && !wiredHotspot ? Theme.glyph(0xef44) : ""
     readonly property string text: {
         const parts = [];
+        if (hotspot && !wifiHotspot)
+            parts.push(Theme.glyph(0xf0c1));
         if (wifiNetwork) {
-            const icon = [0x100000, 0x100001, 0xf1eb][signalArcs];
+            const icon = wifiHotspot ? 0xf0c1 : [0x100000, 0x100001, 0xf1eb][signalArcs];
             parts.push(Theme.glyph(icon) + (trusted ? "" : " " + ssid));
         } else if (Rfkill.airplane) {
             parts.push(Theme.glyph(0xf072));
         }
         if (vpn)
             parts.push(Theme.glyph(0xf084));
-        if (!wired && !wifiNetwork && !Rfkill.airplane)
+        if (!wired && !wifiNetwork && !Rfkill.airplane && !hotspot)
             return Theme.glyph(0xf127);
         return parts.join(" ");
     }
@@ -144,7 +211,7 @@ Singleton {
             const details = [];
             if (wiredDevice.linkSpeed > 0)
                 details.push({label: "Link", value: wiredDevice.linkSpeed + " Mb/s" + (slowUsb ? "  " + usbName : ""), color: slowWired ? Theme.maroon : undefined});
-            list.push(section("Ethernet", wiredDevice, details));
+            list.push(section(wiredHotspot ? "iPhone hotspot" : "Ethernet", wiredDevice, details));
         }
         // The name the bar leaves out on a trusted network.
         if (wifiNetwork)
@@ -158,7 +225,7 @@ Singleton {
                 details.push({label: "Address", value: address});
             if (gateway !== "")
                 details.push({label: "Gateway", value: gateway + (latency !== "" ? "  " + latency : "")});
-            const through = wired && routeDevice === wiredDevice.name ? "Ethernet" : wifiNetwork && routeDevice === wifiDevice.name ? "Wi-Fi" : routeDevice === "wg0" ? "WireGuard" : routeDevice;
+            const through = routeDevice === hotspotDevice ? "iPhone hotspot" : wired && routeDevice === wiredDevice.name ? "Ethernet" : wifiNetwork && routeDevice === wifiDevice.name ? "Wi-Fi" : routeDevice === "wg0" ? "WireGuard" : routeDevice;
             list.push({label: "Route", value: through, details});
         }
         return list;
