@@ -55,6 +55,11 @@ Scope {
     property bool concealed: false
     // Locked with the screen on: the lines come in once the lock is drawn.
     property bool arriving: false
+    // A suspend is coming: a slower fade, no lines, the lock goes dark. Only
+    // IPC unlocks meanwhile: the laptop would wake up showing the desktop.
+    property bool dozing: false
+    // How far the lock has gone dark, 0 to 1.
+    property real dark: 0
 
     function conceal() {
         if (state.locked)
@@ -64,12 +69,30 @@ Scope {
     function uncover() {
         revealFallback.stop();
         concealed = false;
+        dozing = false;
+        dozeFallback.stop();
+        darken.stop();
+        if (dark > 0)
+            brighten.start();
+    }
+
+    function doze() {
+        dozing = true;
+        dozeFallback.restart();
+        revealFallback.stop();
+        brighten.stop();
+        lock();
+        // The screen is off already: nothing to see going dark.
+        if (state.locked && concealed && !arriving)
+            dark = 1;
+        else if (sessionLock.secure)
+            darken.start();
     }
 
     // A key or the pointer: the screen is surely on, even if hypridle
     // does not say so.
     function nudge() {
-        if (concealed && !revealFallback.running)
+        if (concealed && !dozing && !revealFallback.running)
             revealFallback.start();
     }
 
@@ -190,9 +213,9 @@ Scope {
         target: root
         property: "shade"
         to: 1
-        duration: 200
-        easing.type: Easing.OutCubic
-        onFinished: root.engage()
+        duration: root.dozing ? 500 : 200
+        easing.type: root.dozing ? Easing.InOutSine : Easing.OutCubic
+        onFinished: root.engage(!root.dozing)
     }
 
     NumberAnimation {
@@ -240,14 +263,41 @@ Scope {
     // The session locks even if no curtain shows up to fade in.
     Timer {
         id: lockDeadline
-        interval: 600
-        onTriggered: root.engage()
+        interval: 800
+        onTriggered: root.engage(!root.dozing)
     }
 
     Timer {
         id: revealFallback
         interval: 1500
-        onTriggered: root.concealed = false
+        onTriggered: root.uncover()
+    }
+
+    NumberAnimation {
+        id: darken
+        target: root
+        property: "dark"
+        to: 1
+        duration: 800
+        easing.type: Easing.InOutSine
+        // Its lines wait for the wake, if the lock had them up.
+        onFinished: root.conceal()
+    }
+
+    NumberAnimation {
+        id: brighten
+        target: root
+        property: "dark"
+        to: 0
+        duration: 300
+    }
+
+    // Still awake long after the delay logind allows: the suspend did not
+    // happen, and nothing will say so.
+    Timer {
+        id: dozeFallback
+        interval: 10000
+        onTriggered: root.uncover()
     }
 
     // The red marks go, the field is empty again. They stay red while they
@@ -355,6 +405,11 @@ Scope {
                 respond(root.buffer);
         }
         onCompleted: result => {
+            if (result === PamResult.Success && root.dozing) {
+                root.checking = false;
+                root.buffer = "";
+                return;
+            }
             if (result === PamResult.Success) {
                 root.unlock(true);
                 return;
@@ -384,7 +439,14 @@ Scope {
             if (root.status === text)
                 root.status = "";
         }
-        onRecognised: root.unlock()
+        onRecognised: {
+            if (root.dozing) {
+                finger.mark = "";
+                finger.woke();
+                return;
+            }
+            root.unlock();
+        }
     }
 
     Wallpapers {
@@ -430,8 +492,11 @@ Scope {
         onSecureChanged: {
             if (secure && root.arriving) {
                 root.arriving = false;
-                root.uncover();
+                if (!root.dozing)
+                    root.uncover();
             }
+            if (secure && root.dozing)
+                darken.start();
         }
 
         WlSessionLockSurface {
@@ -471,7 +536,7 @@ Scope {
                     if (event.key === Qt.Key_CapsLock)
                         capsDelay.restart();
                     // Nothing more once the password is accepted.
-                    if (root.checking || root.unlocking)
+                    if (root.checking || root.unlocking || root.dozing)
                         return;
                     // A key during the red marks starts the next attempt.
                     root.endRejection();
@@ -496,6 +561,13 @@ Scope {
                     }
                     event.accepted = true;
                 }
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                color: "black"
+                opacity: root.dark
+                visible: opacity > 0
             }
         }
     }
@@ -569,13 +641,14 @@ Scope {
             root.lock();
         }
 
-        // Before a suspend: no fade, the session locks at once.
-        function lockNow(): void {
-            root.lock();
-            root.engage(false);
-            // Locked already, engage() does nothing: the lines still wait
-            // for the wake.
-            root.conceal();
+        // Before a suspend: fades to the wallpaper, locks and goes dark.
+        function doze(): void {
+            root.doze();
+        }
+
+        // doze() is done: the suspend can go ahead.
+        function isDark(): bool {
+            return root.dark === 1;
         }
 
         // The compositor has locked the session and the lock is drawn.
