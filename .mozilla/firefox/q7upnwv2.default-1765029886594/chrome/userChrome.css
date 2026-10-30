@@ -67,6 +67,12 @@
     bottom: 0;
     height: 2.5px;
     border-radius: 1.25px;
-    background: currentColor;
+    /* A container tab's in the container's color, as Nova's stroke. */
+    background: var(--identity-stroke-color, currentColor);
   }
+}
+
+/* The underline marks the container instead. */
+.tab-context-line {
+  display: none !important;
 }
