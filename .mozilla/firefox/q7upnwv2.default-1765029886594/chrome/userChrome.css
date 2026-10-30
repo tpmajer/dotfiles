@@ -49,3 +49,24 @@
 :root:has(#nav-bar .urlbar[popover-open]) #browser {
   filter: brightness(0.55);
 }
+
+/* The selected tab as a hovered bar module (widgets/Module.qml): a plain
+   background with an underline in the text's color, without Nova's gradient
+   border. Both colors are the Firefox theme's. */
+.tab-background[selected] {
+  position: relative;
+  background: var(--tab-background-color-selected) !important;
+  box-shadow: none !important;
+  outline-color: transparent !important;
+
+  /* A box, not a gradient, for the module's rounded ends. */
+  &::after {
+    content: "";
+    position: absolute;
+    inset-inline: 4px;
+    bottom: 0;
+    height: 2.5px;
+    border-radius: 1.25px;
+    background: currentColor;
+  }
+}
