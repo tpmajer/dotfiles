@@ -2,8 +2,8 @@
 
 # The palette for what else takes one, each from a file its configuration
 # names, kept out of git: ghostty, niri, fuzzel, btop, helix, bat, micro, fzf,
-# mpv and GTK, with its folders and the cursor; Herdr in its own. The login
-# screen's too, where there is one to take it.
+# mpv and GTK, with its folders and the cursor; Herdr in its own; Firefox's
+# about: pages. The login screen's too, where there is one to take it.
 #   palette-apply.sh [init|sync] [name=color ...] [ghostty=theme btop=theme helix=theme herdr=theme herdrbase=true cursor=theme]
 # The colors are Theme's, as #rrggbb. With none it is Catppuccin Mocha, which
 # the configurations and their themes have.
@@ -40,6 +40,12 @@ files=("$ghostty" "$niri" "$fuzzel" "$btop" "$helix" "$bat" "$micro" "$fzf" "$mp
 # The login screen reads its own at its start (~/.nixos, greeter/shell.qml).
 greeter=/var/cache/greeter
 [ -w "$greeter" ] && greeter+=/palette && files+=("$greeter") || greeter=
+# Each Firefox profile with a userChrome.css, whose accent.css imports it.
+shopt -s nullglob
+firefox=("$HOME"/.mozilla/firefox/*/chrome/userChrome.css)
+shopt -u nullglob
+firefox=("${firefox[@]/%userChrome.css/palette.css}")
+files+=("${firefox[@]}")
 
 # One at a time: a palette is not to be overwritten by the one before it.
 mkdir -p "${state%/*}"
@@ -269,6 +275,15 @@ gtk > "$gtk4"
 shopt -s nullglob
 for dir in "$HOME"/.var/app/*/config/gtk-[34].0; do
     gtk > "$dir/palette.css"
+done
+
+# Firefox takes GTK's accent from its theme alone, not from the colors above;
+# its about: pages, which have no Firefox theme's colors, take this one when
+# started.
+for file in "${firefox[@]}"; do
+    if [ -n "$c_teal" ]; then
+        printf ':root {\n  --shell-accent: %s;\n}\n' "$c_teal"
+    fi > "$file"
 done
 
 # Papirus has its folders in Catppuccin Mocha's blue (~/.nixos,

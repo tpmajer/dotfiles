@@ -15,3 +15,4 @@ secrets.yml
 *~
 
 .config/quickshell/sounds/
+.mozilla/firefox/*/chrome/palette.css
