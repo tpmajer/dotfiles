@@ -4,7 +4,8 @@ import Quickshell.Io
 import Quickshell.Wayland
 
 // The way out of the session: the screens fade to the colour the VT and the
-// login screen have (~/.nixos, notes/greeter.md), then niri quits.
+// login screen have (~/.nixos, notes/greeter.md), then session-logout starts
+// the login screen and quits niri; without it, niri quits at once.
 Scope {
     id: root
 
@@ -26,7 +27,7 @@ Scope {
         duration: 200
         easing.type: Easing.InOutSine
         onFinished: {
-            Quickshell.execDetached(["niri", "msg", "action", "quit", "-s"]);
+            Quickshell.execDetached(["sh", "-c", "session-logout || niri msg action quit -s"]);
             stillHere.start();
         }
     }
@@ -34,7 +35,7 @@ Scope {
     // niri did not quit: the screens come back.
     Timer {
         id: stillHere
-        interval: 3000
+        interval: 15000
         onTriggered: {
             root.fading = false;
             root.shade = 0;
