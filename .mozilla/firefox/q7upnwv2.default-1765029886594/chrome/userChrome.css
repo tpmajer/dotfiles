@@ -38,3 +38,14 @@
 #searchbar {
   --urlbar-background-box-shadow-open: 0 3px 20px rgba(0, 0, 0, 0.47) !important;
 }
+
+/* Under the open urlbar the page dims like the screen under the launcher
+   (widgets/Overlay.qml, 45% black). The results are in the top layer,
+   outside #browser, so they stay bright. */
+#browser {
+  transition: filter 150ms ease;
+}
+
+:root:has(#nav-bar .urlbar[popover-open]) #browser {
+  filter: brightness(0.55);
+}
