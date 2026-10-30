@@ -30,3 +30,11 @@
 .menuitem-iconic[data-usercontextid] > .menu-icon {
   border-radius: 4px !important;
 }
+
+/* The open urlbar casts the launcher's shadow (quickshell widgets/Shadow.qml)
+   instead of Nova's tinted glow. The blur stays under the 24px the two halves
+   overlap by, or the seam between them shows. */
+.urlbar,
+#searchbar {
+  --urlbar-background-box-shadow-open: 0 3px 20px rgba(0, 0, 0, 0.47) !important;
+}
