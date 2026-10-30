@@ -101,3 +101,8 @@
 #identity-box[pageproxystate="valid"]:is(.notSecureText, .chromeUI, .extensionPage) > .identity-box-button {
   padding-inline: 8px !important;
 }
+
+/* The tab's close button round. */
+.tab-close-button {
+  border-radius: 50% !important;
+}
