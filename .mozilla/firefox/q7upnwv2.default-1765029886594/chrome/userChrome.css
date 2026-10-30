@@ -106,3 +106,12 @@
 .tab-close-button {
   border-radius: 50% !important;
 }
+
+/* The address bar's selected result as the launcher's: a faint background
+   (Surface 0 is 11% of the way from Base to Text) under the field's own text.
+   Hovering looks the same, as there the pointer selects. */
+:root {
+  --urlbarview-background-color-selected: color-mix(in srgb, currentColor 11%, transparent) !important;
+  --urlbarview-background-color-hover: color-mix(in srgb, currentColor 11%, transparent) !important;
+  --urlbarview-text-color-selected: var(--toolbar-field-text-color-focus) !important;
+}
