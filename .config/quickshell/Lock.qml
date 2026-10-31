@@ -55,9 +55,12 @@ Scope {
     property bool concealed: false
     // Locked with the screen on: the lines come in once the lock is drawn.
     property bool arriving: false
-    // A suspend is coming: a slower fade, no lines, the lock goes dark. Only
-    // IPC unlocks meanwhile: the laptop would wake up showing the desktop.
+    // A suspend is coming: a slower fade, the lock goes dark. Only IPC unlocks
+    // meanwhile: the laptop would wake up showing the desktop.
     property bool dozing: false
+    // Locked by that suspend: the clock and the lines under it come in, not
+    // the field and the finger. Up already, the lock stays as it is.
+    property bool bare: false
     // How far the lock has gone dark, 0 to 1.
     property real dark: 0
 
@@ -70,7 +73,9 @@ Scope {
         revealFallback.stop();
         concealed = false;
         dozing = false;
+        bare = false;
         dozeFallback.stop();
+        dozeHold.stop();
         darken.stop();
         if (dark > 0)
             brighten.start();
@@ -81,6 +86,8 @@ Scope {
         dozeFallback.restart();
         revealFallback.stop();
         brighten.stop();
+        if (!state.locked)
+            bare = true;
         lock();
         // The screen is off already: nothing to see going dark.
         if (state.locked && concealed && !arriving)
@@ -215,7 +222,7 @@ Scope {
         to: 1
         duration: root.dozing ? 500 : 200
         easing.type: root.dozing ? Easing.InOutSine : Easing.OutCubic
-        onFinished: root.engage(!root.dozing)
+        onFinished: root.engage(!root.dozing || root.bare)
     }
 
     NumberAnimation {
@@ -264,13 +271,20 @@ Scope {
     Timer {
         id: lockDeadline
         interval: 800
-        onTriggered: root.engage(!root.dozing)
+        onTriggered: root.engage(!root.dozing || root.bare)
     }
 
     Timer {
         id: revealFallback
         interval: 1500
         onTriggered: root.uncover()
+    }
+
+    // The clock's lines come in and stay a moment before the lock goes dark.
+    Timer {
+        id: dozeHold
+        interval: 800
+        onTriggered: darken.start()
     }
 
     NumberAnimation {
@@ -483,6 +497,7 @@ Scope {
         fingerMark: finger.mark
         capsLock: root.capsLock
         status: root.status
+        bare: root.bare
     }
 
     WlSessionLock {
@@ -494,9 +509,15 @@ Scope {
                 root.arriving = false;
                 if (!root.dozing)
                     root.uncover();
+                else if (root.bare)
+                    root.concealed = false;
             }
-            if (secure && root.dozing)
-                darken.start();
+            if (secure && root.dozing) {
+                if (root.bare)
+                    dozeHold.start();
+                else
+                    darken.start();
+            }
         }
 
         WlSessionLockSurface {
@@ -641,7 +662,8 @@ Scope {
             root.lock();
         }
 
-        // Before a suspend: fades to the wallpaper, locks and goes dark.
+        // Before a suspend: fades to the wallpaper, locks, shows the clock and
+        // goes dark.
         function doze(): void {
             root.doze();
         }

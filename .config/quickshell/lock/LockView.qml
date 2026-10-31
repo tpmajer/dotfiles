@@ -32,6 +32,9 @@ Rectangle {
     // Hidden while the screen is off; shown again, the lines come in one
     // after another.
     property bool concealed: false
+    // Only the lines that tell something: nothing to type into or touch. They
+    // keep their place, so the clock does not move when the rest comes in.
+    property bool bare: false
     // Unlocking, on the curtain: 0 to 1, linear in time. The lines grow and
     // fade over the first 70%, the wallpaper sharpens.
     property real leaving: 0
@@ -203,6 +206,7 @@ Rectangle {
         Step {
             cascade: lines
             order: 3
+            opacity: view.bare ? 0 : shown
 
             // The password field: a mark per character typed.
             Item {
@@ -278,6 +282,7 @@ Rectangle {
         Step {
             cascade: lines
             order: 4
+            opacity: view.bare ? 0 : shown
 
             FingerMark {
                 mark: view.fingerMark
@@ -288,6 +293,7 @@ Rectangle {
         Step {
             cascade: lines
             order: 5
+            opacity: view.bare ? 0 : shown
 
             PopupText {
                 // Caps Lock, which matters while typing, else what the
