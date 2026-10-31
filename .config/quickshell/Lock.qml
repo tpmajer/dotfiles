@@ -41,6 +41,7 @@ Scope {
     property string rejection: ""
     readonly property int marks: frozenMarks >= 0 ? frozenMarks : buffer.length
     readonly property bool locked: state.locked
+    readonly property alias wallpapers: wallpapers.images
     // Caps Lock is on, as the keyboards' LEDs have it: Qt does not tell.
     property bool capsLock: false
     property bool curtain: false

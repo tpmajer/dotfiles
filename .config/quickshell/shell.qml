@@ -27,7 +27,9 @@ ShellRoot {
         id: lock
     }
 
-    LogoutFade {}
+    LogoutFade {
+        wallpapers: lock.wallpapers
+    }
 
     // No spectrum behind the lock, where no bar shows.
     Binding {
