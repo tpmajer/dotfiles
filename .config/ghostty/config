@@ -56,7 +56,7 @@ quit-after-last-window-closed = false
 #link-url = true
 # cursor: loop only briefly after cursor moves (patch in ~/.nixos)
 custom-shader-animation = cursor
-custom-shader-animation-duration = 250ms
+custom-shader-animation-duration = 350ms
 custom-shader = shaders/cursor_warp.glsl
 #custom-shader = shaders/cursor_smear.glsl
 #custom-shader = shaders/cursor_smear_original.glsl
