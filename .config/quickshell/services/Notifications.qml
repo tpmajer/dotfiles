@@ -67,9 +67,17 @@ Singleton {
     // rest is shown as it was written, since the text format of the card
     // would load any image the body names, from the network too, and drop
     // what it takes for a tag it does not know, such as "<no subject>".
+    // It drops any "&" but of the entities it knows, and takes a new line for
+    // a space.
     function markup(body) {
         const allowed = /^<\/?[biu]>$|^<br\s*\/?>$|^<a(\s+href\s*=\s*("[^"]*"|'[^']*'))?\s*>$|^<\/a>$/i;
-        return body.replace(/<[^<>]*>|[<>]/g, tag => allowed.test(tag) ? tag : tag.replace(/</g, "&lt;").replace(/>/g, "&gt;"));
+        return body.trim().replace(/<[^<>]*>|[<>]|&(?!(?:lt|gt|amp|quot|nbsp);)|\r?\n/g, found => {
+            if (allowed.test(found))
+                return found;
+            if (found.endsWith("\n"))
+                return "<br>";
+            return found.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        });
     }
 
     // Do not disturb: a notification gets no toast and goes straight to the
