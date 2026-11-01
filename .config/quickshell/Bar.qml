@@ -131,7 +131,8 @@ PanelWindow {
                     Module {
                         id: workspaceModule
                         required property var modelData
-                        readonly property var ws: modelData
+                        // Anew from the list: a moved row keeps its old object.
+                        readonly property var ws: workspaceRow.workspaces.find(w => w.id === modelData?.id) ?? modelData
                         host: popups
                         text: !ws ? "" : ws.is_active ? Theme.glyph(0xf0c8) : String(ws.name || ws.idx)
                         bold: !!ws && ws.is_active
