@@ -25,12 +25,22 @@ Row {
     // The place at the top, level with today, and the rest below it, level
     // with the days after.
     Item {
-        width: Math.max(place.width, now.width)
+        width: Math.max(place.width + Theme.popupGridGap + moon.width, now.width)
         height: Math.max(place.height + Theme.popupSectionGap + now.height, week.visible ? week.height : 0)
 
         PopupText {
             id: place
             text: Weather.place + " " + Weather.temperatureText
+        }
+
+        // At the end of the row, in a line's height, as the week's icons.
+        PopupText {
+            id: moon
+            anchors.right: parent.right
+            height: place.height
+            verticalAlignment: Text.AlignVCenter
+            font.pixelSize: Theme.fontSize + 6
+            text: Weather.moonIcon
         }
 
         Column {

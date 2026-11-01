@@ -133,6 +133,21 @@ Singleton {
 
     readonly property string icon: glyphFor(code, day)
 
+    // How far the Moon is ahead of the Sun, in degrees from new, at a time in
+    // ms: Meeus, Astronomical Algorithms, 48.4, good to half a degree.
+    function moonElongation(ms) {
+        const t = (ms / 86400000 - 10957.5) / 36525;
+        const rad = Math.PI / 180;
+        const d = (297.8501921 + 445267.1114034 * t) * rad;
+        const m = (357.5291092 + 35999.0502909 * t) * rad;
+        const n = (134.9633964 + 477198.8675055 * t) * rad;
+        const e = d / rad + 6.289 * Math.sin(n) - 2.1 * Math.sin(m) + 1.274 * Math.sin(2 * d - n) + 0.658 * Math.sin(2 * d) + 0.214 * Math.sin(2 * n) + 0.11 * Math.sin(d);
+        return (e % 360 + 360) % 360;
+    }
+
+    // The 28 glyphs of the Moon, from new through full, the lit part filled.
+    readonly property string moonIcon: Theme.glyph(0xe38d + Math.round(moonElongation(clock.date.getTime()) / 360 * 28) % 28)
+
     // WMO weather codes, as Open-Meteo gives them.
     function glyphFor(c, day) {
         let glyph;
