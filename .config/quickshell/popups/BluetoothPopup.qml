@@ -54,6 +54,7 @@ PopupList {
             iconColor: modelData.connected ? Theme.sapphire : Theme.subtext0
             bright: modelData.connected
             text: modelData.name
+            widestValue: "disconnecting…"
             value: modelData.state === BluetoothDeviceState.Connecting ? "connecting…" : modelData.state === BluetoothDeviceState.Disconnecting ? "disconnecting…" : modelData.connected ? Audio.batteryText(modelData) : ""
             onTriggered: {
                 if (busy)

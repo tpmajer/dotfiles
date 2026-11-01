@@ -39,6 +39,7 @@ PopupList {
             bright: isDefault
             text: Audio.name(modelData)
             detail: Audio.bluetoothDetail(modelData)
+            widestValue: "muted"
             value: sinkList.level(modelData)
             level: modelData.audio.volume
             levelColor: sinkList.levelColor(modelData, Theme.yellow)
@@ -67,6 +68,7 @@ PopupList {
             icon: Theme.glyph(0xf1bc)
             iconColor: Spotify.muted ? Theme.subtext0 : Theme.green
             text: "Spotify"
+            widestValue: "muted"
             value: Spotify.muted ? "muted" : Spotify.volume + "%"
             level: Spotify.volume / 100
             levelColor: Theme.green
@@ -85,6 +87,7 @@ PopupList {
             icon: Theme.glyph(modelData.audio.muted ? 0xeee8 : 0xf001)
             iconColor: Theme.subtext0
             text: Audio.appName(modelData)
+            widestValue: "muted"
             value: sinkList.level(modelData)
             level: modelData.audio.volume
             levelColor: sinkList.levelColor(modelData, Theme.yellow)
@@ -112,6 +115,7 @@ PopupList {
             iconColor: modelData.audio.muted ? Theme.subtext0 : recording ? Theme.red : Theme.yellow
             bright: recording
             text: Audio.name(modelData)
+            widestValue: "muted"
             value: sinkList.level(modelData)
             level: modelData.audio.volume
             levelColor: sinkList.levelColor(modelData, recording ? Theme.red : Theme.yellow)
@@ -130,6 +134,7 @@ PopupList {
             icon: Theme.glyph(0xf111)
             iconColor: modelData.audio.muted ? Theme.subtext0 : Theme.red
             text: Audio.appName(modelData)
+            widestValue: "muted"
             value: sinkList.level(modelData)
             level: modelData.audio.volume
             levelColor: sinkList.levelColor(modelData, Theme.red)
