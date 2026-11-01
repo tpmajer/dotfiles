@@ -32,6 +32,9 @@ Rectangle {
     // Hidden while the screen is off; shown again, the lines come in one
     // after another.
     property bool concealed: false
+    // Going to sleep: the clock's timer does not count a suspend, and it
+    // reads the time anew when it starts again.
+    property bool dozing: false
     // Only the lines that tell something: nothing to type into or touch. They
     // keep their place, so the clock does not move when the rest comes in.
     property bool bare: false
@@ -49,6 +52,7 @@ Rectangle {
     SystemClock {
         id: day
         precision: SystemClock.Minutes
+        enabled: !view.dozing
     }
 
     color: Theme.base

@@ -587,6 +587,7 @@ Scope {
                 anchors.fill: parent
                 output: surface.screen?.name ?? ""
                 concealed: root.concealed
+                dozing: root.dozing
                 focus: true
                 // Caps Lock goes on when the key is pressed, off when it is
                 // released.
