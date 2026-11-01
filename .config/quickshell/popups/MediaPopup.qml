@@ -180,7 +180,7 @@ Column {
             visible: !!popup.player && popup.player.lengthSupported && popup.player.length > 0
 
             PopupText {
-                text: progress.visible && popup.player.positionSupported ? popup.time(popup.elapsed) : ""
+                text: progress.visible && popup.player?.positionSupported ? popup.time(popup.elapsed) : ""
                 color: Theme.subtext0
             }
             LevelBar {
@@ -193,7 +193,7 @@ Column {
                 glide: popup.glide
             }
             PopupText {
-                text: progress.visible ? popup.time(popup.player.length) : ""
+                text: progress.visible && popup.player ? popup.time(popup.player.length) : ""
                 color: Theme.subtext0
             }
         }
