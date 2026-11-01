@@ -8,7 +8,7 @@ import qs.services
 // center: the urgency as a line on the left, who it is from with the time it
 // came, the summary, the body, a button for each action and, where the card
 // is told to, a field for the reply its sender takes. A left click runs the
-// default action and closes the notification, but the first one on a body
+// default action and closes the notification, but the first one on a text
 // cut short, which shows the whole of it; a right click only closes it. The
 // background is drawn by what the card is in.
 Item {
@@ -34,8 +34,8 @@ Item {
     // have its own way, such as fading the card out first.
     property var close: () => card.notification.dismiss()
 
-    // The whole body is shown, not its first lines: after a click on a
-    // body cut short.
+    // The whole text is shown, not its first lines: after a click on a
+    // summary or body cut short.
     property bool expanded: false
     // The lines of a body cut short, and of one shown whole: as much as
     // still leaves the card on the screen.
@@ -105,7 +105,7 @@ Item {
     // A left click, or its key in the notification center.
     // Whether it ran the action, not only unfolded the text.
     function activate(): bool {
-        if (body.truncated && !expanded) {
+        if ((body.truncated || summary.truncated) && !expanded) {
             expanded = true;
             return false;
         }
@@ -216,7 +216,7 @@ Item {
             textFormat: Text.PlainText
             font.bold: true
             wrapMode: Text.Wrap
-            maximumLineCount: 2
+            maximumLineCount: card.expanded ? card.bodyLinesExpanded : 2
             elide: Text.ElideRight
         }
 
