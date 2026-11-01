@@ -144,6 +144,8 @@ PanelWindow {
         height: overlay.boxHeight
         opacity: pop.openness
         scale: pop.scale
+        // Faded out it still takes clicks: they are for the dimming beside it.
+        enabled: overlay.shown
 
         // Under what is in the box: a click between its items does not close.
         MouseArea {
