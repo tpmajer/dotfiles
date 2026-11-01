@@ -161,6 +161,14 @@ Column {
                     // selection.
                     readonly property bool active: center.panel.keyboardMode ? index === center.selected : hover.hovered
 
+                    // A card unfolded, or pushed down by a new one, stays in view.
+                    onYChanged: revealIfSelected()
+                    onHeightChanged: revealIfSelected()
+                    function revealIfSelected() {
+                        if (center.panel.keyboardMode && index === center.selected)
+                            Qt.callLater(center.reveal);
+                    }
+
                     width: Theme.notificationWidth
                     height: body.implicitHeight
                     radius: Theme.moduleRadius
