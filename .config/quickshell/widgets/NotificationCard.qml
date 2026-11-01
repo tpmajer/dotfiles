@@ -95,7 +95,8 @@ Item {
     // summary and the body. A higher card does not make it any larger.
     // What the picture's column takes on the left, after the urgency.
     readonly property real pictureColumn: hasPicture ? pictureSize + Theme.popupColumnGap : 0
-    readonly property real pictureSize: 2 * sender.height + summary.height / Math.max(1, summary.lineCount) + 2 * content.spacing
+    // By the font, not the summary's lines: those depend on the column's width.
+    readonly property real pictureSize: 2 * sender.height + summaryLine.height + 2 * content.spacing
     readonly property var extraActions: notification.actions.filter(a => a.identifier !== "default")
 
     implicitWidth: Theme.notificationWidth
@@ -153,6 +154,11 @@ Item {
             fillMode: Image.PreserveAspectCrop
             sourceSize.height: card.pictureSize * 2
         }
+    }
+
+    FontMetrics {
+        id: summaryLine
+        font: summary.font
     }
 
     Column {
