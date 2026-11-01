@@ -15,7 +15,7 @@ Rectangle {
     signal triggered
     signal secondaryTriggered      // a right click
 
-    implicitHeight: Math.max(thumb.visible ? thumb.height : 0, label.implicitHeight) + 8
+    implicitHeight: Math.max(root.entry.image ? thumb.height : 0, label.implicitHeight) + 8
     radius: Theme.moduleRadius
     color: hovered ? Theme.surface0 : Qt.rgba(Theme.surface0.r, Theme.surface0.g, Theme.surface0.b, 0)
     Behavior on color {
@@ -34,13 +34,14 @@ Rectangle {
         asynchronous: true
         sourceSize.width: 2 * width
         sourceSize.height: 2 * height
-        source: visible ? Clipboard.thumbnail(root.entry) : ""
+        source: root.entry.image ? Clipboard.thumbnail(root.entry) : ""
     }
 
     PopupText {
         id: label
-        // Right after the image as drawn, which may be narrower than its box.
-        x: thumb.visible ? thumb.x + thumb.paintedWidth + Theme.popupIconGap : Theme.popupTextInset
+        // Right after the image as drawn, which may be narrower than its box;
+        // by the entry, as the row is not visible yet as the popup measures it.
+        x: !root.entry.image ? Theme.popupTextInset : thumb.x + (thumb.status === Image.Ready ? thumb.paintedWidth : thumb.width) + Theme.popupIconGap
         width: root.width - x - Theme.popupTextInset
         anchors.verticalCenter: parent.verticalCenter
         elide: Text.ElideRight
