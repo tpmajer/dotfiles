@@ -12,6 +12,7 @@ ShellRoot {
         model: Quickshell.screens
 
         Bar {
+            locked: lock.locked
             onPowerMenuRequested: powerMenu.toggle()
             onLauncherRequested: launcher.toggle()
             onClipboardRequested: launcher.toggleClipboard()

@@ -17,6 +17,12 @@ PanelWindow {
     required property var modelData
     screen: modelData
 
+    // The session is locked. A popup kept open from the keyboard would be
+    // there at the unlock, with the keys.
+    property bool locked: false
+    onLockedChanged: if (locked)
+        popups.dismiss()
+
     anchors {
         top: true
         left: true
