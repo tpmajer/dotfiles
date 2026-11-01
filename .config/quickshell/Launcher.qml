@@ -44,16 +44,23 @@ Overlay {
     // A new query, or the clipboard's history in place of the applications,
     // starts at the top. A list read again, as the history is after each
     // change, keeps the entry chosen wherever it moved, or with that one
-    // gone the row; the view forgets either with its model.
+    // gone the row; the view forgets either with its model, and its scroll
+    // is put back. It gets the new list only here, for that to be read first.
     property var listed: ({results: [], query: ""})
+    Component.onCompleted: listed = {results, query: ""}
     onResultsChanged: {
         const query = (clipboard ? "clipboard:" : "") + input.text;
+        const top = listed.query === query ? list.contentY : 0;
         const was = listed.query === query ? listed.results[index] : undefined;
         const key = r => r?.id ?? r;
         const kept = was === undefined ? -1 : results.findIndex(r => key(r) === key(was));
         index = kept >= 0 ? kept : Math.min(index, Math.max(0, results.length - 1));
         listed = {results, query};
-        Qt.callLater(() => list.currentIndex = Qt.binding(() => menu.index));
+        Qt.callLater(() => {
+            list.currentIndex = Qt.binding(() => menu.index);
+            list.contentY = Math.min(top, Math.max(0, results.length - maxRows) * rowHeight);
+            list.positionViewAtIndex(index, ListView.Contain);
+        });
     }
     onClipboardChanged: index = 0
 
@@ -352,7 +359,7 @@ Overlay {
         clip: true
         // The wheel does not scroll it.
         interactive: false
-        model: menu.results
+        model: menu.listed.results
         currentIndex: menu.index
         highlightMoveDuration: 0
 
