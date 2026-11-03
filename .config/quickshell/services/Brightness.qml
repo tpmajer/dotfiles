@@ -31,9 +31,7 @@ Singleton {
         onChanged: root.changed()
     }
 
-    Process {
-        id: udev
-        running: true
+    Watcher {
         command: ["udevadm", "monitor", "--udev", "--subsystem-match=backlight"]
         stdout: SplitParser {
             onRead: line => {
@@ -41,12 +39,5 @@ Singleton {
                     level.reload();
             }
         }
-        onExited: udevRestart.start()
-    }
-
-    Timer {
-        id: udevRestart
-        interval: 5000
-        onTriggered: udev.running = true
     }
 }

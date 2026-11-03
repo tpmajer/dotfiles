@@ -147,20 +147,11 @@ Singleton {
     FileView { id: cyclesFile; path: root.sysfs + "cycle_count"; blockLoading: true }
 
     // Plug/unplug shows up immediately instead of on the next poll.
-    Process {
-        id: udev
-        running: true
+    Watcher {
         command: ["udevadm", "monitor", "--udev", "--subsystem-match=power_supply"]
         stdout: SplitParser {
             onRead: debounce.restart()
         }
-        onExited: udevRestart.start()
-    }
-
-    Timer {
-        id: udevRestart
-        interval: 5000
-        onTriggered: udev.running = true
     }
 
     Timer {

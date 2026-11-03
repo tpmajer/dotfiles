@@ -93,30 +93,16 @@ Singleton {
         current = state === "nil" ? "" : kind;
         refresh.restart();
     }
-    Process {
-        id: textWatch
+    Watcher {
         command: ["wl-paste", "--type", "text", "--watch", "sh", "-c", 'cat > /dev/null; echo "$CLIPBOARD_STATE"']
-        running: true
         stdout: SplitParser {
             onRead: state => root.changed(state, "text")
         }
-        onExited: watchRestart.start()
     }
-    Process {
-        id: imageWatch
+    Watcher {
         command: ["wl-paste", "--type", "image/png", "--watch", "sh", "-c", 'cat > /dev/null; echo "$CLIPBOARD_STATE"']
-        running: true
         stdout: SplitParser {
             onRead: state => root.changed(state, "image")
-        }
-        onExited: watchRestart.start()
-    }
-    Timer {
-        id: watchRestart
-        interval: 5000
-        onTriggered: {
-            textWatch.running = true;
-            imageWatch.running = true;
         }
     }
 

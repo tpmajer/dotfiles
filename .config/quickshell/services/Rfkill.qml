@@ -21,9 +21,7 @@ Singleton {
         Quickshell.execDetached(["rfkill", airplane ? "unblock" : "block", "all"]);
     }
 
-    Process {
-        id: events
-        running: true
+    Watcher {
         command: ["rfkill", "event"]
         stdout: SplitParser {
             onRead: line => {
@@ -38,23 +36,16 @@ Singleton {
                 root.blocked = next;
             }
         }
-        onExited: restart.start()
+        // Not ready first, so that the radios listed anew are no change.
+        onStarted: {
+            startup.restart();
+            root.blocked = ({});
+        }
     }
 
     Timer {
         id: startup
         interval: 1000
         running: true
-    }
-
-    Timer {
-        id: restart
-        interval: 5000
-        // Not ready first, so that the radios listed anew are no change.
-        onTriggered: {
-            startup.restart();
-            root.blocked = ({});
-            events.running = true;
-        }
     }
 }

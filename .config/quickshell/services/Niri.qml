@@ -310,9 +310,8 @@ Singleton {
         }
     }
 
-    Process {
-        id: stream
-        running: true
+    Watcher {
+        restartDelay: 1000
         command: ["niri", "msg", "--json", "event-stream"]
         stdout: SplitParser {
             onRead: line => {
@@ -323,12 +322,5 @@ Singleton {
                 }
             }
         }
-        onExited: restart.start()
-    }
-
-    Timer {
-        id: restart
-        interval: 1000
-        onTriggered: stream.running = true
     }
 }

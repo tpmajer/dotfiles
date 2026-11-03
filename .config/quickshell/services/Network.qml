@@ -151,21 +151,13 @@ Singleton {
 
     // A link going down takes its routes with no word of them: links and
     // addresses too.
-    Process {
-        id: routeMonitor
-        running: true
+    Watcher {
+        restartDelay: 2000
         command: ["ip", "monitor", "link", "address", "route"]
         stdout: SplitParser {
             onRead: routeChanged.restart()
         }
         onStarted: root.readHotspot()
-        onExited: monitorRestart.start()
-    }
-
-    Timer {
-        id: monitorRestart
-        interval: 2000
-        onTriggered: routeMonitor.running = true
     }
 
     // Routes change in bursts.
