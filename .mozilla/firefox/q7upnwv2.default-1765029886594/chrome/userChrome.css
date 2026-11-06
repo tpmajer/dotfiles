@@ -11,7 +11,7 @@
   /* Nova takes the view's padding off the urlbar radius, below 0 at 6px. */
   --urlbar-inner-border-radius: 4px !important;
   /* A result's background is inside its gutter, which takes off as much. */
-  --urlbarView-row-border-radius: calc(4px + var(--urlbarView-row-gutter)) !important;
+  --urlbarview-row-border-radius: calc(4px + var(--urlbarview-row-gutter)) !important;
 }
 
 /* Tab previews set their own radii. */
