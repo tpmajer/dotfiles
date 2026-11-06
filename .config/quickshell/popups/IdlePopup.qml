@@ -9,6 +9,8 @@ import qs.widgets
 Column {
     id: popup
 
+    Component.onCompleted: Idle.refreshHypridle()
+
     readonly property bool hasRows: true
     readonly property bool inhibited: Idle.inhibited
     // The switch's text and the rows below are as wide as the wider of the two.

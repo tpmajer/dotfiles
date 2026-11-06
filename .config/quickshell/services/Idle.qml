@@ -6,9 +6,9 @@ import Quickshell.Io
 import Quickshell.Wayland
 
 // The idle inhibitor module, backed by scripts/idle-inhibit.sh, which tells
-// by its exit code whether the inhibitor is on. Asked right after a toggle,
-// and every half a minute for what ends it elsewhere: its timeout, or a
-// suspend. The module also tells that the system is idle, and how long is
+// by its exit code whether the inhibitor is on. Asked at the start, right
+// after a toggle, and while it is on every half a minute for what ends it
+// elsewhere: its timeout, or a suspend. The module also tells that the system is idle, and how long is
 // left until it locks.
 Singleton {
     id: root
@@ -67,9 +67,19 @@ Singleton {
         onLoaded: root.hypridle = text()
     }
 
-    // When hypridle was started, as systemd tells it; asked with the
-    // inhibitor.
+    // When hypridle was started, as systemd tells it: asked as the idle
+    // starts and as the popup opens, which show its stages.
     property string hypridleStart: ""
+
+    function refreshHypridle() {
+        hypridleStatus.running = true;
+    }
+    onSystemIdleChanged: if (systemIdle)
+        refreshHypridle()
+    Component.onCompleted: {
+        idleStatus.running = true;
+        refreshHypridle();
+    }
 
     Process {
         id: hypridleStatus
@@ -139,12 +149,8 @@ Singleton {
 
     Timer {
         interval: 30000
-        running: true
+        running: root.inhibited
         repeat: true
-        triggeredOnStart: true
-        onTriggered: {
-            idleStatus.running = true;
-            hypridleStatus.running = true;
-        }
+        onTriggered: idleStatus.running = true
     }
 }
