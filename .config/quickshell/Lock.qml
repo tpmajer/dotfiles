@@ -80,6 +80,9 @@ Scope {
         if (leavingSession) {
             leavingSession = false;
             finger.watch(state.locked && !unlocking);
+            // Still here, and locked: a restart must find the marker.
+            if (state.locked)
+                Quickshell.execDetached(["touch", marker]);
         }
         dozeFallback.stop();
         dozeHold.stop();
@@ -348,9 +351,11 @@ Scope {
 
     // Still awake long after the delay logind allows: the suspend did not
     // happen, and nothing will say so.
+    // Logging out takes up to some 16 s: session-logout waits for the login
+    // screen.
     Timer {
         id: dozeFallback
-        interval: 10000
+        interval: root.leavingSession ? 20000 : 10000
         onTriggered: root.uncover()
     }
 
