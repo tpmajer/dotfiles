@@ -47,6 +47,13 @@ Column {
         triggeredOnStart: true
         onTriggered: Network.readTraffic()
     }
+    // A rate takes two reads: the second soon after the popup comes up, not
+    // 2 s later.
+    Timer {
+        interval: 300
+        running: root.visible
+        onTriggered: Network.readTraffic()
+    }
 
     // The rates show only with the pointer on the popup, as they change too
     // often to read at a glance.
