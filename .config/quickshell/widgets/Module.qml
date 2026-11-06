@@ -40,6 +40,8 @@ Item {
     readonly property real centerX: leftMargin + bg.width / 2
     // The most the text takes; no limit below 0.
     property int maxTextWidth: -1
+    // What the module takes besides its text, for a limit set by its width.
+    readonly property real chromeWidth: leftMargin + rightMargin + 2 * hPadding + (icon.visible ? icon.width + contentRow.spacing : 0) + (prefixText.visible ? prefixText.width + contentRow.spacing : 0)
 
     // What a right click runs, and whether a left one shows the popup at
     // once. Each button has its signal, sent whatever else its click does.
@@ -101,6 +103,7 @@ Item {
             spacing: 6
 
             IconImage {
+                id: icon
                 visible: root.iconSource !== ""
                 source: root.iconSource
                 implicitSize: root.iconSize
@@ -108,6 +111,7 @@ Item {
             }
 
             Text {
+                id: prefixText
                 visible: root.prefix !== ""
                 text: root.prefix
                 textFormat: Text.PlainText

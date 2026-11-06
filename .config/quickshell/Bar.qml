@@ -272,6 +272,7 @@ PanelWindow {
         }
 
         Row {
+            id: rightRow
             anchors.right: parent.right
             height: parent.height
 
@@ -327,9 +328,18 @@ PanelWindow {
                 clickOpensPopup: true
             }
 
-            // network
+            // network: a long name cut short before the modules in the middle
             Module {
+                id: networkModule
                 host: popups
+                // By the other modules' widths, not its own: no loop through the row.
+                maxTextWidth: {
+                    let others = 0;
+                    for (const module of rightRow.children)
+                        if (module !== networkModule)
+                            others += module.width;
+                    return Math.max(30, rightRow.parent.width - mediaModule.x - mediaModule.width - 16 - others - chromeWidth);
+                }
                 prefix: Network.wiredText
                 prefixColor: Network.slowWired ? Theme.maroon : Theme.teal
                 text: Network.text
