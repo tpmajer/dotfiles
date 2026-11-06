@@ -19,6 +19,11 @@ Column {
     // The card selected from the keyboard. A notification come or gone
     // keeps the one selected; with that one gone, the place stays.
     property int selected: 0
+    // The pointer moved over the list. A card that comes under a pointer
+    // at rest, as the list scrolls or closes up, is told hovered too: that
+    // is not the mouse moving the selection.
+    signal pointerMoved
+    property var pointerAt: null
     property var shownList: []
     onListChanged: {
         const kept = list.indexOf(shownList[selected]);
@@ -139,6 +144,18 @@ Column {
         boundsBehavior: Flickable.StopAtBounds
         clip: true
 
+        // Not for one lying where the list comes up.
+        HoverHandler {
+            onPointChanged: {
+                const at = point.scenePosition;
+                const moved = center.pointerAt && (at.x !== center.pointerAt.x || at.y !== center.pointerAt.y);
+                center.pointerAt = Qt.point(at.x, at.y);
+                // Once the cards under it know where it is.
+                if (moved)
+                    Qt.callLater(center.pointerMoved);
+            }
+        }
+
         Column {
             id: rows
             spacing: 2
@@ -179,8 +196,13 @@ Column {
 
                     HoverHandler {
                         id: hover
-                        onHoveredChanged: if (hovered)
-                            center.selected = row.index
+                    }
+                    Connections {
+                        target: center
+                        function onPointerMoved() {
+                            if (hover.hovered)
+                                center.selected = row.index;
+                        }
                     }
 
                     readonly property alias card: body
