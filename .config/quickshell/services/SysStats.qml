@@ -11,6 +11,9 @@ import Quickshell.Io
 Singleton {
     id: root
 
+    // Not read behind the lock, where no bar shows.
+    property bool locked: false
+
     property int cpuUsage: 0
     property var coreUsages: []
     property string loadAvg: ""
@@ -118,7 +121,7 @@ Singleton {
 
     Timer {
         interval: 1000
-        running: true
+        running: !root.locked
         repeat: true
         triggeredOnStart: true
         onTriggered: {
@@ -139,7 +142,7 @@ Singleton {
 
     Timer {
         interval: 5000
-        running: true
+        running: !root.locked
         repeat: true
         triggeredOnStart: true
         onTriggered: {

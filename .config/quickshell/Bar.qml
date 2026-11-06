@@ -407,5 +407,7 @@ PanelWindow {
     SystemClock {
         id: systemClock
         precision: SystemClock.Seconds
+        // Behind the lock no bar shows.
+        enabled: !bar.locked
     }
 }

@@ -26,6 +26,10 @@ Singleton {
     // Who blocks sleep or shutdown.
     property var blockers: []
 
+    // Not read behind the lock, where the module is not seen; read at once
+    // after it.
+    property bool locked: false
+
     // The module's color: it tells of failed units and of a restart due.
     readonly property color color: failedUnits.length > 0 ? Theme.red : restartPending ? Theme.peach : Theme.subtext0
 
@@ -89,7 +93,7 @@ Singleton {
 
     Timer {
         interval: 60000
-        running: true
+        running: !root.locked
         repeat: true
         triggeredOnStart: true
         onTriggered: root.refresh()

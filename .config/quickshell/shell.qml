@@ -40,6 +40,18 @@ ShellRoot {
     }
 
     Binding {
+        target: Machine
+        property: "locked"
+        value: lock.locked
+    }
+
+    Binding {
+        target: SysStats
+        property: "locked"
+        value: lock.locked
+    }
+
+    Binding {
         target: KbdBacklight
         property: "locked"
         value: lock.locked
