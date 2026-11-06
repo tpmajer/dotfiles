@@ -122,6 +122,8 @@ Singleton {
     property bool routeStale: false
 
     function readHotspot() {
+        // A tunnel up or down is a link and its routes: wg0 is told then.
+        readTraffic();
         if (defaultRoute.running)
             routeStale = true;
         else
@@ -259,7 +261,8 @@ Singleton {
             if (!current)
                 continue;
             const prev = previous[device.name];
-            if (prev && now > prev.time && current.rx >= prev.rx && current.tx >= prev.tx) {
+            // Not over a long gap, as when the popup comes up again.
+            if (prev && now > prev.time && now - prev.time < 5000 && current.rx >= prev.rx && current.tx >= prev.tx) {
                 const seconds = (now - prev.time) / 1000;
                 nextRates[device.name] = {
                     down: formatRate((current.rx - prev.rx) / seconds),
@@ -276,14 +279,6 @@ Singleton {
         id: netDev
         path: "/proc/net/dev"
         blockLoading: true
-    }
-
-    Timer {
-        interval: 2000
-        running: true
-        repeat: true
-        triggeredOnStart: true
-        onTriggered: root.readTraffic()
     }
 
     // The default route, for the popup: this machine's address on it, the
@@ -448,10 +443,9 @@ Singleton {
         }
     }
 
-    Timer {
-        interval: 30000
-        running: root.ssid !== ""
-        repeat: true
-        onTriggered: frequencyQuery.running = true
+    // Only the popup shows it: asked while it is open.
+    function refreshFrequency() {
+        if (ssid !== "")
+            frequencyQuery.running = true;
     }
 }

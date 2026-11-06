@@ -27,13 +27,25 @@ Column {
             }
         }
     }
-    // The route and the ping to the gateway, while the popup is open.
+    // The route, the ping to the gateway and the Wi-Fi band, while the popup
+    // is open.
     Timer {
         interval: 5000
         running: root.visible
         repeat: true
         triggeredOnStart: true
-        onTriggered: Network.refreshRoute()
+        onTriggered: {
+            Network.refreshRoute();
+            Network.refreshFrequency();
+        }
+    }
+    // The traffic: only the popup shows it.
+    Timer {
+        interval: 2000
+        running: root.visible
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: Network.readTraffic()
     }
 
     // The rates show only with the pointer on the popup, as they change too
