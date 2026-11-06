@@ -546,6 +546,13 @@ Scope {
         id: sessionLock
         locked: state.locked
 
+        // Ended by the compositor, or refused: the session is not locked,
+        // whatever the state says, and lock() would do nothing.
+        onLockedChanged: if (!locked && state.locked && !root.unlocking) {
+            console.warn("The session lock ended without an unlock.");
+            root.unlock();
+        }
+
         onSecureChanged: {
             if (secure && root.arriving) {
                 root.arriving = false;
