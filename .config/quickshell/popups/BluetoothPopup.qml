@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import Quickshell.Bluetooth
 import qs
 import qs.services
@@ -42,8 +43,12 @@ PopupList {
         return Theme.iconGlyph(type) || Theme.glyph(0xf00af);
     }
 
+    // ScriptModel: a re-sorted list moves the rows instead of making them
+    // anew, so the one under the pointer keeps its hover.
     Repeater {
-        model: power.on ? btList.devices : []
+        model: ScriptModel {
+            values: power.on ? btList.devices : []
+        }
 
         PopupAction {
             required property var modelData

@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import qs
 import qs.services
 import qs.widgets
@@ -26,8 +27,12 @@ PopupList {
         return node.audio.muted ? Theme.subtext0 : color;
     }
 
+    // ScriptModel: a row stays while its node does, with its hover and its
+    // part-turn of the wheel, when another output or program comes or goes.
     Repeater {
-        model: Audio.sinks
+        model: ScriptModel {
+            values: Audio.sinks
+        }
 
         PopupAction {
             required property var modelData
@@ -78,7 +83,9 @@ PopupList {
     }
 
     Repeater {
-        model: sinkList.streams
+        model: ScriptModel {
+            values: sinkList.streams
+        }
 
         PopupAction {
             required property var modelData
@@ -125,7 +132,9 @@ PopupList {
     }
 
     Repeater {
-        model: Audio.recorders
+        model: ScriptModel {
+            values: Audio.recorders
+        }
 
         PopupAction {
             required property var modelData

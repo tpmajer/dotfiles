@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import qs
 import qs.services
 import qs.widgets
@@ -58,8 +59,13 @@ Column {
         }
     }
 
+    // ScriptModel by id (each refresh parses the entries into new objects):
+    // an entry deleted here takes its row alone, the others stay.
     Repeater {
-        model: Clipboard.entries.slice(0, 8)
+        model: ScriptModel {
+            values: Clipboard.entries.slice(0, 8)
+            objectProp: "id"
+        }
 
         ClipboardRow {
             required property var modelData
