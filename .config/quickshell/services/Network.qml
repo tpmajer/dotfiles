@@ -7,15 +7,11 @@ import Quickshell.Io
 import Quickshell.Networking
 
 // The network module: cable and/or Wi-Fi. Connection, SSID, signal and link
-// speed come from NetworkManager through Quickshell.Networking (events, nothing
-// polled); traffic and the VPN (wg0 exists only while it is up) from
-// /proc/net/dev every 2 s. Only the Wi-Fi frequency still needs nmcli, run on a
-// network change and every 30 s (roaming between bands keeps the SSID). The
-// Wi-Fi scanner is never enabled: this reads what NetworkManager already knows,
-// without triggering rescans. What the popup shows of the default route (the
-// address, the gateway and how long it takes to answer) is read only when
-// the popup asks for it; whether it leads to an iPhone's hotspot is read at
-// each change `ip monitor` reports.
+// speed come from NetworkManager through Quickshell.Networking (events). At
+// each change `ip monitor` reports: the VPN (wg0 in /proc/net/dev) and
+// whether the route leads to an iPhone's hotspot. Only while the popup is
+// open: traffic, the route, the Wi-Fi frequency (nmcli; also on a new
+// network). A rescan only on the popup's click.
 Singleton {
     id: root
 
