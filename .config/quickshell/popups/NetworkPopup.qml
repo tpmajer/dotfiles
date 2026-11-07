@@ -11,8 +11,9 @@ Column {
     readonly property bool hasRows: true
     spacing: Theme.popupSectionGap
     // The text above the switches is inset like the switches' text, on the
-    // sides and at the top.
-    topPadding: alarm.visible || info.visible ? Theme.popupTextInsetV : 0
+    // sides and at the top. From the data: `visible` is false until the popup
+    // first shows, and the padding would come in as it opens.
+    topPadding: Network.offline !== "" || Network.sections.length > 0 ? Theme.popupTextInsetV : 0
 
     Component.onCompleted: {
         Network.refreshWgAuto();
