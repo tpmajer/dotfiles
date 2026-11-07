@@ -24,10 +24,13 @@ case "$1" in
         fi
         ;;
     hold)
-        deadline=$(($(date +%s) + timeout))
+        # No date or grep: the loop runs as long as the inhibitor, on AC for good.
+        deadline=$((EPOCHSECONDS + timeout))
         while :; do
-            now=$(date +%s)
-            grep -qx 1 "$ac" && deadline=$((now + timeout))
+            now=$EPOCHSECONDS
+            online=0
+            read -r online < "$ac"
+            [ "$online" = 1 ] && deadline=$((now + timeout))
             [ "$now" -ge "$deadline" ] && exit 0
             sleep 5
         done
