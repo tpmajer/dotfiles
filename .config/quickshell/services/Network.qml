@@ -337,7 +337,11 @@ Singleton {
         wgAutoQuery.running = true;
     }
 
+    // A click while the script still runs (waiting for polkit, say) would
+    // queue the same action again: a second prompt.
     function runWgAuto(action) {
+        if (wgAutoToggle.running)
+            return;
         wgAutoToggle.command = [Quickshell.shellDir + "/scripts/wg-auto.sh", action];
         wgAutoToggle.running = true;
     }
