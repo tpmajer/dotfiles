@@ -92,6 +92,24 @@ Singleton {
     property real attemptedAt: 0
     property real observedAt: 0
 
+    // After a suspend: the clock read anew, as it does not count the
+    // suspend and would show the old temperature as current, and what is
+    // old fetched.
+    function woke() {
+        clock.enabled = false;
+        clock.enabled = true;
+        refreshIfStale();
+    }
+
+    // The network back, as after a wake: a fetch tried without it failed.
+    Connections {
+        target: Network
+        function onOfflineChanged() {
+            if (Network.offline === "")
+                root.refreshIfStale();
+        }
+    }
+
     // After a suspend, say: the lock refreshes it before it shows.
     function refreshIfStale() {
         const now = Date.now();

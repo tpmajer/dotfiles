@@ -746,6 +746,7 @@ Scope {
         // hypridle's after_sleep_cmd.
         function woke(): void {
             finger.woke();
+            Weather.woke();
         }
 
         // hypridle, as it turns the screens off and on.
