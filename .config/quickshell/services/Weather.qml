@@ -95,7 +95,15 @@ Singleton {
     // After a suspend: the clock read anew, as it does not count the
     // suspend and would show the old temperature as current, and what is
     // old fetched.
+    property int retries: 0
+    Timer {
+        id: retry
+        interval: 10000
+        onTriggered: root.refreshIfStale()
+    }
+
     function woke() {
+        retries = 0;
         clock.enabled = false;
         clock.enabled = true;
         refreshIfStale();
@@ -200,6 +208,16 @@ Singleton {
     Process {
         id: fetch
         onStarted: root.attemptedAt = Date.now()
+        // Failed, as just after a wake before the network is usable again
+        // (NetworkManager may not tell): tried again soon, a few times.
+        onExited: exitCode => {
+            if (exitCode === 0)
+                root.retries = 0;
+            else if (root.retries < 6) {
+                root.retries++;
+                retry.restart();
+            }
+        }
         command: ["curl", "-sf", "--max-time", "15", `https://api.open-meteo.com/v1/forecast?latitude=${root.latitude}&longitude=${root.longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,weather_code,is_day&hourly=precipitation_probability,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&timezone=auto&timeformat=unixtime&forecast_days=7`]
         running: true
         stdout: StdioCollector {
