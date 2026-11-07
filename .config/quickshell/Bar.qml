@@ -66,6 +66,13 @@ PanelWindow {
         toggleKeyboardPopup(bellModule);
     }
 
+    // The keys went to another output's bar: its popup would keep them here,
+    // the next time this output is focused.
+    function releaseKeyboard() {
+        if (keyboardMode)
+            popups.dismiss();
+    }
+
     Item {
         id: keyHandler
         focus: true

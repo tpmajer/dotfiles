@@ -159,6 +159,10 @@ ShellRoot {
 
         function toggle(): void {
             const bar = focusedBar();
+            for (const other of bars.instances) {
+                if (other !== bar)
+                    other.releaseKeyboard();
+            }
             if (bar)
                 bar.toggleNotifications();
         }
