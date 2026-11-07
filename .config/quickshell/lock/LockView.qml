@@ -147,6 +147,9 @@ Rectangle {
             order: 2
 
             Row {
+                // As tall with the weather as without it, which comes and goes
+                // with the forecast: the lines do not move.
+                height: Math.max(implicitHeight, weatherIcon.implicitHeight)
                 spacing: 24
 
                 // The icon a little larger than the text, as in the bar.
@@ -178,6 +181,7 @@ Rectangle {
                     spacing: 6
 
                     PopupText {
+                        id: weatherIcon
                         text: Weather.icon
                         color: Theme.subtext0
                         font.pixelSize: Theme.fontSize + 6
