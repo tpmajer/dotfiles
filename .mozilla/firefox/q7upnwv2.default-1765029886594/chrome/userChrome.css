@@ -43,6 +43,15 @@
   --urlbar-background-box-shadow-open: 0 3px 20px rgba(0, 0, 0, 0.47) !important;
 }
 
+/* Menus and panels without a border (the theme's popup_border or Nova's
+   gray) and with the shell's shadow; the margin is the room it needs. niri
+   keeps that room 8px inside the window, so panels at its edge move left. */
+:is(menupopup, panel):not(.autoscroller) {
+  --panel-border-color: transparent !important;
+  --panel-box-shadow: 0 3px 20px rgba(0, 0, 0, 0.47) !important;
+  --panel-box-shadow-margin: 24px !important;
+}
+
 /* Under the open urlbar the page dims like the screen under the launcher
    (widgets/Overlay.qml, 45% black). The results are in the top layer,
    outside #browser, so they stay bright. */
