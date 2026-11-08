@@ -258,6 +258,11 @@ window-rule {
     open-floating true
     default-window-height { fixed 750; }
 }
+// Nautilus preview (Space) as a column next to Nautilus
+window-rule {
+    match app-id=r"^org\.gnome\.NautilusPreviewer$"
+    open-floating false
+}
 
 /-window-rule {
     match app-id="WinBox"
