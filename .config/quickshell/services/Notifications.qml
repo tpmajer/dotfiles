@@ -46,12 +46,13 @@ Singleton {
     }
 
     // Senders whose notifications are low whatever they say, by desktop
-    // entry: ghostty sends all of its own as normal.
-    readonly property var lowSenders: ["com.mitchellh.ghostty"]
+    // entry or app name: ghostty and herdr send all of theirs as normal.
+    readonly property var lowSenders: ["com.mitchellh.ghostty", "Herdr"]
 
     // How urgent a notification is taken to be.
     function urgency(notification) {
-        return lowSenders.includes(notification.desktopEntry) ? NotificationUrgency.Low : notification.urgency;
+        const low = lowSenders.includes(notification.desktopEntry) || lowSenders.includes(notification.appName);
+        return low ? NotificationUrgency.Low : notification.urgency;
     }
 
     // The most urgent of those waiting in the center; low with none.
