@@ -1,4 +1,6 @@
 import QtQuick
+import Quickshell
+import Quickshell.Io
 import Quickshell.Services.Polkit
 import Quickshell.Wayland
 import qs.widgets
@@ -17,8 +19,8 @@ Overlay {
         cancel()
 
     // There a moment longer once it is granted, for the green to be seen.
-    shown: agent.isActive || granted.running
-    keyboard: agent.isActive
+    shown: (agent?.isActive ?? false) || granted.running
+    keyboard: agent?.isActive ?? false
     boxWidth: 460
     boxHeight: column.implicitHeight + 2 * pad
     readonly property int pad: Theme.popupPadding + Theme.popupTextInset
@@ -27,8 +29,8 @@ Overlay {
     // Enter was pressed: the answer goes out once it is asked for.
     property bool entered: false
     // What PAM asks for, "" for the password, and whether it may be seen.
-    readonly property string prompt: (agent.flow?.inputPrompt ?? "").trim().replace(/:$/, "").replace(/^password$/i, "")
-    readonly property bool plain: agent.flow?.responseVisible ?? false
+    readonly property string prompt: (agent?.flow?.inputPrompt ?? "").trim().replace(/:$/, "").replace(/^password$/i, "")
+    readonly property bool plain: agent?.flow?.responseVisible ?? false
     // The reader: "" not asked, "waiting" for a finger, "bad" for a moment
     // after one it did not recognise, "ok" after one it did.
     property string finger: ""
@@ -52,7 +54,7 @@ Overlay {
 
     function cancel() {
         forget();
-        if (agent.flow)
+        if (agent?.flow)
             agent.flow.cancelAuthenticationRequest();
     }
 
@@ -65,7 +67,7 @@ Overlay {
     // Typed ahead, it goes out only as the password: another question gets
     // an empty field.
     function sendEntered() {
-        if (!entered || !agent.flow?.isResponseRequired)
+        if (!entered || !agent?.flow?.isResponseRequired)
             return;
         if (prompt === "" && !plain)
             send();
@@ -74,7 +76,7 @@ Overlay {
     }
 
     function enter() {
-        if (field.buffer === "" || field.checking || !agent.flow)
+        if (field.buffer === "" || field.checking || !agent?.flow)
             return;
         if (agent.flow.isResponseRequired)
             send();
@@ -98,7 +100,7 @@ Overlay {
     // Whether the message to be read came before PAM asked for an answer.
     property bool fromReader: false
     function heard() {
-        const flow = agent.flow;
+        const flow = agent?.flow;
         if (!flow)
             return;
         const text = flow.supplementaryMessage;
@@ -124,7 +126,7 @@ Overlay {
     // A flow is there: a new one, or one in progress that a reloaded
     // configuration takes over, which is not told as started.
     function adopt() {
-        const flow = agent.flow;
+        const flow = agent?.flow;
         if (previous?.isSuccessful)
             succeed();
         else if (!flow)
@@ -139,25 +141,52 @@ Overlay {
     }
     Component.onCompleted: adopt()
 
-    PolkitAgent {
-        id: agent
+    // polkitd forgets its agents when it restarts (a rebuild), and only a
+    // new PolkitAgent registers again: the old one goes, then a new one comes.
+    readonly property PolkitAgent agent: agentLoader.item
 
-        // The agent drops a flow before the flow says it succeeded: its
-        // signal for that reaches nobody.
-        onFlowChanged: auth.adopt()
+    LazyLoader {
+        id: agentLoader
+        active: true
 
-        onAuthenticationRequestStarted: {
-            granted.stop();
-            field.clear();
-            auth.entered = false;
-            auth.finger = "";
-            auth.asked = false;
-            auth.say("", false);
+        PolkitAgent {
+            // The agent drops a flow before the flow says it succeeded: its
+            // signal for that reaches nobody.
+            onFlowChanged: auth.adopt()
+
+            onAuthenticationRequestStarted: {
+                granted.stop();
+                field.clear();
+                auth.entered = false;
+                auth.finger = "";
+                auth.asked = false;
+                auth.say("", false);
+            }
         }
     }
 
+    Process {
+        running: true
+        command: ["journalctl", "--follow", "--lines=0", "--output=cat", "--identifier=polkitd"]
+        stdout: SplitParser {
+            onRead: line => {
+                if (!line.startsWith("Started polkitd"))
+                    return;
+                agentLoader.active = false;
+                newAgent.restart();
+            }
+        }
+    }
+
+    // The old agent is deleted later, and while it lives a new one is refused.
+    Timer {
+        id: newAgent
+        interval: 1000
+        onTriggered: agentLoader.active = true
+    }
+
     Connections {
-        target: agent.flow
+        target: auth.agent?.flow ?? null
 
         function onIsResponseRequiredChanged() {
             if (!agent.flow.isResponseRequired)
