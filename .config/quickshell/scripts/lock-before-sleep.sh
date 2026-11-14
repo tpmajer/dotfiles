@@ -16,7 +16,14 @@ until qs ipc call lock doze 2>/dev/null; do
     sleep 0.1
 done
 
+# A reload of the configuration drops a lock not drawn yet: asked again
+# while it is not, a second after the first time, then every half second.
+again=$((${EPOCHREALTIME/[.,]/} + 1000000))
 while [ "${EPOCHREALTIME/[.,]/}" -lt "$end" ]; do
     [ "$(qs ipc call lock isDark 2>/dev/null)" = "true" ] && exit 0
+    if [ "${EPOCHREALTIME/[.,]/}" -ge "$again" ]; then
+        [ "$(qs ipc call lock isLocked 2>/dev/null)" = "true" ] || qs ipc call lock doze 2>/dev/null
+        again=$((${EPOCHREALTIME/[.,]/} + 500000))
+    fi
     sleep 0.05
 done
