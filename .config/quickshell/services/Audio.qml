@@ -24,7 +24,19 @@ Singleton {
 
     // Programs playing sound, in PipeWire's order.
     // Without a filter's stream to the device, named like the filter's sink.
-    readonly property var streams: Pipewire.nodes.values.filter(n => n.isStream && n.isSink && n.audio && !sinks.some(s => s.name === n.name))
+    // By the names of all sinks seen: as PipeWire's connection breaks, the
+    // sink may go before its stream, which, tracked then, crashes qs.
+    readonly property var streams: Pipewire.nodes.values.filter(n => n.isStream && n.isSink && n.audio && !(n.name in sinkNames))
+    property var sinkNames: ({})
+    onSinksChanged: {
+        const fresh = sinks.filter(s => !(s.name in sinkNames));
+        if (fresh.length === 0)
+            return;
+        const names = Object.assign({}, sinkNames);
+        for (const s of fresh)
+            names[s.name] = true;
+        sinkNames = names;
+    }
     // Programs recording from the microphone: what its links lead to, so that
     // one listening to an output's monitor (a level meter) doesn't count.
     readonly property var recorders: sourceLinks.linkGroups.map(g => g.target).filter(n => n && n.isStream && n.audio)
