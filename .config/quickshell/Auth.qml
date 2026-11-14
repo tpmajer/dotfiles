@@ -154,6 +154,8 @@ Overlay {
             // The agent drops a flow before the flow says it succeeded: its
             // signal for that reaches nobody.
             onFlowChanged: auth.adopt()
+            onIsRegisteredChanged: if (isRegistered)
+                auth.registerTries = 0
 
             onAuthenticationRequestStarted: {
                 granted.stop();
@@ -173,6 +175,7 @@ Overlay {
             onRead: line => {
                 if (!line.startsWith("Started polkitd"))
                     return;
+                auth.registerTries = 0;
                 agentLoader.active = false;
                 newAgent.restart();
             }
@@ -184,6 +187,19 @@ Overlay {
         id: newAgent
         interval: 1000
         onTriggered: agentLoader.active = true
+    }
+
+    // Refused while another agent holds the session, as that of a crashed
+    // process still does while it dumps core: asked again, a few times.
+    property int registerTries: 0
+    Timer {
+        interval: 3000
+        running: auth.agent !== null && !auth.agent.isRegistered && auth.registerTries < 5
+        onTriggered: {
+            auth.registerTries++;
+            agentLoader.active = false;
+            newAgent.restart();
+        }
     }
 
     Connections {
