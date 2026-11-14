@@ -138,11 +138,12 @@ Overlay {
         if (locked)
             Qt.callLater(cancel);
     }
-    Component.onCompleted: adopt()
 
     // polkitd forgets its agents when it restarts (a rebuild), and only a
     // new PolkitAgent registers again: the old one goes, then a new one comes.
     readonly property PolkitAgent agent: agentLoader.item
+    // A flow taken over in a reload is told before the agent is here.
+    onAgentChanged: adopt()
 
     // Made with the window, not in its reload: an agent come in that, with
     // a flow, shows a window not there yet, and qs crashes.
