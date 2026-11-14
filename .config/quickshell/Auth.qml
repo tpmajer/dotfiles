@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell.Io
 import Quickshell.Services.Polkit
 import Quickshell.Wayland
+import qs.services
 import qs.widgets
 
 // Polkit's authentication agent: what a program asks the password or a
@@ -168,8 +169,7 @@ Overlay {
         }
     }
 
-    Process {
-        running: true
+    Watcher {
         command: ["journalctl", "--follow", "--lines=0", "--output=cat", "--identifier=polkitd"]
         stdout: SplitParser {
             onRead: line => {
