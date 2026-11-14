@@ -1,5 +1,4 @@
 import QtQuick
-import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Polkit
 import Quickshell.Wayland
@@ -145,11 +144,12 @@ Overlay {
     // new PolkitAgent registers again: the old one goes, then a new one comes.
     readonly property PolkitAgent agent: agentLoader.item
 
-    LazyLoader {
+    // Made with the window, not in its reload: an agent come in that, with
+    // a flow, shows a window not there yet, and qs crashes.
+    Loader {
         id: agentLoader
-        active: true
 
-        PolkitAgent {
+        sourceComponent: PolkitAgent {
             // The agent drops a flow before the flow says it succeeded: its
             // signal for that reaches nobody.
             onFlowChanged: auth.adopt()
