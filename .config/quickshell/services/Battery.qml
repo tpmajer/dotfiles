@@ -18,6 +18,9 @@ Singleton {
     // What the limit is kept at, and what the popup's switch goes back to.
     readonly property int limitedAt: 80
     readonly property bool limited: fullAt < 100
+    // Quiet mode: the firmware's low-power profile, which TLP sets on AC and
+    // on battery. Off is full power, until TLP sets it again.
+    property bool quiet: true
     readonly property string sysfs: "/sys/class/power_supply/BAT1/"
 
     property int capacity: 0
@@ -82,6 +85,18 @@ Singleton {
         onExited: root.refresh()
     }
 
+    // Quiet mode off, for a long build, or back on: cpu-quiet-mode@.service,
+    // started like the charge limit's.
+    function toggleQuiet() {
+        quietSwitch.command = ["systemctl", "--no-ask-password", "start", "cpu-quiet-mode@" + (quiet ? "off" : "on") + ".service"];
+        quietSwitch.running = true;
+    }
+
+    Process {
+        id: quietSwitch
+        onExited: root.refresh()
+    }
+
     // What was last told of: kept over a reload of the configuration, not to
     // tell it again.
     PersistentProperties {
@@ -106,6 +121,7 @@ Singleton {
         const limit = Number(read(limitFile));
         if (limit > 0 && limit <= 100)
             fullAt = limit;
+        quiet = read(profileFile) === "low-power";
         status = read(statusFile);
         capacity = Number(read(capacityFile));
         // Microamperes by microvolts.
@@ -145,6 +161,7 @@ Singleton {
     FileView { id: chargeDesignFile; path: root.sysfs + "charge_full_design"; blockLoading: true }
     FileView { id: limitFile; path: root.sysfs + "charge_control_end_threshold"; blockLoading: true }
     FileView { id: cyclesFile; path: root.sysfs + "cycle_count"; blockLoading: true }
+    FileView { id: profileFile; path: "/sys/firmware/acpi/platform_profile"; blockLoading: true }
 
     // Plug/unplug shows up immediately instead of on the next poll.
     Watcher {
