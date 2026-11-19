@@ -3,8 +3,9 @@ import Quickshell
 import Quickshell.Io
 
 // USBGuard (usbguard.nix in ~/.nixos) blocks the devices new to it while the
-// session is locked and lets any in otherwise. One blocked meanwhile stays so
-// until it is plugged in again: a notification after the unlock names it.
+// session is locked and lets any in otherwise. After the unlock, a device in
+// before the lock that came back under it (a reset in sleep) is let in again;
+// any other stays blocked until plugged in again, named in a notification.
 Scope {
     id: root
 
@@ -16,6 +17,11 @@ Scope {
     readonly property string target: locked ? "block" : "allow"
     // What USBGuard was last told, "" before that.
     property string applied: ""
+    // Hashes of the devices let in and of those blocked as the lock began,
+    // kept for the unlock while snapped.
+    property list<string> trusted: []
+    property list<string> blockedBefore: []
+    property bool snapped: false
     // It refused the last time: told once, until it takes one again.
     property bool failing: false
 
@@ -51,8 +57,12 @@ Scope {
         }
         onExited: exitCode => {
             if (exitCode === 0) {
-                if (root.applied === "block" && setter.sent === "allow")
-                    blocked.running = true;
+                if (setter.sent === "block" && !root.snapped) {
+                    root.snapped = true;
+                    snapshot.running = true;
+                } else if (setter.sent === "allow" && root.snapped) {
+                    review.running = true;
+                }
                 root.applied = setter.sent;
                 root.failing = false;
             } else {
@@ -97,12 +107,46 @@ Scope {
     }
 
     Process {
-        id: blocked
+        id: snapshot
+
+        command: ["usbguard", "list-devices"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (!root.locked)
+                    return;
+                const allowed = [];
+                const blocked = [];
+                for (const line of text.split("\n")) {
+                    const hash = root.attribute(line, "hash");
+                    if (hash)
+                        (/^\d+: allow /.test(line) ? allowed : blocked).push(hash);
+                }
+                root.trusted = allowed;
+                root.blockedBefore = blocked;
+            }
+        }
+    }
+
+    Process {
+        id: review
 
         command: ["usbguard", "list-devices", "--blocked"]
         stdout: StdioCollector {
             onStreamFinished: {
-                const names = text.split("\n").filter(line => line.trim()).map(line => root.escaped(root.attribute(line, "name") || "Unnamed device"));
+                const names = [];
+                for (const line of text.split("\n")) {
+                    const id = line.match(/^(\d+): /);
+                    if (!id)
+                        continue;
+                    const hash = root.attribute(line, "hash");
+                    if (root.trusted.includes(hash))
+                        Quickshell.execDetached(["usbguard", "allow-device", id[1]]);
+                    else if (!root.blockedBefore.includes(hash))
+                        names.push(root.escaped(root.attribute(line, "name") || "Unnamed device"));
+                }
+                root.snapped = false;
+                root.trusted = [];
+                root.blockedBefore = [];
                 if (names.length)
                     Quickshell.execDetached([Quickshell.shellDir + "/scripts/notify-replace.sh", "usbguard", "-a", "USBGuard", "Blocked while locked", names.join("\n") + "\nPlug in again to use."]);
             }
