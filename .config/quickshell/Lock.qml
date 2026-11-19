@@ -514,6 +514,10 @@ Scope {
         id: wallpapers
     }
 
+    UsbGuard {
+        locked: state.locked
+    }
+
     // Read at every lock and after the Caps Lock key is pressed and released,
     // a moment later for niri to have set the LED.
     Process {
