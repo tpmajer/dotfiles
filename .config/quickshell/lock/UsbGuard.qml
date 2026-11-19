@@ -16,6 +16,8 @@ Scope {
     readonly property string target: locked ? "block" : "allow"
     // What USBGuard was last told, "" before that.
     property string applied: ""
+    // It refused the last time: told once, until it takes one again.
+    property bool failing: false
 
     function apply() {
         if (!settled || setter.running || applied === target)
@@ -40,11 +42,45 @@ Scope {
                 if (root.applied === "block" && setter.sent === "allow")
                     blocked.running = true;
                 root.applied = setter.sent;
+                root.failing = false;
             } else {
                 console.warn(`USBGuard refused ${setter.sent}: ${setterError.text.trim()}`);
+                if (!root.failing) {
+                    root.failing = true;
+                    const blocking = setter.sent === "block";
+                    Quickshell.execDetached([Quickshell.shellDir + "/scripts/notify-replace.sh", "usbguard-error", "-a", "USBGuard", "-u", blocking ? "critical" : "normal", blocking ? "USB devices not blocked under the lock" : "New USB devices stay blocked", setterError.text.trim()]);
+                }
             }
             if (root.target !== setter.sent)
                 root.apply();
+        }
+    }
+
+    // Retries what USBGuard refused. Under the lock, also checks that it
+    // still blocks: restarted, it is back at its default, allow.
+    Timer {
+        interval: 5000
+        repeat: true
+        running: root.settled && (root.applied !== root.target || root.locked)
+        onTriggered: {
+            if (root.applied !== root.target)
+                root.apply();
+            else
+                check.running = true;
+        }
+    }
+
+    Process {
+        id: check
+
+        command: ["usbguard", "get-parameter", "ImplicitPolicyTarget"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (root.locked && text.trim() !== "block") {
+                    root.applied = "";
+                    root.apply();
+                }
+            }
         }
     }
 
