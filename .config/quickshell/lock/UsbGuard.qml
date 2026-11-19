@@ -9,20 +9,23 @@ Scope {
     id: root
 
     required property bool locked
+    // Whether the session is locked is known: a start finds that out after
+    // a moment, and would let devices in under a lock meanwhile.
+    required property bool settled
 
     readonly property string target: locked ? "block" : "allow"
     // What USBGuard was last told, "" before that.
     property string applied: ""
 
     function apply() {
-        if (setter.running || applied === target)
+        if (!settled || setter.running || applied === target)
             return;
         setter.sent = target;
         setter.exec(["usbguard", "set-parameter", "ImplicitPolicyTarget", target]);
     }
 
     onTargetChanged: apply()
-    Component.onCompleted: apply()
+    onSettledChanged: apply()
 
     Process {
         id: setter

@@ -66,6 +66,9 @@ Scope {
     property real dark: 0
     // The session is being logged out of, the screen faded already.
     property bool leavingSession: false
+    // Whether the session is locked is known: after the marker is checked
+    // at a start, at once after a reload.
+    property bool settled: false
 
     function conceal() {
         if (state.locked)
@@ -440,6 +443,7 @@ Scope {
                 root.shade = 1;
                 state.locked = true;
             }
+            root.settled = true;
         }
     }
 
@@ -450,6 +454,8 @@ Scope {
         onTriggered: {
             if (!state.started)
                 markerCheck.running = true;
+            else
+                root.settled = true;
             state.started = true;
         }
     }
@@ -518,6 +524,7 @@ Scope {
     // device, and so is the session after it.
     UsbGuard {
         locked: state.locked && !root.leavingSession
+        settled: root.settled
     }
 
     // Read at every lock and after the Caps Lock key is pressed and released,
