@@ -514,8 +514,10 @@ Scope {
         id: wallpapers
     }
 
+    // Leaving the session locks it too, but the login screen is to take any
+    // device, and so is the session after it.
     UsbGuard {
-        locked: state.locked
+        locked: state.locked && !root.leavingSession
     }
 
     // Read at every lock and after the Caps Lock key is pressed and released,
