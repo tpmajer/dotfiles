@@ -26,6 +26,18 @@ Scope {
         setter.exec(["usbguard", "set-parameter", "ImplicitPolicyTarget", target]);
     }
 
+    // An attribute of a device as `usbguard list-devices` prints it, with
+    // its escapes undone.
+    function attribute(line, name) {
+        const found = line.match(new RegExp(` ${name} "((?:[^"\\\\]|\\\\.)*)"`));
+        return found ? found[1].replace(/\\x([0-9a-fA-F]{2})|\\(.)/g, (_, hex, char) => hex ? String.fromCharCode(parseInt(hex, 16)) : char) : "";
+    }
+
+    // A device names itself: its name is kept out of the notification's markup.
+    function escaped(text) {
+        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
     onTargetChanged: apply()
     onSettledChanged: apply()
 
@@ -90,7 +102,7 @@ Scope {
         command: ["usbguard", "list-devices", "--blocked"]
         stdout: StdioCollector {
             onStreamFinished: {
-                const names = text.split("\n").map(line => line.match(/ name "([^"]*)"/)).filter(m => m).map(m => m[1] || "Unnamed device");
+                const names = text.split("\n").filter(line => line.trim()).map(line => root.escaped(root.attribute(line, "name") || "Unnamed device"));
                 if (names.length)
                     Quickshell.execDetached([Quickshell.shellDir + "/scripts/notify-replace.sh", "usbguard", "-a", "USBGuard", "Blocked while locked", names.join("\n") + "\nPlug in again to use."]);
             }
